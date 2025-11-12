@@ -1,0 +1,13 @@
+--theme="tokyonight"
+--italic-text=always
+--style="header,grid"
+# --style="auto"
+#--paging=never
+# --terminal-width="$((COLUMNS-2))"
+# --terminal-width="$(tput cols)"
+
+# --map-syntax "_*:Bourne Again Shell"
+--map-syntax "*.ino:C++"
+--map-syntax ".ignore:Git Ignore"
+--map-syntax "*.h:C++"
+--map-syntax "*.t:Perl"

@@ -1,0 +1,25 @@
+#compdef pacrepo
+
+_pacrepo() {
+    local -a repos commands
+    
+    commands=(
+        'list:Show available repositories'
+        'core:Search in core repository'
+        'extra:Search in extra repository'
+        'community:Search in community repository'
+        'multilib:Search in multilib repository'
+        'all:Search in all repositories'
+    )
+    
+    case $CURRENT in
+        2)
+            _describe -t commands 'pacrepo commands' commands
+            ;;
+        *)
+            _arguments '*:search term:'
+            ;;
+    esac
+}
+
+compdef _pacrepo pacrepo

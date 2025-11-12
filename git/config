@@ -1,0 +1,19 @@
+[user]
+    name = Theron Steinbrecher
+    email = theron@chaoscore.org
+	signingkey = /home/theron/.core/env/.ssh/id_github.pub
+[commit]
+	gpgsign = true
+[tag]
+	gpgSign = true
+[gpg]
+	program = /usr/bin/gpg
+	format = ssh
+[credential "https://github.com"]
+	helper = 
+	helper = !/usr/bin/gh auth git-credential
+[init]
+	defaultBranch = master
+[credential "https://gist.github.com"]
+	helper = 
+	helper = !/usr/bin/gh auth git-credential

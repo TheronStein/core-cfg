@@ -1,0 +1,364 @@
+# vim: ft=cfg
+# Basic options
+# default_keybindings = false
+# default_keybindings = true
+use_nerdfont = true
+notify = true
+gapless = true
+flip_status_indicators=true
+shuffle = true
+repeat = 'off'
+# bitrate = 320
+
+[keybindings]
+## unbinded: nN, c, eE, xX
+######################################
+# Song controls
+######################################
+
+##################
+# Fast forward / rewind
+##################
+# "Shift-q" = "seek -1000"
+# "Shift+e" = "seek +1000"
+"Left" = "seek -3000"
+"Right" = "seek +3000"
+"Ctrl+Left" = "seek -5000"
+"Ctrl+Right" = "seek +5000"
+"Shift+Left" = "seek -10000"
+"Shift+Right" = "seek +10000"
+"Shift+j" = "seek -2000"
+"Shift+l" = "seek +2000"
+
+##################
+# Play / pause
+##################
+# "Tab" = "toggleplay"
+"p" = "toggleplay"
+"Space" = "toggleplay"
+# "BackSpace" = "stop"
+
+##################
+# Track manipulation
+##################
+"q" = "previous"
+"e" = "next"
+"r" = "repeat"
+"S" = "shuffle"
+"Ctrl+d" = "delete"
+"Ctrl+s" = "save"
+# Open context menu
+# "Ctrl+Space" = "open current"
+"Ctrl+Enter" = "open current"
+"Alt+Enter" = "open current"
+"Enter" = "open selected"
+# "1" = "goto tracks"
+"1" = "focus queue"
+"3" = "goto artist"
+"2" = "focus library"
+"4" = "focus search"
+"5" = "goto playlist"
+"F1" = "goto album"
+"Tab" = "focus cover"
+
+##################
+# Queue
+##################
+# Add to queue
+"q a" = "queue"
+"q s" = "save queue"
+# Move selected song up/down in the queue
+"Ctrl+Shit+s" = "shift down 6"
+"Ctrl+Shift+w" = "shift up 5"
+"c+q" = "clear"
+# Open the context menu for a Spotify link in the clipboard
+"Alt+i" = "insert"
+
+######################################
+# Sound
+######################################
+"=" = "volup 1"
+"-" = "voldown 1"
+"+" = "volup 10"
+"_" = "voldown 10"
+"Ctrl+-" = "voldown 5"
+"Ctrl+=" = "voldown 5"
+
+######################################
+# Movements
+######################################
+"Alt+n" = "new playlist"
+"Alt+a" = "add [current]"
+"Alt+s" = "save [current]"
+# Navigation
+"G" = "move bottom"
+"g" = "move top"
+"a" = "move left 1"
+"d" = "move right 1"
+"w" = "move up 1"
+"s" = "move down 1"
+"i" = "move up 1"
+"l" = "move right 1"
+"j" = "move left 1"
+"k" = "move down 1"
+"b" = "back"
+"Backspace" = "back"
+"Ctrl+i" = "move up 3"
+"Ctrl+k" = "move down 3"
+"Shift+i" = "move up 5"
+"Shift+k" = "move down 5"
+"Shift+w" = "move up 8"
+"Shift+s" = "move down 8"
+
+######################################
+# Sorting
+######################################
+"Ctrl+1"= "sort artist d"
+"Ctrl+2" = "sort title a"
+"Ctrl+3" = "sort added d"
+"Ctrl+4" = "sort album d"
+"Ctrl+r" ="reload"
+
+######################################
+# Sharing
+######################################
+"Shift+y" = "share selected"
+"y" = "share current"
+
+######################################
+# Other
+######################################
+"Esc" = "back"
+"Ctrl+c" = "quit"
+"Ctrl+q" = "quit"
+"?" = "help"
+"Ctrl+u" = "update"
+
+"R" = "ShowRecommendations"
+
+# Gruvbox dark [ originally based on base16 by Dawid Kurek (dawikur@gmail.com) ]
+# background = "default"
+# primary = "#a89984"
+# secondary = "#928374"
+# title = "#8ec07c"
+# playing = "#689d6a"
+# playing_bg = "#383838"
+# playing_selected = "#ebdbb2"
+# highlight = "#d5c4a1"
+# highlight_bg = "#484848"
+# error = "#fbf1c7"
+# error_bg = "#cc241d"
+# statusbar_progress = "#458588"
+# statusbar_bg = "#282828"
+# statusbar = "#98971a"
+# cmdline = "#d5c4a1"
+# cmdline_bg = "#383838"
+# search_match = "#fabd2f"
+#
+## Base16 solarized dark, originally form https://github.com/gidsi/base16-ncspot
+# background = "#222244"
+# primary = "#eee8d5"
+# #ffed71
+# #eee8d5
+
+##00688B
+##005F77
+##007979
+
+[theme]
+background = "#1B2E3E"
+# background = "#102E38"
+# background = "#0E3333"
+# background = "#1e1e2e"
+primary = "#cdd6f4"
+secondary = "#01F9C6"
+title = "#94e2d5"
+playing = "#a6e3a1"
+playing_bg = "#1e1e2e"
+highlight = "#01F9C6"
+highlight_bg = "#313244"
+# highlight = "#94e2d5"
+# highlight_bg = "#598081"
+playing_selected = "#a6e3a1"
+error = "#1e1e2e"
+error_bg = "#f38ba8"
+statusbar = "#01F9C6"
+statusbar_bg = "#313244"
+statusbar_progress = "#01F9C6"
+cmdline = "#01F9C6"
+cmdline_bg = "#181825"
+
+# "#94e2d5"
+# "#01F9C6
+# "#57BEFB"
+##004E66
+##005F77
+##00688B
+##007979
+
+# [theme]
+# background = "#1A1D23"
+# primary = "#D8DEE9"
+# secondary = "#D8DEE9"
+# title = "#01F9C6"
+# playing = "#1A1D23"
+# playing_selected = "#01F9C6"
+# playing_bg = ""#01F9C6
+# highlight = "#01F9C6"
+# highlight_bg = "#263540"
+# error = "#ECEFF4"
+# error_bg = "#BF616A"
+# statusbar = "#CFCFC7"
+# statusbar_progress = "#CFCFC7"
+# statusbar_bg = "#232B38"
+# cmdline = "#D8DEE9"
+# cmdline_bg = "#111519"
+# search_match = "#B48EAD"
+
+# [theme]
+# background = "#1d0048"
+# primary = "#eee8d5"
+# secondary = "#006060"
+# title = "#01f9c6"
+# playing = "#01f9c6"
+# playing_selected = "#006060"
+# playing_bg = "#008755002b36"
+# highlight = "#000000"
+# highlight_bg = "#01F9C6"
+# error = "#93a1a1"
+# error_bg = "#fdf6e3"
+# statusbar = "#002b36"
+# statusbar_progress = "#ffed71"
+# statusbar_bg = "#01F9C6"
+# cmdline = "#93a1a1"
+# cmdline_bg = "black"
+# search_match = "#ffed71"
+
+
+# [theme]
+# background = "default"
+# primary = "#cdd6f4"
+# secondary = "bac2de"
+# title = "#cba6f7"
+# playing = "#cba6f7"
+# playing_selected = "#000000"
+# playing_bg = "default"
+# highlight = "#000000"
+# highlight_bg = "#a6e3a1"
+# error = "black"
+# error_bg = "#f38ba8"
+# statusbar = "#191414"
+# statusbar_progress = "#cba6f7"
+# statusbar_bg = "#cba6f7"
+# cmdline = "#cdd6f4"
+# cmdline_bg = "#191414"
+# search_match = "#f38ba8"
+
+# [theme]
+# background = "default"
+# #background = "#24283b"
+# primary = "#c0caf5"
+# secondary = "#1a1b26"
+# title = "#e0af68"
+# playing = "#7dcfff"
+# playing_selected = "#73daca"
+# playing_bg = "#1a1b26"
+# highlight = "#73daca"
+# highlight_bg = "#1a1b26"
+# error = "#c0caf5"
+# error_bg = "#f7768e"
+# statusbar = "#24283b"
+# statusbar_progress = "#73daca"
+# statusbar_bg = "#7dcfff"
+#
+# cmdline_bg = "#24283b"
+# search_match = "#bb9af7"
+#
+# [theme]
+# background = "default"
+# #background = "#2E3440"
+# primary = "#D8DEE9"
+# secondary = "#4C566A"
+# title = "#EBCB8B"
+# playing = "#2E3440"
+# playing_selected = "#FF6060"
+# playing_bg = "#88C0D0"
+# highlight = "#88C0D0"
+# highlight_bg = "#4C566A"
+# error = "#ECEFF4"
+# error_bg = "#BF616A"
+# statusbar = "#2E3440"
+# statusbar_progress = "#A3BE8C"
+# statusbar_bg = "#8FBCBB"
+# cmdline = "#D8DEE9"
+# cmdline_bg = "#2E3440"
+# search_match = "#B48EAD"
+
+
+# [theme]
+# background = "#002b36
+# primary = "#eee8d5"
+# secondary = "#2aa198"
+# title = "#859900"
+# playing = "#268bd2"
+# playing_selected = "light green"
+# playing_bg = "#002b36"
+# highlight = "#93a1a1"
+# highlight_bg = "#484848"
+# error = "#93a1a1"
+# error_bg = "#fdf6e3"
+# statusbar = "#002b36"
+# statusbar_progress = "#dc322f"
+# statusbar_bg = "#859900"
+# cmdline = "#93a1a1"
+# cmdline_bg = "#002b36"
+#
+## Spotify
+# [theme]
+# background = "black"
+# primary = "light white"
+# secondary = "light black"
+# title = "green"
+# playing = "green"
+# playing_selected = "light green"
+# playing_bg = "black"
+# highlight = "light white"
+# highlight_bg = "#484848"
+# error = "light white"
+# error_bg = "red"
+# statusbar = "black"
+# statusbar_progress = "green"
+# statusbar_bg = "green"
+# cmdline = "light white"
+# cmdline_bg = "black"
+
+# [theme]
+# background = "#1e1e2e"
+# primary = "#cdd6f4"
+# secondary = "#94e2d5"
+# title = "#74c7ec"
+# playing = "#a6e3a1"
+# playing_bg = "#1e1e2e"
+# highlight = "#cdd6f4"
+# highlight_bg = "#49728d"
+# playing_selected = "#a6e3a1"
+# error = "#1e1e2e"
+# error_bg = "#f38ba8"
+# statusbar = "#74c7ec"
+# statusbar_bg = "#313244"
+# statusbar_progress = "#74c7ec"
+# cmdline = "#74c7ec"
+# cmdline_bg = "#181825"
+
+statusbar_format = "%artists - %title"
+
+[track_format]
+left = " %saved    %title     %duration"
+center = "%artists"
+right = "%album"
+
+[notification_format]
+title = "  %title  "
+body = "%artists  |    %album"
+
+cover_max_scale = 2

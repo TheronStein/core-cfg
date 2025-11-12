@@ -1,0 +1,156 @@
+NEOMUTT DEFAULT KEYBINDINGS REFERENCE
+=====================================
+
+Generated from your system on 2025-11-04
+
+NAVIGATION (INDEX & PAGER)
+--------------------------
+j, <Down>          - Next entry
+k, <Up>            - Previous entry
+<Enter>            - Display message
+<Space>, <PageDn>  - Next page
+-, <PageUp>        - Previous page
+[                  - Jump to previous thread
+]                  - Jump to next thread
+^                  - Jump to parent message
+H                  - Display help
+q                  - Quit/Exit menu
+/                  - Search
+n                  - Next search match
+\                  - Toggle search pattern
+=                  - First message
+*                  - Last message
+
+MESSAGE ACTIONS (INDEX)
+-----------------------
+d                  - Delete message
+u                  - Undelete message
+D                  - Delete pattern
+U                  - Undelete pattern
+s                  - Save message
+r                  - Reply
+g                  - Group reply (reply-all)
+L                  - List reply
+f                  - Forward message
+b                  - Bounce message
+m                  - Compose new message
+v                  - View attachments
+t                  - Tag message
+T                  - Tag pattern
+^T                 - Untag pattern
+;                  - Tag prefix (apply next action to tagged)
+w                  - Set flag
+W                  - Clear flag
+
+FOLDER/MAILBOX (INDEX)
+----------------------
+c                  - Change folder (press c then ? to browse all folders)
+c?                 - Browse all IMAP folders
+o                  - Sort mailbox
+O                  - Reverse sort
+$                  - Sync mailbox
+^G                 - Get mail (fetch)
+L                  - Limit/Filter messages by pattern
+l                  - Show only current thread
+
+PAGER (READING EMAIL)
+---------------------
+<Enter>            - Next line
+<Space>            - Next page
+-                  - Previous page
+n                  - Next message
+p                  - Previous message
+j                  - Next entry (undeleted)
+k                  - Previous entry (undeleted)
+^                  - Jump to top
+$                  - Jump to bottom
+/                  - Search in message
+h                  - Display headers
+v                  - View attachments
+i, <Esc>i          - Return to index
+q                  - Exit pager
+
+COMPOSE MENU
+------------
+a                  - Attach file
+A                  - Attach message
+d                  - Edit description
+D                  - Detach file
+t                  - Edit To field
+c                  - Edit Cc field
+b                  - Edit Bcc field
+s                  - Edit Subject
+r                  - Edit Reply-To
+f                  - Edit Fcc (save sent to)
+e                  - Edit message
+E                  - Edit headers
+P                  - Postpone message
+p                  - PGP menu
+S                  - S/MIME menu
+y                  - Send message
+q                  - Quit (abort)
+
+ATTACHMENT MENU
+---------------
+<Enter>            - View attachment
+v                  - View attachment with mailcap
+d                  - Delete attachment
+u                  - Undelete attachment
+s                  - Save attachment
+p                  - Print attachment
+|                  - Pipe to command
+
+SIDEBAR
+-------
+Ctrl-N             - Next mailbox in sidebar
+Ctrl-P             - Previous mailbox in sidebar
+Ctrl-O             - Open highlighted mailbox
+B                  - Toggle sidebar visibility
+
+THREADS (EMAIL CONVERSATIONS)
+------------------------------
+Ctrl-R             - Mark entire thread as read
+[                  - Jump to previous thread root
+]                  - Jump to next thread root
+^                  - Jump to parent message in thread
+Esc-v              - Collapse/expand current thread
+Esc-V              - Collapse/expand all threads
+l                  - Limit view to current thread only
+
+TAGGING & PATTERNS
+------------------
+t                  - Tag message
+T                  - Tag pattern
+^T                 - Untag pattern
+;                  - Apply next command to tagged messages
+~A                 - All messages
+~b EXPR            - Messages with EXPR in body
+~d [MIN]-[MAX]     - Messages with date in range
+~f USER            - Messages from USER
+~t USER            - Messages to USER
+~s SUBJECT         - Messages with SUBJECT
+~N                 - New messages
+~O                 - Old messages
+~R                 - Read messages
+~U                 - Unread messages
+~D                 - Deleted messages
+~F                 - Flagged messages
+
+YOUR CUSTOM BINDINGS
+--------------------
+F2                 - Switch to Gmail account
+F3                 - Switch to Proton account
+F4                 - Switch to Careview account
+c                  - Change folder
+gi                 - Go to inbox
+Ctrl+r             - Refresh mailbox list
+
+ADVANCED
+--------
+!                  - Shell escape
+:                  - Enter command
+<Tab>              - Complete (addresses, files)
+?                  - Show keybindings for current menu
+
+For complete documentation: /usr/share/doc/neomutt/manual.txt
+Or run :help inside neomutt

@@ -1,0 +1,124 @@
+      --onedrive-access-scopes SpaceSepList                 Set scopes to be requested by rclone (default Files.Read Files.ReadWrite Files.Read.All Files.ReadWrite.All Sites.Read.All offline_access)
+      --onedrive-auth-url string                            Auth server URL
+      --onedrive-av-override                                Allows download of files the server thinks has a virus
+      --onedrive-chunk-size SizeSuffix                      Chunk size to upload files with - must be multiple of 320k (327,680 bytes) (default 10Mi)
+      --onedrive-client-id string                           OAuth Client Id
+      --onedrive-client-secret string                       OAuth Client Secret
+      --onedrive-delta                                      If set rclone will use delta listing to implement recursive listings
+      --onedrive-description string                         Description of the remote
+      --onedrive-drive-id string                            The ID of the drive to use
+      --onedrive-drive-type string                          The type of the drive (personal | business | documentLibrary)
+      --onedrive-encoding Encoding                          The encoding for the backend (default Slash,LtGt,DoubleQuote,Colon,Question,Asterisk,Pipe,BackSlash,Del,Ctl,LeftSpace,LeftTilde,RightSpace,RightPeriod,InvalidUtf8,Dot)
+      --onedrive-expose-onenote-files                       Set to make OneNote files show up in directory listings
+      --onedrive-hard-delete                                Permanently delete files on removal
+      --onedrive-hash-type string                           Specify the hash in use for the backend (default "auto")
+      --onedrive-link-password string                       Set the password for links created by the link command
+      --onedrive-link-scope string                          Set the scope of the links created by the link command (default "anonymous")
+      --onedrive-link-type string                           Set the type of the links created by the link command (default "view")
+      --onedrive-list-chunk int                             Size of listing chunk (default 1000)
+      --onedrive-metadata-permissions Bits                  Control whether permissions should be read or written in metadata (default off)
+      --onedrive-no-versions                                Remove all versions on modifying operations
+      --onedrive-region string                              Choose national cloud region for OneDrive (default "global")
+      --onedrive-root-folder-id string                      ID of the root folder
+      --onedrive-server-side-across-configs                 Deprecated: use --server-side-across-configs instead
+      --onedrive-token string                               OAuth Access Token as a JSON blob
+      --onedrive-token-url string                           Token server url
+
+
+
+ --dropbox-auth-url string                             Auth server URL
+      --dropbox-batch-commit-timeout Duration               Max time to wait for a batch to finish committing (default 10m0s)
+      --dropbox-batch-mode string                           Upload file batching sync|async|off (default "sync")
+      --dropbox-batch-size int                              Max number of files in upload batch
+      --dropbox-batch-timeout Duration                      Max time to allow an idle upload batch before uploading (default 0s)
+      --dropbox-chunk-size SizeSuffix                       Upload chunk size (< 150Mi) (default 48Mi)
+      --dropbox-client-id string                            OAuth Client Id
+      --dropbox-client-secret string                        OAuth Client Secret
+      --dropbox-description string                          Description of the remote
+      --dropbox-encoding Encoding                           The encoding for the backend (default Slash,BackSlash,Del,RightSpace,InvalidUtf8,Dot)
+      --dropbox-impersonate string                          Impersonate this user when using a business account
+      --dropbox-pacer-min-sleep Duration                    Minimum time to sleep between API calls (default 10ms)
+      --dropbox-root-namespace string                       Specify a different Dropbox namespace ID to use as the root for all paths
+      --dropbox-shared-files                                Instructs rclone to work on individual shared files
+      --dropbox-shared-folders                              Instructs rclone to work on shared folders
+      --dropbox-token string                                OAuth Access Token as a JSON blob
+      --dropbox-token-url string                            Token server url
+	  
+	  
+	  
+	  
+	        --gphotos-auth-url string                             Auth server URL
+      --gphotos-batch-commit-timeout Duration               Max time to wait for a batch to finish committing (default 10m0s)
+      --gphotos-batch-mode string                           Upload file batching sync|async|off (default "sync")
+      --gphotos-batch-size int                              Max number of files in upload batch
+      --gphotos-batch-timeout Duration                      Max time to allow an idle upload batch before uploading (default 0s)
+      --gphotos-client-id string                            OAuth Client Id
+      --gphotos-client-secret string                        OAuth Client Secret
+      --gphotos-description string                          Description of the remote
+      --gphotos-encoding Encoding                           The encoding for the backend (default Slash,CrLf,InvalidUtf8,Dot)
+      --gphotos-include-archived                            Also view and download archived media
+      --gphotos-read-only                                   Set to make the Google Photos backend read only
+      --gphotos-read-size                                   Set to read the size of media items
+      --gphotos-start-year int                              Year limits the photos to be downloaded to those which are uploaded after the given year (default 2000)
+      --gphotos-token string                                OAuth Access Token as a JSON blob
+      --gphotos-token-url string                            Token server url
+	  
+	  
+	    --drive-acknowledge-abuse                             Set to allow files which return cannotDownloadAbusiveFile to be downloaded
+      --drive-allow-import-name-change                      Allow the filetype to change when uploading Google docs
+      --drive-auth-owner-only                               Only consider files owned by the authenticated user
+      --drive-auth-url string                               Auth server URL
+      --drive-chunk-size SizeSuffix                         Upload chunk size (default 8Mi)
+      --drive-client-id string                              Google Application Client Id
+      --drive-client-secret string                          OAuth Client Secret
+      --drive-copy-shortcut-content                         Server side copy contents of shortcuts instead of the shortcut
+      --drive-description string                            Description of the remote
+      --drive-disable-http2                                 Disable drive using http2 (default true)
+      --drive-encoding Encoding                             The encoding for the backend (default InvalidUtf8)
+      --drive-env-auth                                      Get IAM credentials from runtime (environment variables or instance meta data if no env vars)
+      --drive-export-formats string                         Comma separated list of preferred formats for downloading Google docs (default "docx,xlsx,pptx,svg")
+      --drive-fast-list-bug-fix                             Work around a bug in Google Drive listing (default true)
+      --drive-formats string                                Deprecated: See export_formats
+      --drive-impersonate string                            Impersonate this user when using a service account
+      --drive-import-formats string                         Comma separated list of preferred formats for uploading Google docs
+      --drive-keep-revision-forever                         Keep new head revision of each file forever
+      --drive-list-chunk int                                Size of listing chunk 100-1000, 0 to disable (default 1000)
+      --drive-metadata-labels Bits                          Control whether labels should be read or written in metadata (default off)
+      --drive-metadata-owner Bits                           Control whether owner should be read or written in metadata (default read)
+      --drive-metadata-permissions Bits                     Control whether permissions should be read or written in metadata (default off)
+      --drive-pacer-burst int                               Number of API calls to allow without sleeping (default 100)
+      --drive-pacer-min-sleep Duration                      Minimum time to sleep between API calls (default 100ms)
+      --drive-resource-key string                           Resource key for accessing a link-shared file
+      --drive-root-folder-id string                         ID of the root folder
+      --drive-scope string                                  Comma separated list of scopes that rclone should use when requesting access from drive
+      --drive-server-side-across-configs                    Deprecated: use --server-side-across-configs instead
+      --drive-service-account-credentials string            Service Account Credentials JSON blob
+      --drive-service-account-file string                   Service Account Credentials JSON file path
+      --drive-shared-with-me                                Only show files that are shared with me
+      --drive-show-all-gdocs                                Show all Google Docs including non-exportable ones in listings
+      --drive-size-as-quota                                 Show sizes as storage quota usage, not actual size
+      --drive-skip-checksum-gphotos                         Skip checksums on Google photos and videos only
+      --drive-skip-dangling-shortcuts                       If set skip dangling shortcut files
+      --drive-skip-gdocs                                    Skip google documents in all listings
+      --drive-skip-shortcuts                                If set skip shortcut files
+      --drive-starred-only                                  Only show files that are starred
+      --drive-stop-on-download-limit                        Make download limit errors be fatal
+      --drive-stop-on-upload-limit                          Make upload limit errors be fatal
+      --drive-team-drive string                             ID of the Shared Drive (Team Drive)
+      --drive-token string                                  OAuth Access Token as a JSON blob
+      --drive-token-url string                              Token server url
+      --drive-trashed-only                                  Only show files that are in the trash
+      --drive-upload-cutoff SizeSuffix                      Cutoff for switching to chunked upload (default 8Mi)
+      --drive-use-created-date                              Use file created date instead of modified date
+      --drive-use-shared-date                               Use date file was shared instead of modified date
+      --drive-use-trash                                     Send files to the trash instead of deleting permanently (default true)
+      --drive-v2-download-min-size SizeSuffix               If Object's are greater, use drive v2 API to download (default off)
+	  
+	  
+	   --mega-debug                                          Output more debug from Mega
+      --mega-description string                             Description of the remote
+      --mega-encoding Encoding                              The encoding for the backend (default Slash,InvalidUtf8,Dot)
+      --mega-hard-delete                                    Delete files permanently rather than putting them into the trash
+      --mega-pass string                                    Password (obscured)
+      --mega-use-https                                      Use HTTPS for transfers
+      --mega-user string                                    User name

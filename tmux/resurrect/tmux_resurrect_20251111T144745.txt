@@ -1,0 +1,154 @@
+grouped_session	tmux-view-1762888434-2977	tmux	:	:1
+grouped_session	tmux-view-1762890949-1661	tmux	:	:1
+pane	2	1	1	:*	1	arch-asusfx	:/home/theron	1	zsh	:
+pane	22	1	1	:*	1	arch-asusfx	:/home/theron	1	zsh	:
+pane	25	1	0	:##	1	arch-asusfx	:/home/theron/.core/cfg/tmux/conf	1	nvim	:nvim status.conf panes.conf windows.conf
+pane	25	2	0	:##	1	arch-asusfx	:/home/theron/.core/cfg/tmux/conf	1	nvim	:nvim binds-new.conf
+pane	25	3	0	:##	1	arch-asusfx	:/home/theron/.core/cfg/wezterm/keymaps	1	zsh	:
+pane	25	4	0	:##-	1	arch-asusfx	:/home/theron/.core/ref/lmburns/.config/tmux	1	nvim	:nvim tmux.conf
+pane	25	5	1	:*	1	arch-asusfx	:/home/theron/.core/cfg/tmux	1	zsh	:
+pane	5	1	1	:*	1	arch-asusfx	:/home/theron/.core/cfg/wezterm/config	1	zsh	:
+pane	apps	1	0	:##	1	arch-asusfx	:/home/theron/.core/env/desktop/waybar	1	zsh	:
+pane	apps	2	0	:##	1	arch-asusfx	:/home/theron/.core/cfg/media/spotify-player	0	nvim	:nvim theme.toml
+pane	apps	2	0	:##	2	arch-asusfx	:/home/theron/mnt/cachyos/Dropbox/Vaults/.encrypt/imgs/bst/Teen	1	zsh	:
+pane	apps	2	0	:##	3	arch-asusfx	:/home/theron/mnt/cachyos/Dropbox/Vaults/.encrypt/imgs/bst/Teen	0	zsh	:
+pane	apps	3	0	:	1	arch-asusfx	:/home/theron/mnt/cachyos/Dropbox/Vaults/.encrypt/imgs/bst/Teen	1	zsh	:
+pane	apps	4	0	:##	1	arch-asusfx	:/home/theron/mnt/cachyos/Dropbox/Vaults/.encrypt/imgs/bst/Teen	1	zsh	:
+pane	apps	5	0	:##	1	arch-asusfx	:/home/theron/mnt/cachyos/Dropbox/Vaults/.encrypt/imgs/bst/Teen	1	zsh	:
+pane	apps	6	0	:##	1	arch-asusfx	:/home/theron/mnt/cachyos/Dropbox/Vaults/.encrypt/imgs/bst/Teen	1	zsh	:
+pane	apps	7	0	:##	1	arch-asusfx	:/home/theron/mnt/cachyos/Dropbox/Vaults/.encrypt/imgs/bst/Teen	1	zsh	:
+pane	apps	8	0	:##	1	arch-asusfx	:/home/theron/.core/cfg/wezterm/config	1	btop	:btop
+pane	apps	9	0	:##-	1	arch-asusfx	:/home/theron	1	nvim	:nvim -c let g:last_activity = localtime() -c autocmd CursorMoved,CursorMovedI,InsertEnter * let g:last_activity = localtime() -c autocmd CursorHold,CursorHoldI * if (localtime() - g:last_activity) >= 600 | qall! | endif -c set updatetime=10000 /home/theron/.core/cfg/themes/colors.zsh /home/theron/.core/cfg/themes/tabline-theme.lua /home/theron/.core/cfg/themes/theme.css
+pane	apps	10	1	:##*	1	arch-asusfx	:/home/theron	1	spotify_player	:spotify_player
+pane	apps	10	1	:##*	2	arch-asusfx	:/home/theron	0	wiremix	:wiremix
+pane	apps	10	1	:##*	3	arch-asusfx	:/home/theron/.core/cfg/media/spotify-player	0	zsh	:
+pane	careview	1	0	:##	1	arch-asusfx	:/home/theron/.core	1	nvim	:nvim notes
+pane	careview	2	0	:##-	1	arch-asusfx	:/home/theron/.core	1	nvim	:nvim notes
+pane	careview	3	1	:##*	1	Yazi: ~/.core	:/home/theron/.core/work	1	nvim	:nvim Credentials.md
+pane	careview	4	0	:##	1	Yazi: ~/.core	:/home/theron/.core	1	zsh	:
+pane	colors	1	0	:##-	1	theron@arch-asusfx:~	:/home/theron/.core/cfg/themes	1	zsh	:
+pane	colors	2	1	:##*	1	arch-asusfx	:/home/theron/.core/env/desktop/waybar	1	zsh	:
+pane	colors	2	1	:##*	2	arch-asusfx	:/home/theron/.core/cfg/nvim	0	zsh	:
+pane	core-ide	1	0	:##	1	arch-asusfx	:/home/theron/.core/cfg/tmux/docs/ideas	1	nvim	:nvim tmux-servers.md
+pane	core-ide	2	0	:##	1	arch-asusfx	:/home/theron/.core/cfg/tmux/docs/ideas	1	nvim	:nvim tmux-servers.md
+pane	core-ide	3	0	:-	1	arch-asusfx	:/home/theron/.core/dev/core-ide	0	zsh	:
+pane	core-ide	3	0	:-	2	arch-asusfx	:/home/theron/.core	1	zsh	:
+pane	core-ide	4	1	:*	1	arch-asusfx	:/home/theron/.core/cfg/yazi/.workspace/yazelix/configs/yazi	1	zsh	:
+pane	core-ide	4	1	:*	2	arch-asusfx	:/home/theron/.core	0	zsh	:
+pane	core-ide	5	0	:##	1	arch-asusfx	:/home/theron/.core	1	nvim	:nvim wezterm-tmux-ideas.md
+pane	hyprland	1	0	:##	1	arch-asusfx	:/home/theron/.core/env/desktop/hypr	1	zsh	:
+pane	hyprland	2	1	:##*	1	arch-asusfx	:/home/theron/.core/env/desktop/hypr	0	zsh	:
+pane	hyprland	2	1	:##*	2	arch-asusfx	:/home/theron/.core/env/desktop/hypr	0	nvim	:nvim hyprland.conf
+pane	hyprland	2	1	:##*	3	arch-asusfx	:/home/theron/.core/env/desktop/hypr	1	nvim	:nvim keymaps/core.conf
+pane	hyprland	3	0	:##-	1	arch-asusfx	:/home/theron/.core/env/desktop/hypr	0	nvim	:nvim keymaps/apps.conf keymaps/core.conf keymaps/keyboard-layouts.conf keymaps/keytables keymaps/sys keymaps/volume.conf keymaps/workspaces.conf
+pane	hyprland	3	0	:##-	2	arch-asusfx	:/home/theron/.core/env/desktop/hypr	0	nvim	:nvim hyprland.conf
+pane	hyprland	3	0	:##-	3	arch-asusfx	:/home/theron/.core/env/desktop/hypr	1	nvim	:nvim keymaps/core.conf
+pane	kdeconnect	1	0	:##	1	arch-asusfx	:/home/theron/.core/dev/kdesms-tui	1	zsh	:
+pane	kdeconnect	2	1	:##*	1	✳ KDEConnect File Mounting	:/home/theron/.core/dev/kdesms-tui	1	zsh	:
+pane	kdeconnect	3	0	:##	1	arch-asusfx	:/home/theron/.core	1	zsh	:
+pane	kdeconnect	4	0	:##-	1	arch-asusfx	:/home/theron/.core	1	zsh	:
+pane	lmburns	1	1	:##*	1	arch-asusfx	:/home/theron/.core/ref/lmburns/.config/tmux	1	nvim	:nvim tmux.conf
+pane	lmburns	2	0	:##	1	theron@arch-asusfx:~/.core/ref/lmburns/.config/tmux	:/home/theron/.core/ref/lmburns/.config/tmux	1	nvim	:nvim tmux.conf
+pane	lmburns	3	0	:##	1	theron@arch-asusfx:~/.core/ref/lmburns/.config/zsh/functions	:/home/theron/.core/ref/lmburns/mybin	0	nvim	:nvim tmux-switch-pane.sh
+pane	lmburns	3	0	:##	2	theron@arch-asusfx:~/.core/ref/lmburns/.config/zsh/functions/wrap	:/home/theron/.core/ref/lmburns/.config/zsh/functions/wrap	1	zsh	:
+pane	lmburns	4	0	:##	1	arch-asusfx	:/home/theron/.core/ref/lmburns/.config/zsh/functions	0	zsh	:
+pane	lmburns	4	0	:##	2	theron@arch-asusfx:~/.core/ref/lmburns/.config/zsh/functions/wrap	:/home/theron/.core/ref/lmburns/.config/zsh/functions/wrap	1	zsh	:
+pane	lmburns	5	0	:##-	1	arch-asusfx	:/home/theron/.core/ref/lmburns/.config/tmux	1	nvim	:nvim tmux.conf
+pane	music	1	1	:*	1	ncspot	:/home/theron/.core	1	zsh	:
+pane	music	2	0	:-	1	arch-asusfx	:/home/theron/.core	0	zsh	:
+pane	music	2	0	:-	2	arch-asusfx	:/home/theron/.core	1	zsh	:
+pane	notes	1	1	:*	1	arch-asusfx	:/home/theron	1	zsh	:
+pane	notes	2	0	:##-	1	arch-asusfx	:/home/theron/mnt/cachyos/Dropbox/Vaults/doc	0	nvim	:nvim accounting-11-10-2025
+pane	notes	2	0	:##-	2	arch-asusfx	:/home/theron/mnt/cachyos/Dropbox/Vaults/doc	0	zsh	:
+pane	notes	2	0	:##-	3	arch-asusfx	:/home/theron/mnt/cachyos/Dropbox/Vaults/doc	1	zsh	:
+pane	nvim	1	1	:*	1	✳ Neovim String Color	:/home/theron/.core/cfg/nvim/lua/modules	1	zsh	:
+pane	nvim	2	0	:-	1	arch-asusfx	:/home/theron/.core/cfg/nvim/lua/modules	1	zsh	:
+pane	nvim	3	0	:##	1	arch-asusfx	:/home/theron/.local/share/nvim/lazy/yazi.nvim/lua	1	zsh	:
+pane	nvim	3	0	:##	2	arch-asusfx	:/home/theron/.core/cfg/nvim/lua	0	zsh	:
+pane	nvim	3	0	:##	3	arch-asusfx	:/home/theron/.core/cfg/nvim/lua/util	0	zsh	:
+pane	nvim	4	0	:##	1	arch-asusfx	:/home/theron/.core/cfg/nvim/lua/.docs/keymaps/defaults	0	zsh	:
+pane	nvim	4	0	:##	2	arch-asusfx	:/home/theron/.core/cfg/nvim/lua	0	zsh	:
+pane	nvim	4	0	:##	3	arch-asusfx	:/home/theron/.core/cfg/nvim/lua/util	1	zsh	:
+pane	qutebrowser	1	0	:##	1	arch-asusfx	:/home/theron/.core/cfg/qutebrowser	1	zsh	:
+pane	qutebrowser	2	1	:##*	1	arch-asusfx	:/home/theron/.core/cfg/qutebrowser	1	zsh	:
+pane	qutebrowser	3	0	:-	1	arch-asusfx	:/home/theron/.core	1	zsh	:
+pane	systemd	1	1	:##*	1	theron@arch-asusfx:~/.core/cfg/systemd	:/home/theron	1	zsh	:
+pane	systemd	2	0	:##	1	theron@arch-asusfx:~/.core/cfg/systemd	:/home/theron	0	zsh	:
+pane	systemd	2	0	:##	2	theron@arch-asusfx:~/.config/tmux	:/home/theron/.core/cfg/tmux	1	zsh	:
+pane	systemd	3	0	:##-	1	arch-asusfx	:/home/theron	1	zsh	:
+pane	tmux	1	1	:##*	1	✳ Terminal Configuration	:/home/theron/.core/cfg/tmux/modules/floating	1	claude	:claude
+pane	tmux	1	1	:##*	2	✳ Environment Configuration	:/home/theron/.core/cfg/tmux/modules/menus	0	nvim	:nvim main-menu.sh
+pane	tmux	1	1	:##*	3	arch-asusfx	:/home/theron/.core/cfg/tmux/modules/menus	0	zsh	:
+pane	tmux	1	1	:##*	4	✳ Alternative Options	:/home/theron/.core/cfg/tmux/modules/status/github	0	nvim	:nvim ../processes/task-progress.sh
+pane	tmux	2	0	:##-	1	arch-asusfx	:/home/theron/.core/cfg/tmux	1	zsh	:
+pane	wezterm	1	1	:##*	1	arch-asusfx	:/home/theron/.core/cfg/wezterm	1	zsh	:
+pane	wezterm	1	1	:##*	2	arch-asusfx	:/home/theron/mnt	0	nvim	:nvim
+pane	wezterm	1	1	:##*	3	✳ WezTerm Navigation	:/home/theron/.core/cfg/wezterm	0	zsh	:
+pane	yazi	1	0	:##-	1	arch-asusfx	:/home/theron/.core/cfg/yazi/menus	1	nvim	:nvim menus.md
+pane	yazi	1	0	:##-	2	:/home/theron/mnt	:/home/theron/.core/cfg/wezterm/config	0	zsh	:
+pane	yazi	1	0	:##-	3	✳ File Context Configuration	:/home/theron/.core/cfg/yazi	0	zsh	:
+pane	yazi	1	0	:##-	4	✳ Plugin Configuration	:/home/theron/.core/cfg/yazi	0	zsh	:
+pane	yazi	2	1	:*	1	arch-asusfx	:/home/theron/.core/cfg/yazi	1	zsh	:
+pane	zsh	1	1	:*	1	arch-asusfx	:/home/theron/.core/cfg/zsh	1	zsh	:
+window	2	1	:zsh	1	:*	b29d,208x41,0,0,0	:
+window	22	1	:zsh	1	:*	b29e,208x41,0,0,1	:
+window	25	1	:nvim	0	:##	b29f,208x41,0,0,2	:
+window	25	2	:nvim	0	:##	b2a0,208x41,0,0,3	:
+window	25	3	:zsh	0	:##	b2a1,208x41,0,0,4	:
+window	25	4	:nvim	0	:##-	b2a2,208x41,0,0,5	:
+window	25	5	:zsh	1	:*	b2a3,208x41,0,0,6	:
+window	5	1	:zsh	1	:*	5988,208x41,0,0,19	:
+window	apps	1	:neomutt	0	:##	b2a4,208x41,0,0,7	off
+window	apps	2	:music	0	:##	1ee6,208x41,0,0{137x41,0,0[137x20,0,0,8,137x20,0,21,9],70x41,138,0,10}	off
+window	apps	3	:hypr-keys	0	:	5c80,223x43,0,0,11	off
+window	apps	4	:mail	0	:##	5981,208x41,0,0,12	off
+window	apps	5	:mail	0	:##	5982,208x41,0,0,13	off
+window	apps	6	:mail	0	:##	5983,208x41,0,0,14	off
+window	apps	7	:mail	0	:##	5984,208x41,0,0,15	off
+window	apps	8	:btop	0	:##	6a04,248x49,0,0,91	off
+window	apps	9	:colors	0	:##-	5c86,223x43,0,0,93	off
+window	apps	10	:music	1	:##*	e236,223x43,0,0{111x43,0,0,94,111x43,112,0[111x21,112,0,96,111x21,112,22,97]}	off
+window	careview	1	:nvim	0	:##	5985,208x41,0,0,16	:
+window	careview	2	:work	0	:##-	5986,208x41,0,0,17	off
+window	careview	3	:nvim	1	:##*	5987,208x41,0,0,18	:
+window	careview	4	:zsh	0	:##	d97f,208x41,0,0,20	:
+window	colors	1	:~	0	:##-	d980,208x41,0,0,21	off
+window	colors	2	:zsh	1	:##*	f59e,208x41,0,0{103x41,0,0,22,104x41,104,0,23}	:
+window	core-ide	1	:core-ide	0	:##	d983,208x41,0,0,24	off
+window	core-ide	2	:nvim	0	:##	d984,208x41,0,0,25	:
+window	core-ide	3	:yazelix	0	:-	f9ba,208x41,0,0{104x41,0,0,26,103x41,105,0,27}	off
+window	core-ide	4	:zsh	1	:*	f9bc,208x41,0,0{104x41,0,0,28,103x41,105,0,29}	:
+window	core-ide	5	:nvim	0	:##	5980,208x41,0,0,30	:
+window	hyprland	1	:zsh	0	:##	5981,208x41,0,0,31	:
+window	hyprland	2	:nvim	1	:##*	dfff,208x41,0,0{99x41,0,0,32,54x41,100,0,33,53x41,155,0,34}	:
+window	hyprland	3	:nvim	0	:##-	600a,208x41,0,0{99x41,0,0,35,54x41,100,0,36,53x41,155,0,37}	:
+window	kdeconnect	1	:kdesms	0	:##	5988,208x41,0,0,38	off
+window	kdeconnect	2	:zsh	1	:##*	5989,208x41,0,0,39	:
+window	kdeconnect	3	:zsh	0	:##	d980,208x41,0,0,40	:
+window	kdeconnect	4	:zsh	0	:##-	d981,208x41,0,0,41	:
+window	lmburns	1	:tmux	1	:##*	d982,208x41,0,0,42	off
+window	lmburns	2	:../.config/tmux	0	:##	d983,208x41,0,0,43	off
+window	lmburns	3	:..unctions/wrap	0	:##	f189,208x41,0,0{102x41,0,0,44,105x41,103,0,45}	off
+window	lmburns	4	:zsh	0	:##	f18b,208x41,0,0{102x41,0,0,46,105x41,103,0,47}	:
+window	lmburns	5	:nvim	0	:##-	d988,208x41,0,0,48	:
+window	music	1	:spotify_player	1	:*	d989,208x41,0,0,49	off
+window	music	2	:zsh	0	:-	79b6,208x41,0,0{104x41,0,0,50,103x41,105,0,51}	:
+window	notes	1	:zsh	1	:*	5983,208x41,0,0,52	:
+window	notes	2	:zsh	0	:##-	33fa,250x49,0,0{125x49,0,0,53,124x49,126,0[124x25,126,0,54,124x23,126,26,55]}	:
+window	nvim	1	:zsh	1	:*	5987,208x41,0,0,56	:
+window	nvim	2	:zsh	0	:-	5988,208x41,0,0,57	:
+window	nvim	3	:docs	0	:##	8ed4,208x41,0,0{104x41,0,0,58,103x41,105,0[103x20,105,0,59,103x20,105,21,60]}	off
+window	nvim	4	:docs	0	:##	fecd,208x41,0,0{104x41,0,0,61,103x41,105,0[103x20,105,0,62,103x20,105,21,63]}	off
+window	qutebrowser	1	:zsh	0	:##	d985,208x41,0,0,64	:
+window	qutebrowser	2	:zsh	1	:##*	d986,208x41,0,0,65	:
+window	qutebrowser	3	:zsh	0	:-	d987,208x41,0,0,66	:
+window	systemd	1	:..e/cfg/systemd	1	:##*	d988,208x41,0,0,67	off
+window	systemd	2	:..core/cfg/tmux	0	:##	80eb,208x41,0,0{115x41,0,0,68,92x41,116,0,69}	off
+window	systemd	3	:..e/cfg/systemd	0	:##-	5982,208x41,0,0,70	off
+window	tmux	1	:claude	1	:##*	18ad,250x49,0,0{119x49,0,0,71,130x49,120,0[130x24,120,0{65x24,120,0,72,64x24,186,0,95},130x24,120,25,73]}	:
+window	tmux	2	:zsh	0	:##-	5986,208x41,0,0,74	:
+window	wezterm	1	:keymap	1	:##*	03b9,208x41,0,0{48x41,0,0,75,74x41,49,0,76,84x41,124,0,77}	off
+window	yazi	1	:nvim	0	:##-	edb5,208x41,0,0{42x41,0,0,78,38x41,43,0,79,126x41,82,0[126x20,82,0,80,126x20,82,21,81]}	:
+window	yazi	2	:zsh	1	:*	d984,208x41,0,0,82	:
+window	zsh	1	:zsh	1	:*	d985,208x41,0,0,83	off
+state	tmux-view-1762890949-1661	

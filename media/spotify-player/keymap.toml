@@ -1,0 +1,274 @@
+#Track Navigation/Handling
+[[keymaps]]
+command = "NextTrack"
+key_sequence = "e"
+[[keymaps]]
+command = "PreviousTrack"
+key_sequence = "q"
+[[keymaps]]
+command = "PlayRandom"
+key_sequence = "R"
+[[keymaps]]
+command = "Repeat"
+key_sequence = "r"
+[[keymaps]]
+command = "Shuffle"
+key_sequence = "s"
+[[keymaps]]
+command = "ResumePause"
+key_sequence = "space"
+[[keymaps]]
+command = "Mute"
+key_sequence = "C-space"
+
+#Volume
+[[keymaps]]
+command = { VolumeChange = { offset = -1 } }
+key_sequence = "-"
+[[keymaps]]
+command = { VolumeChange = { offset = 1 } }
+key_sequence = "="
+[[keymaps]]
+command = { VolumeChange = { offset = -5 } }
+key_sequence = "M--"
+[[keymaps]]
+command = { VolumeChange = { offset = 5 } }
+key_sequence = "M-="
+[[keymaps]]
+command = { VolumeChange = { offset = -10 } }
+key_sequence = "_"
+[[keymaps]]
+command = { VolumeChange = { offset = 10 } }
+key_sequence = "+"
+
+[[actions]]
+action = "AddToLibrary"
+key_sequence = "a b"
+[[actions]]
+action = "AddToPlaylist"
+key_sequence = "a a"
+[[actions]]
+action = "AddToQueue"
+key_sequence = "a q"
+[[actions]]
+action = "AddToLiked"
+key_sequence = "a f"
+
+#Actions
+[[actions]]
+action = "CopyLink"
+key_sequence = "A c"
+[[keymaps]]
+command = "ShowActionsOnSelectedItem"
+key_sequence = "A s"
+[[keymaps]]
+command = "ShowActionsOnCurrentTrack"
+key_sequence = "A t"
+[[actions]]
+action = "ShowActionsOnAlbum"
+key_sequence = "A b"
+[[actions]]
+action = "ShowActionsOnArtist"
+key_sequence = "A a"
+[[actions]]
+action = "ShowActionsOnShow"
+key_sequence = "A s"
+[[actions]]
+action = "Follow"
+key_sequence = "a F"
+[[actions]]
+action = "Unfollow"
+key_sequence = "a x"
+
+[[actions]]
+action = "ToggleLiked"
+key_sequence = "a t"
+[[actions]]
+action = "DeleteFromLiked"
+key_sequence = "C-d f"
+[[actions]]
+action = "DeleteFromLibrary"
+key_sequence = "C-d b"
+[[actions]]
+action = "DeleteFromPlaylist"
+key_sequence = "C-d a"
+
+#Song Navigation
+[[keymaps]]
+command = { SeekForward = { duration = 10 } }
+key_sequence = "C-e"
+[[keymaps]]
+command = { SeekBackward = { duration = 10 } }
+key_sequence = "C-q"
+
+#Close
+[[keymaps]]
+command = "Quit"
+key_sequence = "C-c"
+[[keymaps]]
+command = "ClosePopup"
+key_sequence = "q"
+
+#Pane Navigation
+[[keymaps]]
+command = "FocusNextWindow"
+key_sequence = "tab"
+[[keymaps]]
+command = "FocusPreviousWindow"
+key_sequence = "backtab"
+
+#List Navigation
+[[keymaps]]
+command = "SelectPreviousOrScrollUp"
+key_sequence = "w"
+[[keymaps]]
+command = "SelectPreviousOrScrollUp"
+key_sequence = "up"
+[[keymaps]]
+command = "SelectPreviousOrScrollUp"
+key_sequence = "i"
+[[keymaps]]
+command = "SelectNextOrScrollDown"
+key_sequence = "s"
+[[keymaps]]
+command = "SelectNextOrScrollDown"
+key_sequence = "k"
+[[keymaps]]
+command = "PageSelectPreviousOrScrollUp"
+key_sequence = "C-w"
+[[keymaps]]
+command = "PageSelectNextOrScrollDown"
+key_sequence = "C-s"
+[[keymaps]]
+command = "PageSelectNextOrScrollDown"
+key_sequence = "page_down"
+
+[[keymaps]]
+command = "Search"
+key_sequence = "C-f"
+[[keymaps]]
+command = "Search"
+key_sequence = "/"
+
+#Browse Navigation
+[[keymaps]]
+command = "BrowseUserPlaylists"
+key_sequence = "b a"
+[[keymaps]]
+command = "BrowseUserFollowedArtists"
+key_sequence = "b f"
+[[keymaps]]
+command = "BrowseUserSavedAlbums"
+key_sequence = "b b"
+[[keymaps]]
+command = "SwitchTheme"
+key_sequence = "b t"
+[[keymaps]]
+command = "SwitchDevice"
+key_sequence = "b d"
+
+#Page Navigation
+[[keymaps]]
+command = "PreviousPage"
+key_sequence = "M-b"
+[[keymaps]]
+command = "PreviousPage"
+key_sequence = "backspace"
+
+[[keymaps]]
+command = "SearchPage"
+key_sequence = "g s"
+[[keymaps]]
+command = "LibraryPage"
+key_sequence = "g b"
+[[keymaps]]
+command = "LikedTrackPage"
+key_sequence = "g f"
+[[keymaps]]
+command = "RecentlyPlayedTrackPage"
+key_sequence = "g r"
+[[keymaps]]
+command = "TopTrackPage"
+key_sequence = "g t"
+[[keymaps]]
+command = "CurrentlyPlayingContextPage"
+key_sequence = "g c"
+[[keymaps]]
+command = "BrowsePage"
+key_sequence = "g B"
+[[keymaps]]
+command = "Queue"
+key_sequence = "g q"
+[[actions]]
+action = "GoToArtist"
+key_sequence = "g a"
+[[actions]]
+action = "GoToAlbum"
+key_sequence = "g A"
+target = "PlayingTrack"
+[[actions]]
+action = "GoToRadio"
+key_sequence = "g R"
+target = "PlayingTrack"
+
+#Sorting
+[[keymaps]]
+command = "ReverseTrackOrder"
+key_sequence = "C-s r"
+[[keymaps]]
+command = "SortTrackByTitle"
+key_sequence = "C-s t"
+[[keymaps]]
+command = "SortTrackByArtists"
+key_sequence = "C-s a"
+[[keymaps]]
+command = "SortTrackByAlbum"
+key_sequence = "C-s b"
+[[keymaps]]
+command = "SortTrackByAddedDate"
+key_sequence = "C-s D"
+[[keymaps]]
+command = "SortTrackByDuration"
+key_sequence = "C-s d"
+[[keymaps]]
+command = "SortLibraryAlphabetically"
+key_sequence = "C-s A"
+[[keymaps]]
+command = "SortLibraryByRecent"
+key_sequence = "C-s R"
+
+#Playlist Handling
+[[keymaps]]
+command = "CreatePlaylist"
+key_sequence = "c"
+[[keymaps]]
+command = "MovePlaylistItemUp"
+key_sequence = "W"
+[[keymaps]]
+command = "MovePlaylistItemDown"
+key_sequence = "S"
+
+#Navigation Jumping
+[[keymaps]]
+command = "JumpToHighlightTrackInContext"
+key_sequence = "v t"
+[[keymaps]]
+command = "JumpToCurrentTrackInContext"
+key_sequence = "v c"
+
+#Refresh
+[[keymaps]]
+command = "RefreshPlayback"
+key_sequence = "C-r"
+
+[[keymaps]]
+command = "RefreshPlayback"
+key_sequence = "R r"
+
+[[keymaps]]
+command = "RestartIntegratedClient"
+key_sequence = "R c"
+
+[[keymaps]]
+command = "RestartIntegratedClient"
+key_sequence = "M-r"

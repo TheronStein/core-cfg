@@ -1,0 +1,106 @@
+# Hidden files (but allow .gitignore)
+.*
+!.gitignore
+.archv
+.logs
+.ssh
+.gnupg
+
+# Chezmoi-specific
+.chezmoiignore
+.chezmoi.toml
+# Uncomment if you want to exclude rendered templates (optional)
+# *.tmpl
+
+# Secrets and sensitive files
+*.secret
+*.key
+*.pem
+*.gpg
+.env
+*.secret*
+*secrets*
+*.secrets*
+
+*plugins
+
+# Zinit plugin directories (third-party zsh plugins)
+zsh/.zinit/plugins/
+zsh/.zinit/bin/
+
+# Neovim submodule/external repo
+nvim/
+
+# Spotify TUI submodule/external repo
+media/spotify-tui/
+
+# GSPT build directory (likely external or generated)
+media/gspt/build/
+
+# Archives (if you move files here but don't want to commit certain ones)
+archive/*.bak
+archive/*/*.log
+
+# Scripts or bins with machine-specific data
+bin/asus/*.log
+bin/*/cache/
+bin/*/temp/
+bin/asus/thermal.log
+
+# IDE or editor-specific
+.idea/
+.vscode/
+*.code-workspace
+
+lazy-lock.json
+
+node_modules
+claude
+data
+.archv
+.theme
+
+*.log
+
+*.tar.gz
+*.swp
+
+# Compiled Lua sources
+luac.out
+
+# luarocks build files
+*.src.rock
+*.tar.gz
+
+# Object files
+*.o
+*.os
+*.ko
+*.obj
+*.elf
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Libraries
+*.lib
+*.a
+*.la
+*.lo
+*.def
+*.exp
+
+# Shared objects (inc. Windows DLLs)
+*.dll
+*.so
+*.so.*
+*.dylib
+
+# Executables
+*.exe
+*.out
+*.app
+*.i*86
+*.x86_64
+*.hex

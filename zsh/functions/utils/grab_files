@@ -1,0 +1,24 @@
+#!/usr/bin/env zsh
+# Grab multiple files and copy their contents to clipboard with syntax highlighting
+
+local files=""
+local count=0
+
+for file in "$@"; do
+    if [[ -f "$file" ]]; then
+        files+="=== $file ===\n"
+        # Use bat with plain style (no line numbers) for cleaner output
+        files+="$(bat --style=plain --paging=never "$file" 2>/dev/null || cat "$file")\n\n"
+        ((count++))
+    else
+        echo "Warning: $file not found" >&2
+    fi
+done
+
+if [[ -n "$files" ]]; then
+    echo -e "$files" | wl-copy
+    echo "✓ Copied $count files to clipboard"
+else
+    echo "No valid files to copy" >&2
+    return 1
+fi

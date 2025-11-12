@@ -1,0 +1,70 @@
+# ━━━Status Line Plugins━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[[[
+# # set -g status-justify 'centre'
+
+# == Prefix-Highlight ======================================================= [[[
+set -g @prefix_highlight_empty_prompt ' '
+set -g @prefix_highlight_empty_attr "fg=$baseblack,bg=$duskcyan"
+set -g @prefix_highlight_prefix_prompt '[⌨]'
+set -g @prefix_highlight_fg "#000000"
+set -g @prefix_highlight_bg "$softcyan"
+set -g @prefix_highlight_copy_prompt '[C]'
+set -g @prefix_highlight_show_copy_mode 'on'
+set -g @prefix_highlight_copy_mode_attr "fg=$baseblack,bg=#000000"
+set -g @prefix_highlight_sync_prompt '[S]'
+set -g @prefix_highlight_show_sync_mode 'on'
+set -g @prefix_highlight_sync_mode_attr "fg=$baseblack,bg=$jewellime"
+# ]]]
+
+set-option -g @tmux_gh_icon ""
+set-option -g @tmux_gh_default_uname "TheronStein"
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ [[[
+# ━━━Status Line Style━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[[[
+# Status line with countdown
+# set -g status-interval 1  # Update every second or countdown
+# set -g status-position top  # put stl on top or bottom
+
+tm_date="#[fg=#D4C98A] %m-%d %I:%M %p " # softgold
+tm_cpu=" #($COREBIN/tmux/cpu)"
+tm_mem=" #($COREBIN/tmux/mem)"
+tm_prefix="#[bold,fg=#33FF33]#{?client_prefix, ⌨ ,  }" # basegreen
+tm_prefix="#[bold,#{?client_prefix,fg=#DDB863 ⌨ ,fg=#000000 ⌨ }" # duskyellow
+# tm_prefix="#{prefix_highlight}"
+tm_zoom="#[default, bg=#223333, fg=#FFF5E8] #{?window_zoomed_flag, ⬢ , }" # deepturq, iceamber
+tm_upTime="#[default, fg=#F5F5F5, bg=#1A1A1A] #($COREBIN/tmux/time)" # icesilver, baseblack
+tm_pane="#[default, bg=#334444, fg=#1A1A1A]    #P" # darkcyan, baseblack
+tm_gitmux="#(gitmux  #{pane_current_path}')"
+tm_gh="#(tmux-gh #{tmux_gh_uname}')"
+tm_save="#(~/.tmux/scripts/save-countdown.sh) #[fg=#B8A0B8]%H:%M" # softplum
+
+set -g status              on      # show / hide the stl or specify its size
+set -g status-position     top  # put stl on top or bottom
+set -g status-interval     1      # interval in secs to update status
+set -g status-justify      centre  # et the position of the win list in the stl (left, center, right)
+set -g status-style        "fg=#FFBF00,bg=#222244,default" # appearance of status messages (neonamber, darkindigo)
+
+set -g status-bg '#444444'   # set the background style used by the status bar (deepsilver)
+set -g status-left-length  50      # set max length of left component of stl                                                                               onsky
+# set  -g  status-right "$tm_upTime $tm_mem $tm_cpu $tm_zoom $tm_date $tm_gitmux" # Display string to the right of the status line
+#set  -g  status-left "#[default,bg=$neonteal,fg=$icesilver]  #{host}  #[default,bg=$deeppurp,fg=$icesilver] $tm_prefix  #S #[fg=$deeppurp,bg=$darkgray]\ue0b0 $tm_gh" # display string to the left of stl
+set -g status-right-length 100     # set max length of right component of stl
+# set -g status-style "fg=,bg=,default" 
+set -g status-right "$tm_save $tm_gh $tm_upTime"
+set -g status-left "#[bold, fg=#1A1A1A, bg=#4D908E] $tm_prefix #{host} / #{session_name} #[fg=#4D908E,bg=#5539CC]\ue0b0 $tm_gitmux #[default, bg=#5539CC,fg=#F5F5F5] #[fg=#5539CC,bg=#00BFFF]\ue0b0 #[fg=#F5F5F5,bg=#00BFFF]  #[fg=#00BFFF,bg=#444444]\ue0b0" # baseblack, jewelcyan, baseviolet, icesilver, neonsky, deepsilver
+# set -g status-left "#[default,bg=$neonteal,fg=$icesilver]  #{host}  #[default,bg=$deeppurp,fg=$icesilver] $tm_prefix  #S #[fg=$deeppurp,bg=$darkgray]\ue0b0 $tm_gh" # display string to the left of stl
+
+setw -g window-status-format "#[fg=#6B75B8]#I #W $tm_zoom"              # set format in which win is displayed in stl win list (duskblue)
+setw -g window-status-style "fg=#333333,bg=#3BB9FF"        #[bold,fg=$softplum][#W #T]"       # like WSF, but is format used when the win is the current win (deepgray, basesky)
+
+setw -g  window-status-current-format " #[bold,fg=#7D7D7D][#W #T]"       # like WSF, but is format used when the win is the current win (duskgray)
+# setw -g  window-status-current-format   "#[fg=#000000] #I #W $tm_zoom"              # set format in which win is displayed in stl win list
+setw -g  window-status-current-style "fg=#1A1A1A,bg=#8EBAA8"  # set stl style for the currently active win (baseblack, softcyan)
+setw -g  window-status-separator ' '  # sets the separator drawn between windows in the stl
+setw -g  window-status-activity-style "bg=#FFFF33"        # set stl for wins with an activity alert (baseyellow)
+# setw -g  window-status-bell-style "bg=$neonred"        # set stl for wins with a bell alert
+
+set -g message-style         "bold, bg=#333333, fg=#43AA8B" # set stl msg style. used for msgs & command prompt (deepgray, jewelgreen)
+set -g message-command-style "bold, fg=#000000"            # appearance of status message cmds
+# set -g mode-style            "fg=$neonred,bg=#000000"      # set window modes style
+
+#set-hook -g after-save-session 'run-shell "~/.tmux/scripts/save-notification.sh"'

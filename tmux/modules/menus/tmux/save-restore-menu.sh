@@ -1,0 +1,5 @@
+#!/bin/bash
+tmux display-menu -x W -y S \
+    "Save State" s "run-shell ~/.core/cfg/tmux/plugins/tmux-resurrect/scripts/save.sh && tmux display-message \'Session saved at \$(date +%H:%M:%S)\'" \
+    "Restore Session" r "run-shell '~/.core/cfg/tmux/scripts/utils/restore-session.sh'" \
+    "Back" ESC "run-shell '$TMUX_MENUS/main-menu.sh'"

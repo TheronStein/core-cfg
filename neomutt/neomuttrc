@@ -1,0 +1,140 @@
+# General Settings
+set folder = "~/.mail"
+set header_cache = "~/.cache/neomutt/headers"
+set message_cachedir = "~/.cache/neomutt/bodies"
+set certificate_file = "/etc/ssl/certs/ca-certificates.crt"
+set mailcap_path = "~/.core/cfg/neomutt/mailcap"
+set tmpdir = "/tmp"
+
+# SSL Settings
+set ssl_force_tls = yes
+set ssl_starttls = yes
+set ssl_use_sslv3 = no
+set ssl_use_tlsv1 = no
+set ssl_use_tlsv1_1 = no
+set ssl_use_tlsv1_2 = yes
+set ssl_use_tlsv1_3 = yes
+set ssl_verify_dates = yes
+set ssl_verify_host = yes
+
+# Editor
+set editor = "nvim"
+
+# Reply settings
+set include = yes
+set forward_quote = yes
+set indent_string = "> "
+
+# Colors
+source ~/.core/cfg/neomutt/colors.muttrc
+
+# Sidebar
+set sidebar_visible = yes
+set sidebar_width = 30
+set sidebar_format = "%B%?F? [%F]?%* %?N?%N/?%S"
+set mail_check_stats
+
+# Sorting
+set sort = threads
+set sort_aux = reverse-last-date-received
+
+# Index Format
+set index_format = "%4C %Z %{%b %d} %-15.15L (%?l?%4l&%4c?) %s"
+
+# Pager
+set pager_index_lines = 10
+set pager_context = 3
+set pager_stop
+set menu_scroll
+set tilde
+unset markers
+
+# Speed up startup
+set imap_check_subscribed = no
+set mail_check = 120
+set timeout = 10
+
+# Account Switching
+source ~/.core/cfg/neomutt/gmail.muttrc
+folder-hook $folder 'source ~/.core/cfg/neomutt/gmail.muttrc'
+
+# Macros for switching accounts
+macro index,pager <f2> '<sync-mailbox><enter-command>source ~/.core/cfg/neomutt/gmail.muttrc<enter><change-folder>!<enter>'
+macro index,pager <f3> '<sync-mailbox><enter-command>source ~/.core/cfg/neomutt/proton.muttrc<enter><change-folder>!<enter>'
+macro index,pager <f4> '<sync-mailbox><enter-command>source ~/.core/cfg/neomutt/careview.muttrc<enter><change-folder>!<enter>'
+
+
+# Navigation
+bind index i previous-entry
+bind index k next-entry
+bind pager <PageUp> previous-line
+bind pager <PageDown> next-line
+
+# Skip 5 entries
+macro index \Ci "<previous-entry><previous-entry><previous-entry><previous-entry><previous-entry>" "skip up 5"
+macro index \Ck "<next-entry><next-entry><next-entry><next-entry><next-entry>" "skip down 5"
+
+# Clear 'g' binding first to avoid alias warning
+bind index g noop
+bind pager g noop
+macro index gg "<first-entry>" "go to first entry"
+macro pager gg "<top>" "go to top of message"
+bind index G last-entry
+bind pager G bottom
+
+# Folder/Label browsing
+bind index,pager c change-folder
+macro index,pager gi "<change-folder>=INBOX<enter>" "go to inbox"
+
+# Sidebar navigation
+bind index,pager \Cq sidebar-prev
+bind index,pager \Ce sidebar-next
+bind index,pager <Tab> sidebar-open
+bind index,pager \Ct sidebar-toggle-visible
+macro index <Space> "<display-message>" "toggle email preview"
+macro pager <Space> "<exit>" "close email preview"
+
+# Clear single-key bindings to avoid alias warnings
+bind index e noop
+bind pager e noop
+bind index v noop
+bind pager v noop
+bind index m noop
+bind pager m noop
+bind index s noop
+bind pager s noop
+
+# Email actions (e prefix)
+bind index,pager en mail
+bind index,pager es save-message
+bind index,pager ef forward-message
+bind index,pager er reply
+bind index,pager eR group-reply
+bind index,pager ed delete-message
+bind index,pager eu undelete-message
+bind index,pager el edit-label
+bind index,pager eN compose-to-sender
+bind index,pager et resend-message
+
+# View actions (v prefix)
+bind index,pager va view-attachments
+macro index,pager ve "<view-attachments><search>~t<enter>" "view email addresses"
+
+# Mark actions (m prefix)
+bind index,pager mn mark-as-new
+bind index mt tag-entry
+bind index,pager mf flag-message
+bind index,pager ml edit-label
+
+# Limit/Filter
+bind index L limit
+
+# Sort actions (s prefix)
+bind index,pager sr sort-reverse
+bind index,pager ss sort-mailbox
+
+bind generic,index,pager N search-opposite
+# bind generic N search-opposite
+
+# Refresh mailbox list (useful for seeing new labels/folders)
+macro index,pager \Cr "<enter-command>mailboxes `find ~/.cache/neomutt/proton -maxdepth 1 -type d 2>/dev/null`<enter>"

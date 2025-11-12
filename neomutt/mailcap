@@ -1,0 +1,16 @@
+# HTML
+text/html; lynx -assume_charset=%{charset} -display_charset=utf-8 -dump %s; nametemplate=%s.html; copiousoutput
+text/html; firefox %s; test=test -n "$DISPLAY"; needsterminal;
+
+# PDFs
+application/pdf; evince %s; test=test -n "$DISPLAY"
+application/pdf; pdftotext -layout %s -; copiousoutput
+
+# Images
+image/*; feh %s; test=test -n "$DISPLAY"
+
+# Office documents
+application/msword; libreoffice %s; test=test -n "$DISPLAY"
+application/vnd.openxmlformats-officedocument.wordprocessingml.document; libreoffice %s; test=test -n "$DISPLAY"
+application/vnd.ms-excel; libreoffice %s; test=test -n "$DISPLAY"
+application/vnd.openxmlformats-officedocument.spreadsheetml.sheet; libreoffice %s; test=test -n "$DISPLAY"

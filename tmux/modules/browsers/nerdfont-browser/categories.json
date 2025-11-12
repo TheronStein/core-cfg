@@ -1,0 +1,139 @@
+{
+    "categories": [
+        {
+            "name": "Powerline Symbols",
+            "file": "nerd-powerline.sh",
+            "description": "Powerline separators and symbols",
+            "range": "e0a0-e0d4",
+            "color": "red",
+            "icon": ""
+        },
+        {
+            "name": "Devicons",
+            "file": "nerd-devicons.sh",
+            "description": "Developer and programming language icons",
+            "range": "e700-e7c5",
+            "color": "green",
+            "icon": ""
+        },
+        {
+            "name": "Font Awesome",
+            "file": "nerd-font-awesome.sh",
+            "description": "General purpose icons and symbols",
+            "range": "f000-f2e0",
+            "color": "yellow",
+            "icon": ""
+        },
+        {
+            "name": "Octicons",
+            "file": "nerd-octicons.sh",
+            "description": "GitHub's Octicons set",
+            "range": "f400-f67c",
+            "color": "blue",
+            "icon": ""
+        },
+        {
+            "name": "IEC Power Symbols",
+            "file": "nerd-iec-power-symbols.sh",
+            "description": "Power and media control symbols",
+            "range": "23fb-2b58",
+            "color": "magenta",
+            "icon": "⏻"
+        },
+        {
+            "name": "Linux Logos",
+            "file": "nerd-linux.sh",
+            "description": "Linux distribution logos",
+            "range": "f300-f313",
+            "color": "bright_blue",
+            "icon": ""
+        },
+        {
+            "name": "Pomicons",
+            "range": "e000-e00a",
+            "file": "nerd-pomicons.sh",
+            "description": "Pomicons extended set",
+            "color": "bright_cyan"
+        },
+        {
+            "name": "GitHub Icons",
+            "file": "nerd-github.sh",
+            "description": "GitHub specific icons",
+            "range": "f400-f4a0",
+            "color": "white",
+            "icon": ""
+        },
+        {
+            "name": "Geometric - Angles",
+            "file": "nerd-angle.sh",
+            "description": "Angle brackets and chevrons",
+            "range": "various",
+            "color": "cyan",
+            "icon": "❯"
+        },
+        {
+            "name": "Geometric - Blocks",
+            "file": "nerd-blocks.sh",
+            "description": "Block elements and box drawing",
+            "range": "2580-259f",
+            "color": "bright_cyan",
+            "icon": "█"
+        },
+        {
+            "name": "Geometric - Brackets",
+            "file": "nerd-bracks.sh",
+            "description": "Various bracket styles",
+            "range": "various",
+            "color": "bright_yellow",
+            "icon": "【"
+        },
+        {
+            "name": "Geometric - Circular",
+            "file": "nerd-circular.sh",
+            "description": "Circles and rounded shapes",
+            "range": "various",
+            "color": "bright_magenta",
+            "icon": "●"
+        },
+        {
+            "name": "Geometric - Diamond",
+            "file": "nerd-diamond.sh",
+            "description": "Diamond and rhombus shapes",
+            "range": "various",
+            "color": "bright_red",
+            "icon": "◆"
+        },
+        {
+            "name": "Geometric - Lines",
+            "file": "nerd-lines.sh",
+            "description": "Line drawing characters",
+            "range": "2500-257f",
+            "color": "bright_green",
+            "icon": "─"
+        },
+        {
+            "name": "Geometric - Squares",
+            "file": "nerd-square.sh",
+            "description": "Square shapes and boxes",
+            "range": "various",
+            "color": "bright_white",
+            "icon": "■"
+        },
+        {
+            "name": "General Icons",
+            "file": "nerd-icons.sh",
+            "description": "Miscellaneous icon collection",
+            "range": "various",
+            "color": "yellow",
+            "icon": "★"
+        },
+        {
+            "name": "Complete List",
+            "file": "nerd-full-list.sh",
+            "description": "All available Nerd Font glyphs",
+            "range": "all",
+            "color": "white",
+            "icon": "∞"
+        }
+    ]
+}

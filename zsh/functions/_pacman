@@ -1,0 +1,113 @@
+#compdef pacman
+
+# Pacman completion function
+_pacman() {
+    local -a operations options packages
+    
+    operations=(
+        '-D[Modify database]'
+        '-F[Query the files database]'
+        '-Q[Query the package database]'
+        '-R[Remove packages]'
+        '-S[Synchronize packages]'
+        '-T[Check dependencies]'
+        '-U[Upgrade packages]'
+        '-V[Display version]'
+        '--help[Show help]'
+    )
+    
+    case "$words[2]" in
+        -S*)
+            # Sync options
+            _arguments \
+                '-c[Clean cache]' \
+                '-g[View group members]' \
+                '-i[View package info]' \
+                '-l[List packages]' \
+                '-s[Search packages]' \
+                '-u[Upgrade packages]' \
+                '-w[Download only]' \
+                '-y[Refresh databases]' \
+                '--needed[Do not reinstall up to date packages]' \
+                '--noconfirm[Do not ask for confirmation]' \
+                '*:package:_pacman_completions_all_packages'
+            ;;
+        -R*)
+            # Remove options
+            _arguments \
+                '-c[Remove package and dependencies]' \
+                '-n[Remove configuration files]' \
+                '-s[Remove dependencies]' \
+                '-u[Remove unneeded packages]' \
+                '--noconfirm[Do not ask for confirmation]' \
+                '*:package:_pacman_completions_installed_packages'
+            ;;
+        -Q*)
+            # Query options
+            _arguments \
+                '-c[View changelog]' \
+                '-d[List packages installed as dependencies]' \
+                '-e[List explicitly installed packages]' \
+                '-i[View package info]' \
+                '-k[Check package files]' \
+                '-l[List package files]' \
+                '-m[List foreign packages]' \
+                '-o[Query package owning file]' \
+                '-p[Query package file]' \
+                '-s[Search installed packages]' \
+                '-t[List orphans]' \
+                '-u[List upgradable packages]' \
+                '*:package:_pacman_completions_installed_packages'
+            ;;
+        -U*)
+            # Upgrade from file
+            _arguments \
+                '--needed[Do not reinstall up to date packages]' \
+                '--noconfirm[Do not ask for confirmation]' \
+                '*:package file:_files -g "*.pkg.tar.*"'
+            ;;
+        *)
+            _describe 'operations' operations
+            ;;
+    esac
+}
+
+# Helper functions for package completion
+_pacman_completions_all_packages() {
+    local -a packages
+    packages=(${(f)"$(pacman -Slq 2>/dev/null)"})
+    compadd "$@" -a packages
+}
+
+_pacman_completions_installed_packages() {
+    local -a packages
+    packages=(${(f)"$(pacman -Qq 2>/dev/null)"})
+    compadd "$@" -a packages
+}
+
+# Query what packages you've installed recently
+histdb-packages() {
+    sqlite3 ~/.histdb/zsh-history.db \
+        "SELECT DISTINCT command, datetime(start_time, 'unixepoch', 'localtime') as time
+         FROM history 
+         WHERE command LIKE 'paru -S %' 
+            OR command LIKE 'pacman -S %'
+            OR command LIKE 'yay -S %'
+         ORDER BY start_time DESC 
+         LIMIT 20"
+}
+
+# See which packages you use most
+most-used-packages() {
+    sqlite3 ~/.histdb/zsh-history.db \
+        "SELECT command, COUNT(*) as count
+         FROM history 
+         WHERE command LIKE 'paru %' 
+            OR command LIKE 'pacman %'
+         GROUP BY command 
+         ORDER BY count DESC 
+         LIMIT 20"
+}
+
+# Define the function
+_pacman "$@"

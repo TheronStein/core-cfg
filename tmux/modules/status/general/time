@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+# Uptime monitoring script for tmux status bar
+
+if command -v uptime &>/dev/null; then
+    # Get uptime in a clean format
+    uptime_output=$(uptime -p 2>/dev/null || uptime | sed 's/.*up *//' | sed 's/,.*//')
+
+    # Clean up the output
+    if [[ "$uptime_output" == up* ]]; then
+        # uptime -p format: "up X days, Y hours, Z minutes"
+        echo "$uptime_output" | sed 's/up //' | sed 's/ day/d/' | sed 's/ hour/h/' | sed 's/ minute/m/' | sed 's/s,/,/g' | sed 's/s$//'
+    else
+        # Traditional uptime format
+        echo "$uptime_output" | awk '{print $1}'
+    fi
+else
+    # Fallback: read from /proc/uptime
+    if [ -f /proc/uptime ]; then
+        uptime_seconds=$(cut -d. -f1 /proc/uptime)
+        days=$((uptime_seconds / 86400))
+        hours=$(((uptime_seconds % 86400) / 3600))
+        minutes=$(((uptime_seconds % 3600) / 60))
+
+        if [ $days -gt 0 ]; then
+            printf "%dd %dh %dm" "$days" "$hours" "$minutes"
+        elif [ $hours -gt 0 ]; then
+            printf "%dh %dm" "$hours" "$minutes"
+        else
+            printf "%dm" "$minutes"
+        fi
+    else
+        echo "N/A"
+    fi
+fi

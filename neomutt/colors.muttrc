@@ -1,0 +1,79 @@
+# Catppuccin Mocha Color Scheme for Neomutt
+# Based on your tmux/wezterm theme
+
+# Basic colors
+color normal     color189 color235   # cdd6f4 on 1e1e2e
+color indicator  color235 color117   # 1e1e2e on 89b4fa (blue highlight)
+color status     color117 color236   # 89b4fa on 313244
+color tree       color150 color235   # a6e3a1 on 1e1e2e (threads)
+color signature  color245 color235   # grey
+color message    color117 color235   # 89b4fa
+color attachment color222 color235   # f9e2af (yellow)
+color search     color235 color222   # black on yellow
+color tilde      color240 color235   # grey on bg
+color markers    color222 color235   # f9e2af
+
+# Sidebar
+color sidebar_indicator color235 color117  # 1e1e2e on 89b4fa
+color sidebar_highlight color189 color236  # cdd6f4 on 313244
+color sidebar_new       color150 color235  # a6e3a1 (green)
+color sidebar_flagged   color222 color235  # f9e2af (yellow)
+
+# Index colors
+color index      color189 color235 ~A    # all messages
+color index_author color117 color235 ~A  # 89b4fa (blue)
+color index_subject color189 color235 ~A # cdd6f4
+color index_date color150 color235 ~A    # a6e3a1 (green)
+color index_number color245 color235 ~A  # grey
+color index_size color245 color235 ~A    # grey
+
+# Message states
+color index brightcolor150 color235 ~N  # new messages (bright green)
+color index color150 color235 ~O         # old messages (green)
+color index color203 color235 ~D         # deleted (red)
+color index color222 color235 ~F         # flagged (yellow)
+color index color245 color235 ~R         # read (grey)
+color index color117 color235 ~T         # tagged (blue)
+
+# Pager colors
+color hdrdefault color245 color235       # default headers
+color header     color117 color235 "^From:"
+color header     color117 color235 "^To:"
+color header     color150 color235 "^Subject:"
+color header     color222 color235 "^Date:"
+color header     color203 color235 "^Cc:"
+color header     color203 color235 "^Bcc:"
+
+# Email body highlighting
+color quoted     color116 color235  # 94e2d5 (teal) - first level quote
+color quoted1    color150 color235  # a6e3a1 (green)
+color quoted2    color222 color235  # f9e2af (yellow)
+color quoted3    color203 color235  # f38ba8 (red)
+color quoted4    color183 color235  # cba6f7 (mauve)
+color quoted5    color117 color235  # 89b4fa (blue)
+
+# URLs and email addresses
+color body color117 color235 "([a-z][a-z0-9+-]*://(((([a-z0-9_.!~*'();:&=+$,-]|%[0-9a-f][0-9a-f])*@)?((([a-z0-9]([a-z0-9-]*[a-z0-9])?)\\.)*([a-z]([a-z0-9-]*[a-z0-9])?)\\.?|[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+)(:[0-9]+)?)|([a-z0-9_.!~*'()$,;:@&=+-]|%[0-9a-f][0-9a-f])+)(/([a-z0-9_.!~*'():@&=+$,-]|%[0-9a-f][0-9a-f])*(;([a-z0-9_.!~*'():@&=+$,-]|%[0-9a-f][0-9a-f])*)*(/([a-z0-9_.!~*'():@&=+$,-]|%[0-9a-f][0-9a-f])*(;([a-z0-9_.!~*'():@&=+$,-]|%[0-9a-f][0-9a-f])*)*)*)?(\\?([a-z0-9_.!~*'();/?:@&=+$,-]|%[0-9a-f][0-9a-f])*)?(#([a-z0-9_.!~*'();/?:@&=+$,-]|%[0-9a-f][0-9a-f])*)?|(www|ftp)\\.(([a-z0-9]([a-z0-9-]*[a-z0-9])?)\\.)*([a-z]([a-z0-9-]*[a-z0-9])?)\\.?(:[0-9]+)?(/([-a-z0-9_.!~*'():@&=+$,]|%[0-9a-f][0-9a-f])*(;([-a-z0-9_.!~*'():@&=+$,]|%[0-9a-f][0-9a-f])*)*(/([-a-z0-9_.!~*'():@&=+$,]|%[0-9a-f][0-9a-f])*(;([-a-z0-9_.!~*'():@&=+$,]|%[0-9a-f][0-9a-f])*)*)*)?(\\?([-a-z0-9_.!~*'();/?:@&=+$,]|%[0-9a-f][0-9a-f])*)?(#([-a-z0-9_.!~*'();/?:@&=+$,]|%[0-9a-f][0-9a-f])*)?)"
+color body color222 color235 "[-a-z_0-9.%$]+@[-a-z_0-9.]+\\.[-a-z][-a-z]+"
+
+# Bold, underline, italic
+color bold       color222 color235
+color underline  color117 color235
+color italic     color183 color235
+
+# Markdown-style highlighting
+color body brightcolor189 color235 "(^|[[:space:][:punct:]])\\*[^*]+\\*([[:space:][:punct:]]|$)"  # *bold*
+color body brightcolor189 color235 "(^|[[:space:][:punct:]])_[^_]+_([[:space:][:punct:]]|$)"      # _underline_
+color body color117 color235 "(^|[[:space:][:punct:]])\\`[^\\`]+\\`([[:space:][:punct:]]|$)"            # `code`
+
+# Patch/diff highlighting
+color body color150 color235 "^diff .*"
+color body color150 color235 "^index [a-f0-9].*"
+color body color150 color235 "^---.*"
+color body color150 color235 "^[+]{3}.*"
+color body color150 color235 "^@@.*"
+color body color150 color235 "^\\+[^\\+]+.*"
+color body color203 color235 "^-[^-]+.*"
+
+# Progress bar
+color progress color235 color117  # 1e1e2e on 89b4fa

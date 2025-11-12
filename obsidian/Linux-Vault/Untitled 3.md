@@ -1,0 +1,1 @@
+sudo snapper modify --cleanup-algorithm "no" 439

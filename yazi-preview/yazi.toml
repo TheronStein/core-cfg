@@ -1,0 +1,25 @@
+#:schema ../.schemas/yazi.json
+
+[mgr]
+# Preview-only mode: show only the preview column
+ratio = [0, 0, 1]
+sort_by = "alphabetical"
+sort_sensitive = false
+sort_reverse = false
+sort_dir_first = true
+sort_translit = false
+linemode = "size"
+show_hidden = true
+show_symlink = true
+scrolloff = 5
+mouse_events = []
+title_format = "Yazi Preview"
+
+[image]
+protocol = "inline"
+
+[tasks]
+micro_workers = 5
+macro_workers = 10
+bizarre_retry = 5
+image_alloc = 1073741824

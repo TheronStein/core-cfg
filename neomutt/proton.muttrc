@@ -1,0 +1,77 @@
+# ProtonMail Account Settings
+set from = "theron@chaoscore.org"
+set realname = "Theron Steinbrecher"
+
+# IMAP Settings (ProtonMail Bridge)
+set imap_user = "theron@chaoscore.org"
+set imap_pass = "`gpg --quiet --for-your-eyes-only --no-tty --decrypt ~/.config/neomutt/passwords/proton.gpg`"
+set folder = "imap://127.0.0.1:1143"
+set spoolfile = "+INBOX"
+set postponed = "+Drafts"
+set trash = "+Trash"
+set record = "+Sent"
+
+# Auto-discover all IMAP folders/labels
+set imap_check_subscribed = yes
+set imap_list_subscribed = no
+# Don't limit to subscribed folders - show ALL folders
+unset imap_passive
+set imap_keepalive = 300
+set mail_check = 60
+
+# SMTP Settings (ProtonMail Bridge)
+set smtp_url = "smtp://theron@chaoscore.org@127.0.0.1:1025"
+set smtp_pass = "`gpg --quiet --for-your-eyes-only --no-tty --decrypt ~/.config/neomutt/passwords/proton.gpg`"
+
+# Connection options
+set ssl_starttls = no
+set ssl_force_tls = no
+
+# Cache
+set header_cache = "~/.cache/neomutt/proton/headers"
+set message_cachedir = "~/.cache/neomutt/proton/bodies"
+
+# All ProtonMail Folders/Labels - Auto-generated from Bridge
+unmailboxes *
+
+# Main folders first
+mailboxes "+INBOX" "+Sent" "+Drafts" "+Trash" "+Spam" "+Archive" "+All Mail" "+Starred"
+
+# Labels
+mailboxes "+Labels/[ Careview ]" "+Labels/[ChaosCore]" "+Labels/[Gmail]" "+Labels/[Gmail] Personal" "+Labels/[Jobs] Indeed"
+mailboxes "+Labels/Chime" "+Labels/Credit" "+Labels/Debt" "+Labels/Doctor" "+Labels/Electric"
+mailboxes "+Labels/Grocery" "+Labels/Important" "+Labels/Internet" "+Labels/Junk" "+Labels/Landlord"
+mailboxes "+Labels/Loans" "+Labels/Mail" "+Labels/Myself" "+Labels/Phone" "+Labels/Receipt"
+mailboxes "+Labels/Subscriptions" "+Labels/outlook.com 10-06-2025 03:41"
+
+# Folders
+mailboxes "+Folders/Accounts" "+Folders/ChaosCore" "+Folders/Health" "+Folders/Housing" "+Folders/Jobs"
+mailboxes "+Folders/Pers" "+Folders/RSS Feeds" "+Folders/Services"
+mailboxes "+Folders/Financial" "+Folders/Financial/Debt"
+mailboxes "+Folders/Housing/Mail"
+mailboxes "+Folders/[Archive]2014" "+Folders/[Archive]2021" "+Folders/[Archive]2022" "+Folders/[Archive]2023"
+mailboxes "+Folders/[Archive]David Finch" "+Folders/[Archive]Old"
+mailboxes "+Folders/[Inbox]ChaosCore"
+mailboxes "+Folders/Sync Issues" "+Folders/Sync Issues/Conflicts" "+Folders/Sync Issues/Local Failures" "+Folders/Sync Issues/Server Failures"
+
+# Label/Folder Management Macros
+# Browse/view all folders: press '?' when changing folders
+macro index,pager L "<change-folder>?<toggle-mailboxes>" "list all folders/labels"
+
+# Save message to a folder (essentially applying a label)
+macro index,pager S "<save-message>?" "move to folder (apply label)"
+macro index,pager C "<copy-message>?" "copy to folder (add label)"
+
+# Quick save to common folders
+macro index,pager sa "<save-message>=Archive<enter>" "archive message"
+macro index,pager st "<save-message>=Trash<enter>" "trash message"
+macro index,pager ss "<save-message>=Spam<enter>" "mark as spam"
+
+# Sidebar navigation
+bind index,pager \Cp sidebar-prev
+bind index,pager \Cn sidebar-next
+bind index,pager \Co sidebar-open
+bind index,pager B sidebar-toggle-visible
+
+# Create new folder/label: press 'c' then type folder name
+# This will create it if it doesn't exist when you save a message

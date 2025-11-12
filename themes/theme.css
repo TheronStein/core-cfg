@@ -1,0 +1,221 @@
+background = "#1e1e2e"
+foreground = "#c0caf5"
+black = "#444267"
+red = "#FF5370"
+green = "#01F9C6"
+yellow = "#e0af68"
+blue = "#6698ff"
+magenta = "#6A5ACD"
+cyan = "#2ac3de"
+white = "#c0caf5"
+bright_black = "#24283B"
+bright_red = "#ff4499"
+bright_green = "#69FF94"
+bright_yellow = "#FFD700"  # #FFEB5C
+bright_blue = "#4361EE"
+bright_magenta = "#8470FF"
+bright_cyan = "#3de8f7"
+bright_white = "#89b4fa"
+[themes.component_style]
+like = { fg = "Yellow", modifiers = ["Bold"] }
+app = { fg = "Green" }
+border = { fg = "Cyan" }
+selection = { bg = "Black", fg = "Green", modifiers = ["Bold"] }
+secondary_row = { bg = "Green", fg = "Black" }
+block_title = { fg = "BrightYellow", modifiers = ["Bold"] }
+lyrics_played = { fg = "White" }
+lyrics_playing = { fg = "BrightGreen", modifiers = ["Bold"] }
+table_header = { fg = "Green", modifiers = ["Bold"] }
+playlist_desc = { fg = "BrightWhite" }
+page_desc = { fg = "BrightWhite" }
+current_playing = { fg = "Black", modifiers = ["Bold"] }
+playback_status = { fg = "Yellow", modifiers = ["Bold"] }
+playback_track = { fg = "White", modifiers = ["Bold"] }
+playback_album = { fg = "BrightMagenta", modifiers = ["Bold"] }
+playback_artists = { fg = "BrightCyan", modifiers = ["Bold"] }
+playback_metadata = { fg = "BrightWhite" }
+playback_genres = { fg = "Cyan" }
+playback_progress_bar = { bg = "Black", fg = "BrightCyan" }      # { fg = "#3de8f7" }
+playback_progress_bar_unfilled = { bg = "Black" }
+/* catppuccin-mocha */
+
+@define-color rosewater #f5e0dc;
+@define-color flamingo #f2cdcd;
+@define-color pink #f5c2e7;
+@define-color mauve #cba6f7;
+@define-color red #f38ba8;
+@define-color maroon #eba0ac;
+@define-color peach #fab387;
+@define-color yellow #f9e2af;
+@define-color green #a6e3a1;
+@define-color teal #94e2d5;
+@define-color sky #89dceb;
+@define-color sapphire #74c7ec;
+@define-color blue #89b4fa;
+@define-color lavender #b4befe;
+@define-color core #01F9C6;
+@define-color core-1 #19dfcf;
+@define-color core-2 #8BE9FD;
+@define-color core-3 #74c7ec;
+@define-color text #cdd6f4;
+@define-color subtext1 #bac2de;
+@define-color subtext0 #a6adc8;
+@define-color overlay2 #9399b2;
+@define-color overlay1 #7f849c;
+@define-color overlay0 #6c7086;
+@define-color surface2 #444267;
+@define-color surface1 #3d3d5d;
+@define-color surface0 #313244;
+@define-color base #292D3E;
+@define-color mantle #26263a;
+@define-color crust #1e1e2e;
+
+/* #454569 */
+/* #444267 */
+/* #3d3d5d */
+/*#363a4f */
+/* #313244 */
+/* #292D3E */
+/* #26263a */
+/* #1e1e2e */
+
+/* #11111b */
+/* #181825 */
+/* #1e1e2e */
+/* #292D3E */
+/* #444267 */
+/* #585b70 */
+/* #6c7086 */
+/**/
+/* #a5afc2 */
+/* #ccfce5 */
+/* #A0CFEC */
+/* #ADDFFF */
+/* #BDEDFF */
+/* #8BE9FD */
+/* #87CEEB */
+/* #7dc4e4 */
+/* #74c7ec */
+/**/
+/**/
+/* #04d1f9 */
+/* #3BB9FF */
+/* #5CB3FF */
+/* #5fa9f4 */
+/* #6698ff */
+/* #89b4fa */
+/* #728FCE */
+/**/
+/* #B0E0E6 */
+/* #9deefd */
+/* #89dceb */
+/* #94e2d5 */
+/* #19dfcf */
+/* #19dfcf */
+/* #48D1CC */
+/* #7FCDCD */
+/* #04d1f9 */
+/* #4fe0fc */
+/**/
+/* #acf200 */
+/* #81f8bf */
+/* #37f499 */
+/* #01F9C6 */
+/* #4ffced */
+/* #04F9F8 */
+/* #16E2F5 */
+/* #f1fc79 */
+/* #FF5370 */
+/* #C792EA */
+/* #F78C6C */
+/* #FFCB6B */
+/* #C3E88D */
+/* #69FF00 */
+/* #FF79C6 */
+/* #8BE9FD */
+/**/
+/**/
+/* #2F5A85 */
+/* #027C94 */
+/* #027d95 */
+/* #029494 */
+/* #1f645e */
+/* #2f8696 */
+/* #4d9472 */
+/* #20925b */
+/* #4C787E */
+/* #033E3E */
+/* #264361 */
+/* #013e4a */
+/* #10492d */
+/* #334800 */
+/**/
+/* #4b314c */
+/* #2d244b */
+/**/
+/* #FACF11 */
+/* #FFBF00 */
+/* #f9e2af */
+/* #eed49f */
+/* #f5a97f */
+/* #f5c2e7 */
+/* #f38ba8 */
+/* #6A5ACD */
+/* #987afb */
+/* #C792EA */
+/* #c6a0f6 */
+/* #765f93 */
+/* #a5adcb */
+/* #b7bdf8 */
+/* #6d7195 */
+/* #5b4996 */
+/* #161622 */
+/* #0f0f16 */
+/* #949ae5 */
+/* #536892 */
+/* #314154 */
+/* #232e3b */
+/* #1c242f */
+/* #141b22 */
+/* #0D1116 */
+/**/
+/* #454569 */
+/* #3d3d5d */
+/* #615670 */
+/* #3F3C45 */
+/* #383145 */
+
+/*
+	br - border
+	bg - background
+	fg - foreground
+*/
+
+/* main colors */
+
+@define-color accent @core;
+@define-color main-br @subtext0;
+@define-color main-bg @crust;
+@define-color main-fg @core;
+@define-color hover-bg @base;
+@define-color hover-fg alpha(@main-fg, 0.75);
+@define-color outline shade(@main-bg, 0.5);
+
+/* module colors */
+
+@define-color workspaces @mantle;
+@define-color temperature @mantle;
+@define-color memory @base;
+@define-color cpu @surface0;
+@define-color time @surface0;
+@define-color date @base;
+@define-color tray @mantle;
+@define-color volume @mantle;
+@define-color backlight @base;
+@define-color battery @surface0;
+
+/* state colors */
+
+@define-color warning @yellow;
+@define-color critical @red;
+@define-color charging @green;

@@ -1,0 +1,32 @@
+#!/bin/bash
+# Tmux status bar component: Show active rclone mounts
+
+# Find all active rclone mount processes
+MOUNTS=$(ps aux | grep "rclone mount" | grep -v grep | awk '{for(i=11;i<=NF;i++){if($i ~ /^[a-zA-Z0-9_-]+:$/){remote=$i; gsub(/:$/,"",remote)} if($i ~ /^\/.*mnt/){mount=$i}} if(remote && mount){print remote":"mount; remote=""; mount=""}}')
+
+if [[ -z "$MOUNTS" ]]; then
+    echo ""
+else
+    OUTPUT=""
+    FIRST=1
+    while IFS=: read -r REMOTE MOUNT; do
+        if [[ $FIRST -eq 0 ]]; then
+            OUTPUT="${OUTPUT}  "
+        fi
+        FIRST=0
+
+        # Get icon based on remote type
+        case "$REMOTE" in
+            proton)   ICON="󰇥" ;;   # Proton/secure cloud icon
+            dropbox)  ICON="󰇣" ;;   # Dropbox icon
+            onedrive) ICON="󰋊" ;;   # OneDrive icon
+            *)        ICON="󰅟" ;;   # Generic cloud icon
+        esac
+
+        # Get mount name (last part of path)
+        MOUNT_NAME=$(basename "$MOUNT")
+        OUTPUT="${OUTPUT}${ICON} ${MOUNT_NAME}"
+    done <<< "$MOUNTS"
+
+    echo "$OUTPUT"
+fi

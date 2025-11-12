@@ -1,0 +1,37 @@
+```css
+/* Desktop font sizes */
+body {
+  --font-adaptive-normal:var(--font-text-size,var(--editor-font-size));
+  --font-adaptive-small:var(--font-small);
+  --font-adaptive-smaller:var(--font-smaller);
+  --font-adaptive-smallest:var(--font-smallest);
+  --line-width-adaptive:var(--line-width);
+  --line-width-wide:calc(var(--line-width) + 12.5%);
+  --font-code:calc(var(--font-adaptive-normal) * 0.9);
+  --table-font-size:calc(var(--font-adaptive-normal) * 0.875); }
+
+/* Phone font sizes */
+@media (max-width: 400pt) {
+  .is-mobile {
+    --font-adaptive-small:calc(var(--font-small) + 2px);
+    --font-adaptive-smaller:calc(var(--font-smaller) + 2px);
+    --font-adaptive-smallest:calc(var(--font-smallest) + 2px);
+    --max-width:88%; } }
+/* Tablet font sizes */
+@media (min-width: 400pt) {
+  .is-mobile {
+    --font-adaptive-small:calc(var(--font-small) + 3px);
+    --font-adaptive-smaller:calc(var(--font-smaller) + 2px);
+    --font-adaptive-smallest:calc(var(--font-smallest) + 2px);
+    --line-width-adaptive:calc(var(--line-width) + 6rem);
+    --max-width:90%; } }
+/* Disabled features */
+/* Disabled features */
+/* Search counts */
+.tree-item-flair:not(.tag-pane-tag-count) {
+  display: none; }
+
+/* Folder name */
+.tree-item-inner-subtext {
+  display: none; }
+```

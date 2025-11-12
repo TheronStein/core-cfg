@@ -1,0 +1,5 @@
+[user]
+	email = theron@chaoscore.org
+	name = Theron
+[init]
+	defaultBranch = master

@@ -1,0 +1,31 @@
+# CareView Account Settings (Google Workspace)
+set from = "tsteinbrecher@care-view.com"
+set realname = "Theron Steinbrecher"
+
+# IMAP Settings (Google)
+set imap_user = "tsteinbrecher@care-view.com"
+set imap_pass = "`gpg --quiet --for-your-eyes-only --no-tty --decrypt ~/.config/neomutt/passwords/careview.gpg`"
+set folder = "imaps://imap.gmail.com:993"
+set spoolfile = "+INBOX"
+set postponed = "+[Gmail]/Drafts"
+set trash = "+[Gmail]/Trash"
+set record = "+[Gmail]/Sent Mail"
+
+# SMTP Settings (Google)
+set smtp_url = "smtps://tsteinbrecher@care-view.com@smtp.gmail.com:465"
+set smtp_pass = "`gpg --quiet --for-your-eyes-only --no-tty --decrypt ~/.config/neomutt/passwords/careview.gpg`"
+set smtp_authenticators = "login"
+
+# Connection options
+set ssl_starttls = yes
+set ssl_force_tls = yes
+set ssl_verify_host = yes
+set ssl_verify_dates = yes
+
+# Cache
+set header_cache = "~/.cache/neomutt/careview/headers"
+set message_cachedir = "~/.cache/neomutt/careview/bodies"
+
+# Mailboxes (Gmail structure for Google Workspace)
+unmailboxes *
+mailboxes "+INBOX" "+[Gmail]/Sent Mail" "+[Gmail]/Drafts" "+[Gmail]/Trash" "+[Gmail]/Spam" "+[Gmail]/All Mail"

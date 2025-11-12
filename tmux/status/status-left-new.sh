@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+# Generate complete tmux status-left with dynamic mode/context colors
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Get current mode/context
+workspace_info=$(bash "$SCRIPT_DIR/get-tmux-workspace.sh")
+IFS=':' read -r _ workspace_label workspace_color <<<"$workspace_info"
+
+# Set mode colors based on current state
+case "$workspace_color" in
+  red) workspace_bg="#f38ba8" ;;    # Red for LEADER/SYNC
+  yellow) workspace_bg="#f9e2af" ;; # Yellow for copy mode
+  orange) workspace_bg="#fab387" ;; # Orange for resize
+  green) workspace_bg="#69FF94" ;;  # Green for TMUX context
+  purple) workspace_bg="#987afb" ;; # Purple for WEZTERM context
+  *) workspace_bg="#987afb" ;;      # Default purple
+esac
+
+# Get current mode/context
+mode_info=$(bash "$SCRIPT_DIR/get-tmux-mode.sh")
+IFS=':' read -r _ mode_label mode_color <<<"$mode_info"
+
+# Set mode colors based on current state
+case "$mode_color" in
+  red) mode_bg="#f38ba8" ;;    # Red for LEADER/SYNC
+  yellow) mode_bg="#f9e2af" ;; # Yellow for copy mode
+  orange) mode_bg="#fab387" ;; # Orange for resize
+  green) mode_bg="#69FF94" ;;  # Green for TMUX context
+  purple) mode_bg="#987afb" ;; # Purple for WEZTERM context
+  *) mode_bg="#987afb" ;;      # Default purple
+esac
+
+# Get session name and remove -view-* suffix
+session_name=$(tmux display-message -p ' #{session_name} ' | sed 's/-view-.*//')
+
+# Build the status-left: Mode/Context → Session
+# Two sections only: Context/Mode (A) → Session (B)
+echo "#[bold,fg=#292D3E,bg=${mode_bg}]${mode_label} #[fg=${mode_bg},bg=#444267]#[bold,fg=${mode_bg},bg=#444267]${session_name^} #[fg=#444267,bg=#292D3E]"

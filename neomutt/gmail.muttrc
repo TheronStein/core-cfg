@@ -1,0 +1,29 @@
+# Gmail Account Settings
+set from = "theron.stein@gmail.com"
+set realname = "Theron Steinbrecher"
+
+# IMAP Settings
+set imap_user = "theron.stein@gmail.com"
+set imap_pass = "`gpg --quiet --for-your-eyes-only --no-tty --decrypt ~/.config/neomutt/passwords/gmail.gpg`"
+set folder = "imaps://imap.gmail.com:993"
+set spoolfile = "+INBOX"
+set postponed = "+[Gmail]/Drafts"
+set trash = "+[Gmail]/Trash"
+set record = "+[Gmail]/Sent Mail"
+
+# SMTP Settings
+set smtp_url = "smtps://theron.stein@gmail.com@smtp.gmail.com:465"
+set smtp_pass = "`gpg --quiet --for-your-eyes-only --no-tty --decrypt ~/.config/neomutt/passwords/gmail.gpg`"
+set smtp_authenticators = "login"
+
+# Connection options
+set ssl_starttls = yes
+set ssl_force_tls = yes
+
+# Cache
+set header_cache = "~/.cache/neomutt/gmail/headers"
+set message_cachedir = "~/.cache/neomutt/gmail/bodies"
+
+# Mailboxes
+unmailboxes *
+mailboxes "+INBOX" "+[Gmail]/Sent Mail" "+[Gmail]/Drafts" "+[Gmail]/Trash" "+[Gmail]/Spam" "+[Gmail]/All Mail"

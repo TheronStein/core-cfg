@@ -1,0 +1,64 @@
+#!/usr/bin/env bash
+# Test WezTerm-Tmux integration
+
+echo "=== WezTerm-Tmux Integration Test ==="
+echo
+
+STATUS_FILE="${XDG_RUNTIME_DIR}/wezterm-tmux-status"
+
+# Test 1: Check if status file exists
+echo "1. Checking status file..."
+if [[ -f "$STATUS_FILE" ]]; then
+    echo "   ✓ Status file exists: $STATUS_FILE"
+else
+    echo "   ✗ Status file NOT found: $STATUS_FILE"
+    echo "   This is normal if you're not in a WezTerm window or haven't changed modes yet"
+fi
+echo
+
+# Test 2: Display status file contents
+if [[ -f "$STATUS_FILE" ]]; then
+    echo "2. Status file contents:"
+    cat "$STATUS_FILE" | sed 's/^/   /'
+    echo
+fi
+
+# Test 3: Test mode script
+echo "3. Testing wezterm-mode script..."
+MODE_OUTPUT=$($XDG_CONFIG_HOME/tmux/scripts/wezterm-mode)
+echo "   Output: $MODE_OUTPUT"
+echo
+
+# Test 4: Test context script
+echo "4. Testing wezterm-context script..."
+CONTEXT_OUTPUT=$($XDG_CONFIG_HOME/tmux/scripts/wezterm-context)
+if [[ -n "$CONTEXT_OUTPUT" ]]; then
+    echo "   Output: $CONTEXT_OUTPUT"
+else
+    echo "   Output: (empty - workspace is 'default' or not in WezTerm)"
+fi
+echo
+
+# Test 5: Check tmux status configuration
+echo "5. Current tmux status settings:"
+echo "   status-left: $(tmux show-options -gv status-left 2>/dev/null | head -c 80)..."
+echo "   status-interval: $(tmux show-options -gv status-interval 2>/dev/null)"
+echo
+
+# Test 6: Check if we're in tmux
+echo "6. Environment check:"
+if [[ -n "$TMUX" ]]; then
+    echo "   ✓ Running inside tmux"
+else
+    echo "   ✗ Not running inside tmux"
+fi
+echo
+
+echo "=== Test Complete ==="
+echo
+echo "To see the integration in action:"
+echo "1. Make sure you're running WezTerm"
+echo "2. Start or attach to a tmux session"
+echo "3. Press your WezTerm leader key (SUPER+Space)"
+echo "4. Watch the tmux status bar - it should show 'LEADER' mode"
+echo "5. Try entering resize mode or other WezTerm modes"

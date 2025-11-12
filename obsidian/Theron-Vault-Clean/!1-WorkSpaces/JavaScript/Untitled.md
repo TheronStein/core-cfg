@@ -1,0 +1,1 @@
+const jsonString = await app.vault.readRaw(“.obsidian/test.json”);

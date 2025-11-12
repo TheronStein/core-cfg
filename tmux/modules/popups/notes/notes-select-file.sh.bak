@@ -1,0 +1,92 @@
+#!/usr/bin/env bash
+
+NOTES_DIR="$HOME/.core/vaults/notes"
+NOTES_SESSION="notes"
+WINDOW_NAME="$1"
+
+if [ -z "$WINDOW_NAME" ]; then
+    echo "No window name provided"
+    exit 1
+fi
+
+WINDOW_DIR="$NOTES_DIR/$WINDOW_NAME"
+
+# Get existing markdown files
+get_notes() {
+    find "$WINDOW_DIR" -name "*.md" -type f -exec basename {} \; | sort 2>/dev/null
+}
+
+# Preview function for notes
+preview_note() {
+    local note="$1"
+    local full_path="$WINDOW_DIR/$note"
+
+    if [ -f "$full_path" ]; then
+        # Use bat if available, otherwise cat
+        if command -v bat &>/dev/null; then
+            bat --color=always --style=plain "$full_path" 2>/dev/null
+        else
+            cat "$full_path"
+        fi
+    else
+        echo "New file will be created: $full_path"
+    fi
+}
+
+# Get note options
+get_note_options() {
+    get_notes
+    echo "[+] Create new note"
+}
+
+# Select or create note
+select_note() {
+    local selected=$(get_note_options | fzf \
+        --header="Select or create note in $WINDOW_NAME" \
+        --preview="bash -c 'WINDOW_DIR=\"$WINDOW_DIR\" source $0 && preview_note {}' $0" \
+        --preview-window=right:60%)
+
+    if [ -z "$selected" ]; then
+        exit 0
+    fi
+
+    if [ "$selected" = "[+] Create new note" ]; then
+        echo -n "Enter new note name (without .md): "
+        read -r new_name
+
+        if [ -z "$new_name" ]; then
+            echo "No name provided"
+            exit 1
+        fi
+
+        # Add .md extension if not present
+        [[ "$new_name" != *.md ]] && new_name="${new_name}.md"
+
+        echo "$new_name"
+    else
+        echo "$selected"
+    fi
+}
+
+# Export functions for subshell
+export -f preview_note
+export WINDOW_DIR
+
+# Select note
+note_name=$(select_note)
+
+if [ -z "$note_name" ]; then
+    exit 0
+fi
+
+# Clear the screen
+clear
+
+# If we're in a popup, activate the notes-popup key table
+if [ -n "$TMUX_POPUP" ]; then
+    tmux switch-client -T notes-popup
+fi
+
+# Open the file in neovim within the popup
+cd "$WINDOW_DIR"
+exec nvim "$note_name"

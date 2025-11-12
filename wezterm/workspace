@@ -1,0 +1,87 @@
+Session Manager Menu AKA (Core Wezterm Menu) AKA MAIN MENU
+ --------------------------
+  Management:
+ ---------------------------
+  - Workspace Management (Submenu) (this is what we're focusing on.
+  - Tab Management (Submenu) (already implemented)
+  - Pane Management (Submenu) (not implemented)
+  --------------------------
+   Resources:
+  --------------------------
+ - Keymaps (Currently leader + f4)
+ - Themes (Currently leader + f5)
+ - Nerdfont Picker (Currently leader + f5)
+  --------------------------
+
+
+### Workspace Management (Submenu)
+  - Provides workspace management list items, Create, Switch, Rename, Edit, Save, Load, Delete. Then lists all workspace templates underneath these menu options. Populates all available workspaces
+
+
+<- Go back to main menu
+* Tab Management (Submenu)
+* Pane Management (Submenu)
+ --------------------------
+    Actions:
+ ---------------------------
+     * Create
+      - Creates a new workspace session, prompts for a workspace name and icon, updated in tabline module, just as the tabs currently do. 
+     * Switch
+      - (Provides a list menu view of all available workspaces and switches to selected workspace session
+     * Kill/Stop/End (Come up with a term)
+      - (provides a list menu view of all available workspaces and ends the session).kills selected workspace session)
+    * Rename
+      - (Rename current workspace, update in tabline module)
+    * Change Icon
+      - (Choose an icon for the workspace then update it in the tabline module, ensure that each icon for each saved workspace template populates next to the workspace name in all workspace related menus)  
+--------------------------
+  Management:
+---------------------------
+    * Save 
+      (Saves current workspace as a template)
+    * Delete
+      (Will need to serve a separate menu for deletion handling, unless there is context handling in some way when selecting a workspace below. eg. popup window "Load" "Delete" "Cancel")
+  ---------------------------
+    Templates:
+  ---------------------------
+    - Workspace template 1
+    - Workspace template 2
+    - Workspace template 3
+    - Workspace template 4
+
+
+* Workspace Management (Submenu)
+  - Provides workspace management list items, Create, Switch, Rename, Edit, Save, Load, Delete. Then lists all workspace templates underneath these menu options. Populates all available workspaces
+* Tab Management (Submenu)
+* Pane Management (Submenu)
+ --------------------------
+    Actions:
+ ---------------------------
+     * Create
+      - Creates a new workspace session, prompts for a workspace name and icon, updated in tabline module, just as the tabs currently do. 
+     * Switch
+      - (Provides a list menu view of all available workspaces and switches to selected workspace session
+     * Kill/Stop/End (Come up with a term)
+      - (provides a list menu view of all available workspaces and ends the session).kills selected workspace session)
+    * Rename
+      - (Rename current workspace, update in tabline module)
+    * Change Icon
+      - (Choose an icon for the workspace then update it in the tabline module, ensure that each icon for each saved workspace template populates next to the workspace name in all workspace related menus)  
+--------------------------
+  Management:
+---------------------------
+    * Save 
+      (Saves current workspace as a template)
+    * Delete
+      (Will need to serve a separate menu for deletion handling, unless there is context handling in some way when selecting a workspace below. eg. popup window "Load" "Delete" "Cancel")
+  ---------------------------
+    Templates:
+  ---------------------------
+    - Workspace template 1
+    - Workspace template 2
+    - Workspace template 3
+    - Workspace template 4
+
+
+
+Don't include the details for each option, it's there for reference only. Just the structure of the menu and submenu items is needed.

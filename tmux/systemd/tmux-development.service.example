@@ -1,0 +1,35 @@
+# ============================================================================
+# Systemd Service for Tmux Development Server
+# ============================================================================
+# Installation:
+#   1. Copy this file to ~/.config/systemd/user/tmux-development.service
+#   2. Run: systemctl --user daemon-reload
+#   3. Run: systemctl --user enable tmux-development.service
+#   4. Run: systemctl --user start tmux-development.service
+#
+# This will auto-start the development tmux server on login
+# ============================================================================
+
+[Unit]
+Description=Tmux Development Server
+Documentation=man:tmux(1)
+After=default.target
+
+[Service]
+Type=forking
+# Use your actual home directory path
+ExecStart=/usr/bin/tmux -f %h/.core/cfg/tmux/development.tmux -L development new-session -s main -d
+ExecStop=/usr/bin/tmux -L development kill-server
+
+# Restart policy
+Restart=on-failure
+RestartSec=5
+
+# Environment
+Environment="TMUX_TMPDIR=/run/user/%U/tmux"
+
+# Create resurrect directory on startup
+ExecStartPre=/usr/bin/mkdir -p %h/.tmux/resurrect/development
+
+[Install]
+WantedBy=default.target

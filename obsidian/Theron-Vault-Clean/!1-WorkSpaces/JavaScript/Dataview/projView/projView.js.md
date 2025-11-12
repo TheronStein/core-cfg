@@ -1,0 +1,108 @@
+```js
+let projects = input.projects;
+let order    = input.order || 'asc';
+
+// SORT
+projects = projects.sort( project => {
+
+    // DATE
+    let date = moment( ( project.dates && Object.keys(project.dates).length ) ? Object.keys(project.dates)[0] : null ).unix();
+    
+    // PRIORITY
+    let priority = project.priority || 9;
+
+    // TITLE
+    let title = project.title || project.file.name;
+    
+    return `${date}-${priority}-${title}`; // default
+    
+}, order);
+
+// RENDER
+let html = `<section class="project-cards">`;
+
+for (let i = 0; i < projects.length; i++) {
+
+    const project = projects[i];
+
+    // Jump ahead to get the most relevant date.
+    let now = moment();
+
+    if ( project.status == 'todo' && project.dates && Object.keys(project.dates).length ) {
+        projectTimestamp = Object.keys(project.dates)[0];
+        let projectDate  = moment( projectTimestamp );
+
+        if ( projectDate.format('YYYY MM DD') == now.format('YYYY MM DD') || projectDate.unix() <= now.unix() ) {
+            project.status = 'today';
+        }
+    }
+    
+    html += `<article class="project-card">`;
+        
+    // ICON
+    if ( project.status ) html += `<span class="project-card-status" data-status="${project.status}">&nbsp;</span>`;
+
+    // TITLE
+    let title = project.title || project.file.name;
+    html += `<h1 class="project-card-title"><a href="${project.file.name}" data-href="${project.file.name}" class="internal-link">${title}</a></h1>`;
+
+    // SUBTITLE
+    html += `<div class="project-card-meta">`;
+
+    if ( project.subtitle ) html += `<span class="project-card-subtitle">${project.subtitle}</span>`;
+
+    html += '</div>';
+
+    // DATES
+    if ( project.dates && Object.keys(project.dates).length ) { for (let l = 0; l < Object.keys(project.dates).length; l++) {
+        const itemTimestamp = Object.keys(project.dates)[l];
+        const itemText      = project.dates[ itemTimestamp ];
+
+        let itemDate        = moment( itemTimestamp );
+        let itemHasTime     = ( itemTimestamp.split(' ').length > 1 );
+
+        
+        let sameYear        = ( now.format('YYYY') == itemDate.format('YYYY') );
+
+        let displayDate     = itemDate.calendar(null, {
+            sameDay: '[Today]',
+            nextDay: '[Tomorrow]',
+            nextWeek: 'dddd',
+            lastDay: '[Yesterday]',
+            lastWeek: '[Last] dddd',
+            sameElse: ( sameYear ? 'D MMMM' : 'D MMMM YYYY' ),
+        });
+
+        if ( itemHasTime ) {
+            displayDate += ' <span class="project-card-sep">•</span> ' + itemDate.format( 'h:mm a' );
+        }
+
+        html += `<div class="project-card-date">
+            <span class="project-card-date-prefix" title="${itemDate}">${displayDate}</span>
+            <span class="project-card-date-text" title="${itemDate}">${itemText}</span>
+        </div>`;
+            
+    }}
+
+    // LINKS
+    html += `<div class="project-card-meta">`;
+
+    if ( project.links && Object.keys(project.links).length ) { for (let l = 0; l < Object.keys(project.links).length; l++) {
+        let linkText = Object.keys(project.links)[l];
+        let linkURL  = project.links[ linkText ];
+        html += `<a class="project-card-link" href="${linkURL}">${linkText}</a>`;
+            
+    }}
+
+    html += '</div>';
+
+    html += '</div>';
+
+    html += '</article>';
+
+}
+
+html += `</section>`;
+
+return html;
+```

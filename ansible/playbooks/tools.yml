@@ -1,0 +1,79 @@
+- name: Bootstrap Tools and Patches
+  hosts: localhost
+  gather_facts: yes
+  tasks:
+    - name: Update pacman cache
+      become: yes
+      ansible.builtin.command: pacman -Syu --noconfirm
+      changed_when: false
+    - name: Install base tools
+      become: yes
+      ansible.builtin.package:
+        name:
+          - base-devel
+          - git
+          - zsh
+          - curl
+          - wget
+          - neovim
+          - vim
+          - fzf
+          - ripgrep
+          - eza
+          - tmux
+          - python
+          - python-pip
+          - nodejs
+          - npm
+          - cargo
+          - go
+          - openssh
+          - which
+          - tree
+          - jq
+          - yq
+          - sqlite
+          - unzip
+          - tar
+          - gzip
+          - xz
+          - man-db
+          - man-pages
+          - less
+          - ncurses
+          - diffutils
+          - patch
+          - sed
+          - awk
+          - grep
+          - findutils
+          - coreutils
+          - util-linux
+          - procps-ng
+          - psmisc
+          - htop
+          - btop
+          - net-tools
+          - iproute2
+          - bind-tools
+          - traceroute
+          - iputils
+        state: present
+    - name: Install Yazi nightly (via paru)
+      become: yes
+      ansible.builtin.command: paru -S --noconfirm yazi-nightly-bin
+      changed_when: false
+      when: "'paru' in ansible_facts.packages" # Assume paru is installed; add task if not
+    - name: Install Claude CLI (optional)
+      ansible.builtin.command: curl -fsSL https://github.com/anthropics/claude-code/releases/latest/download/install.sh | bash
+      changed_when: false
+      ignore_errors: yes
+    - name: Apply patches (example task; customize for your tools)
+      ansible.builtin.command: patch -p1 < /home/theron/.core/cfg/patches/tool-patch.patch
+      args:
+        chdir: /path/to/tool/source
+      changed_when: false
+      ignore_errors: yes # If no patches
+    - name: Run Chezmoi to apply configs
+      ansible.builtin.command: chezmoi init --source=/home/theron/.core/cfg --apply
+      changed_when: false

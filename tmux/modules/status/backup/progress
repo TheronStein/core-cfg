@@ -1,0 +1,103 @@
+#!/bin/bash
+# Tmux status bar component: Show backup compression and rclone progress
+# Displays progress bars dynamically on the right side in order of operations
+
+COMPRESSION_PROGRESS="/tmp/backup-compression-progress"
+RCLONE_PROGRESS="/tmp/rclone-progress"
+COMPRESSION_COMPLETE="/tmp/backup-compression-complete"
+COMPRESSION_LOG="/tmp/backup-compression.log"
+
+# Detect compression format from archive name
+get_compression_format() {
+    local archive_name="cachyos-backup-11-04-2025.tar.gz"
+
+    if [[ "$archive_name" =~ \.tar\.gz$ ]] || [[ "$archive_name" =~ \.tgz$ ]]; then
+        echo ".tar.gz"
+    elif [[ "$archive_name" =~ \.tar\.bz2$ ]] || [[ "$archive_name" =~ \.tbz2$ ]]; then
+        echo ".tar.bz2"
+    elif [[ "$archive_name" =~ \.tar\.xz$ ]]; then
+        echo ".tar.xz"
+    elif [[ "$archive_name" =~ \.tar$ ]]; then
+        echo ".tar"
+    elif [[ "$archive_name" =~ \.zip$ ]]; then
+        echo ".zip"
+    elif [[ "$archive_name" =~ \.7z$ ]]; then
+        echo ".7z"
+    else
+        echo ".tar.gz"
+    fi
+}
+
+# Calculate compression progress percentage from tar checkpoints
+calc_compression_percent() {
+    if [[ ! -f "$COMPRESSION_LOG" ]]; then
+        echo "0"
+        return
+    fi
+
+    # Count checkpoint lines (each represents 100 files processed)
+    CHECKPOINTS=$(grep -c "^100$" "$COMPRESSION_LOG" 2>/dev/null || echo "0")
+
+    # Estimate total based on initial file count (if available)
+    # For now, use a simple heuristic: cap at 100%
+    if [[ $CHECKPOINTS -lt 10 ]]; then
+        echo $((CHECKPOINTS * 10))
+    else
+        echo "99"  # Keep at 99% until completion marker exists
+    fi
+}
+
+# Build progress bars dynamically
+OUTPUT=""
+
+# Check compression status (first operation)
+if [[ -f "$COMPRESSION_PROGRESS" ]] && [[ ! -f "$COMPRESSION_COMPLETE" ]]; then
+    PROGRESS=$(calc_compression_percent)
+    FORMAT=$(get_compression_format)
+
+    # Progress bar using blocks
+    BLOCKS=$((PROGRESS / 10))
+    BAR=""
+    for ((i=0; i<10; i++)); do
+        if [[ $i -lt $BLOCKS ]]; then
+            BAR+="█"
+        else
+            BAR+="░"
+        fi
+    done
+    OUTPUT="🗜️  ${FORMAT} Compress: [${BAR}] ${PROGRESS}%"
+fi
+
+# Check rclone status (second operation - appends after compression)
+if [[ -f "$RCLONE_PROGRESS" ]]; then
+    PROGRESS=$(cat "$RCLONE_PROGRESS" 2>/dev/null || echo "0")
+    if [[ "$PROGRESS" -eq 100 ]]; then
+        # Append completion status
+        if [[ -n "$OUTPUT" ]]; then
+            OUTPUT="${OUTPUT}  |  ✓ Backup Complete"
+        else
+            OUTPUT="✓ Backup Complete"
+        fi
+    else
+        # Show rclone progress - append after compression if both active
+        BLOCKS=$((PROGRESS / 10))
+        BAR=""
+        for ((i=0; i<10; i++)); do
+            if [[ $i -lt $BLOCKS ]]; then
+                BAR+="█"
+            else
+                BAR+="░"
+            fi
+        done
+        RCLONE_STATUS="☁️  Proton Upload: [${BAR}] ${PROGRESS}%"
+
+        if [[ -n "$OUTPUT" ]]; then
+            OUTPUT="${OUTPUT}  |  ${RCLONE_STATUS}"
+        else
+            OUTPUT="$RCLONE_STATUS"
+        fi
+    fi
+fi
+
+# Output final status (empty if no active operations)
+echo "$OUTPUT"

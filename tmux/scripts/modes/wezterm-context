@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# Read WezTerm context (workspace/domain) for tmux status bar
+
+STATUS_FILE="${XDG_RUNTIME_DIR}/wezterm-tmux-status"
+
+if [[ -f "$STATUS_FILE" ]]; then
+    # Read workspace from file
+    WORKSPACE=$(grep "^WORKSPACE=" "$STATUS_FILE" | cut -d'=' -f2-)
+    if [[ -n "$WORKSPACE" && "$WORKSPACE" != "default" ]]; then
+        # Format workspace name with icon
+        echo -n "#[fg=#F5F5F5,bg=#5539CC]  ${WORKSPACE} "
+    fi
+fi

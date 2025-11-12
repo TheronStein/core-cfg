@@ -1,0 +1,298 @@
+# ============================================================================
+# TERMINAL CONFIGURATION - WezTerm Optimized
+# ============================================================================
+#
+# set -gq utf8 on
+# set -gq status-utf8 on
+
+# Use tmux-256color for full feature support
+set -g default-terminal "tmux-256color"
+
+# ============================================================================
+# KITTY KEYBOARD PROTOCOL - Enhanced Key Handling
+# ============================================================================
+# Enable extended keys for proper Ctrl+i / Tab differentiation
+# This is CRITICAL for neovim to receive Ctrl+i (jump forward) separately from Tab
+set -s extended-keys always
+set -as terminal-features ",*:extkeys"
+
+# Kitty-specific features for enhanced keyboard protocol
+set -ga terminal-features ",xterm-kitty:extkeys"
+set -ga terminal-overrides ",xterm-kitty:Tc"
+
+# WezTerm extended keys support
+set -ga terminal-features ",wezterm*:extkeys"
+
+# Ensure xterm-keys is enabled for proper key code translation
+set -g xterm-keys on
+
+# ============================================================================
+# TRUE COLOR SUPPORT
+# ============================================================================
+# Force true-color support (Tc = true color)
+# set -ga terminal-overrides ",*256col*:Tc"
+# set -ga terminal-overrides ",xterm*:Tc"
+# set -ga terminal-overrides ",wezterm*:Tc"
+# set -ga terminal-overrides ",alacritty:Tc"
+# set -ga terminal-overrides ",kitty*:Tc"
+#
+set -ga terminal-overrides ",xterm-256color:Tc"
+set -ga terminal-overrides ",wezterm:Tc"
+#
+# # Modern terminal features (requires tmux 3.2+)
+# set -as terminal-features ",*:RGB"              # True color
+# set -as terminal-features ",wezterm*:RGB"       # WezTerm SPECIFIC
+# set -s extended-keys on
+# set -as terminal-features 'xterm*:extkeys'
+
+# WezTerm extended keys support (critical for Ctrl+number in mux domains)
+# set -s extended-keys always
+# set -as terminal-features ",wezterm*:extkeys"
+
+# WezTerm specific features
+set -ga terminal-features ",wezterm*:clipboard"
+set -ga terminal-features ",wezterm*:ccolour"
+set -ga terminal-features ",wezterm*:cstyle"
+set -ga terminal-features ",wezterm*:focus"
+set -ga terminal-features ",wezterm*:mouse"
+set -ga terminal-features ",wezterm*:strikethrough"
+set -ga terminal-features ",wezterm*:usstyle"
+set -ga terminal-features ",wezterm*:sync"
+
+# Ensure xterm keys work in WezTerm domains
+# set -g xterm-keys on
+
+# set -gq mouse-utf8 on
+
+# ============================================================================
+# WEZTERM SPECIFIC CONFIGURATION
+# ============================================================================
+# WezTerm clipboard support (OSC 52)
+set -ga terminal-overrides ",wezterm*:Ms=\\E]52;c;%p2%s\\7"
+
+
+
+# ============================================================================
+# TEXT STYLING SUPPORT
+# ============================================================================
+# # Italics support
+# set -ga terminal-overrides ",*:sitm=\E[3m"      # Start italics
+# set -ga terminal-overrides ",*:ritm=\E[23m"     # End italics
+#
+# # Underline styles
+# set -ga terminal-overrides ",*:smul=\E[4m"      # Start underline
+# set -ga terminal-overrides ",*:rmul=\E[24m"     # End underline
+# set -sa terminal-overrides ',*:Smulx=\E[4::%p1%dm'  # Undercurl support
+#
+# # Enhanced underline colors
+# set -sa terminal-overrides ',*:Setulc=\E[58::2::%p1%{65536}%/%d::%p1%{256}%/%{255}%&%d::%p1%{255}%&%d%;m'
+#
+# # Standout mode
+# set -ga terminal-overrides ",*:smso=\E[7m"      # Start standout
+# set -ga terminal-overrides ",*:rmso=\E[27m"     # End standout
+#
+# # Modern text features
+set -as terminal-features ",*:usstyle"          # Underscore styles  
+set -as terminal-features ",*:overline"         # Overline support
+set -as terminal-features ",*:strikethrough"    # Strikethrough
+set -as terminal-features ",*:sync"             # Synchronized updates
+
+# ============================================================================
+# IMAGE & SIXEL SUPPORT
+# ============================================================================
+# Enable sixel graphics (for image preview)
+set -ga terminal-overrides ",*:sixel"
+set -ga terminal-overrides ",wezterm*:sixel"
+
+# Optimize for image rendering
+set -g assume-paste-time 1
+set -g display-time 4000
+
+# ============================================================================
+# SERVER SETTINGS
+# ============================================================================
+set -s editor "${EDITOR}"     # Use your preferred editor
+set -s set-clipboard on              # Use OSC 52 for clipboard
+set -s escape-time 10                # Fast escape detection (good for vim)
+set -s exit-empty on                 # Exit when no active sessions
+set -s focus-events on               # Request focus events from terminal
+set -s buffer-limit 200              # Number of paste buffers
+
+# ============================================================================
+# SESSION & PERFORMANCE SETTINGS
+# ============================================================================
+# Display settings
+set -g display-panes-time 2000
+
+# Activity monitoring
+set -g monitor-activity on
+set -g visual-activity off
+
+# Bell settings
+set -g bell-action none
+set -g visual-bell off
+
+
+#============================================================================
+# KEY ENCODING FIX FOR MUX DOMAINS
+# ============================================================================
+# This is critical for Ctrl+number combinations in WezTerm mux domains
+# set -s extended-keys always
+# # Map Ctrl+numbers explicitly (helps with mux domain issues)
+# # These ensure Ctrl+0 through Ctrl+9 work properly
+set -sg user-keys[0] "\e[9;5u" # Ctrl+Tab
+set -sg user-keys[1] "\e[9;2u" # Shift+Tab
+set -sg user-keys[2] "\e[9;6u" # Ctrl+Shift+Tab
+set -sg user-keys[3] "\e[105;5u" # Ctrl+i (CSI u format)
+
+set -s user-keys[10] "\e[48;5u"  # Ctrl+0
+set -s user-keys[11] "\e[49;5u"  # Ctrl+1
+set -s user-keys[12] "\e[50;5u"  # Ctrl+2
+set -s user-keys[13] "\e[51;5u"  # Ctrl+3
+set -s user-keys[14] "\e[52;5u"  # Ctrl+4
+set -s user-keys[15] "\e[53;5u"  # Ctrl+5
+set -s user-keys[16] "\e[54;5u"  # Ctrl+6
+set -s user-keys[17] "\e[55;5u"  # Ctrl+7
+set -s user-keys[18] "\e[56;5u"  # Ctrl+8
+set -s user-keys[19] "\e[57;5u"  # Ctrl+9
+#
+set -s user-keys[21] "\e[1;5P"    # Ctrl+F1
+set -s user-keys[22] "\e[1;5Q"    # Ctrl+F2
+set -s user-keys[23] "\e[1;5R"    # Ctrl+F3
+set -s user-keys[24] "\e[1;5S"    # Ctrl+F4
+# set -g default-terminal "tmux-256color"
+
+# Enable escape sequences for WezTerm communication
+# set -g allow-passthrough on
+
+# Send tmux session name to WezTerm via OSC sequences
+set-hook -g after-new-session 'run-shell "printf \"\033]1337;SetUserVar=TMUX_SESSION=$(echo -n #{session_name} | base64)\007\""'
+set-hook -g client-session-changed 'run-shell "printf \"\033]1337;SetUserVar=TMUX_SESSION=$(echo -n #{session_name} | base64)\007\""'
+set-hook -g after-rename-session 'run-shell "printf \"\033]1337;SetUserVar=TMUX_SESSION=$(echo -n #{session_name} | base64)\007\""'
+set-hook -g client-attached 'run-shell "printf \"\033]1337;SetUserVar=TMUX_SESSION=$(echo -n #{session_name} | base64)\007\""'
+#
+# # Also update when switching windows/panes within a session
+# set-hook -g window-linked 'run-shell "printf \"\033]1337;SetUserVar=TMUX_SESSION=$(echo -n #{session_name} | base64)\007\""'
+# set-hook -g after-select-pane 'run-shell "printf \"\033]1337;SetUserVar=TMUX_SESSION=$(echo -n #{session_name} | base64)\007\""' 
+# # Use tmux-256color for full feature support (italics, etc.)
+
+
+# Force true-color support (more comprehensive than basic RGB)
+set -ga terminal-features ",*256col*:Tc"        # Force Tc for any 256-color terminfo
+set -ga terminal-overrides ",xterm-256color:Tc" # Fallback for older xterm configs  
+set -ga terminal-overrides ",xterm*:Tc"         # Catch all xterm variants
+# set -ga terminal-overrides ",*:sitm=\E[3m"     # Italics
+# set -ga terminal-overrides ",*:ritm=\E[23m"    # Remove italics
+# set -ga terminal-overrides ",*:smul=\E[4m"     # Underline
+# set -ga terminal-overrides ",*:rmul=\E[24m"    # Remove underline
+# set -ga terminal-overrides ",*:smso=\E[7m"     # Standout mode
+# set -ga terminal-overrides ",*:rmso=\E[27m"    # Remove standout
+
+# Enable sixel support for WezTerm
+# set -ga terminal-overrides ",wezterm:Tc:Ms=\\E]52;c;%p2%s\\7"
+
+# WezTerm specific optimizations
+set -ga terminal-overrides ",wezterm*:Tc"
+set -ga terminal-overrides ",wezterm*:RGB"
+# set -ga terminal-overrides ",wezterm*:sitm=\E[3m"
+# set -ga terminal-overrides ",wezterm*:ritm=\E[23m"
+# set -ga terminal-overrides ",wezterm*:smul=\E[4m"
+# set -ga terminal-overrides ",wezterm*:rmul=\E[24m"
+
+ #============================================================================
+# IMAGE PREVIEW SUPPORT
+# ============================================================================
+
+# Optimize for image rendering performance
+set -g assume-paste-time 1
+
+# ============================================================================
+# SERVER SETTINGS (from reference config)
+# ============================================================================
+
+# Modern tmux server configuration
+set -s editor         "${EDITOR}"   # Use your preferred editor
+set -s set-clipboard  on            # Use escape sequences for clipboard
+set -s escape-time    10            # Fast escape detection (good for vim)
+set -s exit-empty     on            # Exit when no active sessions
+set -s focus-events   on            # Request focus events from terminal
+set -s buffer-limit   200           # Number of paste buffers per session
+
+# Extended keys and xterm-keys are now configured at the top of this file
+# in the KITTY KEYBOARD PROTOCOL section
+
+# ============================================================================
+# SESSION & PERFORMANCE SETTINGS
+# ============================================================================
+
+# Display messages for longer
+set -g display-time 2000
+set -g display-panes-time 2000
+
+# Monitor activity but don't be annoying
+set -g monitor-activity on
+set -g visual-activity off
+# Sixel support (your tmux supports basic sixel based on tests)
+set -ga terminal-overrides ",*:sixel"
+set -ga terminal-overrides ",wezterm*:sixel"
+
+# set -ga update-environment 'WEZTERM_PANE'
+# Optimize for image rendering performance
+set -g display-time 4000 # 1500
+
+# ============================================================================
+# MODERN TERMINAL FEATURES
+# ============================================================================
+
+# Enable modern terminal features (requires tmux 3.2+)
+# set -as terminal-features ",*:RGB"              # True color
+set -as terminal-features ",*:usstyle"          # Underscore styles  
+set -as terminal-features ",*:overline"         # Overline support
+set -as terminal-features ",*:strikethrough"    # Strikethrough
+set -as terminal-features ",*:sync"             # Synchronized updates
+
+# Enhanced undercurl and underline styles (from reference config)
+# set -sa terminal-overrides '*:Smulx=\E[4::%p1%dm'  # Support undercurl
+# set -sa terminal-overrides '*:Setulc=\E[58::2::%p1%{65536}%/%d::%p1%{256}%/%{255}%&%d::%p1%{255}%&%d%;m'  # Undercurl colors
+
+# #  backspace             → set key sent by tmux for backspace
+# #  exit-unattached       → make server exit if it has no attached clients
+# #  history-file          → tmux command history file name
+# #  message-limit         → set size of message log per client
+# #  prompt-history-limit  → set the number of history items to save in the history file
+# #  terminal-features     → set terminal features not detected by terminfo
+#
+# # set -s  default-terminal   "tmux-256color"         # default terminal definition string
+# # set -sa terminal-overrides "xterm-256color:RGB"    # override terminal descriptions
+# # set -sa terminal-overrides "alacritty:RGB"         # add truecolor support
+# # set -sa terminal-overrides "*:Tc:sitm=\E[3m"         # add truecolor support
+# # set -sa terminal-overrides '*:Eneks=\E[>4;1m'
+# # set -sa terminal-overrides '*:Dseks=\E[>4;m'
+# # set -sa terminal-features 'xterm*:extkeys'
+# set -sa terminal-overrides '*:Smulx=\E[4::%p1%dm'  # support undercurl
+# set -sa terminal-overrides '*:Setulc=\E[58::2::%p1%{65536}%/%d::%p1%{256}%/%{255}%&%d::%p1%{255}%&%d%;m'
+#
+#
+# # If your TERM already has Tc in terminfo, tmux will pick that up automatically.
+# # But in case it doesn’t, force it for any terminfo advertising 256 colors:
+# set -ga terminal-features ",*256col*:Tc"
+#
+# #### 2) Force true-color on any *xterm* (even if terminfo is stale) ####
+# # (this is your old xterm-256color:Tc hack, applied *after* the global rule)
+# set -ga terminal-overrides ",xterm-256color:Tc"
+# set -ga terminal-overrides ",xterm*:Tc"
+# # set -s extended-keys  always  # control whether tmux will send extended keys through to the terminal
+#
+# set -s editor         ${EDITOR}    # specify the command used when tmux runs an editor
+# set -s set-clipboard  on           # use esc sequences to set terminal clipboard
+# set -s escape-time    10           # set timeout to detect single escape characters (in msecs)
+# set -s exit-empty     on           # exit when there are no active sessions
+# set -s focus-events   on           # request focus events from terminal
+# set -s buffer-limit   200          # number of buffers kept per session
+# #
+# #Scrollback history ### 1) Default to true-color everywhere tmux can detect it ####
+# # Tell tmux to use its own 256-color terminfo (which knows about Tc)
+# set -g default-terminal "tmux-256color"
+#
+# # ensure tmux advertises xterm keys
+# set -g xterm-keys on

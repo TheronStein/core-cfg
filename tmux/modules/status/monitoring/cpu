@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+# CPU usage monitoring script for tmux status bar
+
+# Get CPU usage (percentage)
+if command -v mpstat &>/dev/null; then
+    # Use mpstat if available (more accurate)
+    cpu_usage=$(mpstat 1 1 | awk '/Average:/ {print 100 - $NF}')
+    printf "%.0f%%" "$cpu_usage"
+elif [ -f /proc/stat ]; then
+    # Fallback to /proc/stat
+    read cpu a b c previdle rest < /proc/stat
+    sleep 0.5
+    read cpu a b c idle rest < /proc/stat
+
+    previdle=$((previdle))
+    idle=$((idle))
+
+    if [ $idle -gt $previdle ]; then
+        cpu_usage=$((100 - (100 * (idle - previdle) / 100)))
+    else
+        cpu_usage=0
+    fi
+    printf "%d%%" "$cpu_usage"
+else
+    # Fallback: use top command
+    cpu_usage=$(top -bn1 | grep "Cpu(s)" | sed "s/.*, *\([0-9.]*\)%* id.*/\1/" | awk '{print 100 - $1}')
+    printf "%.0f%%" "${cpu_usage:-0}"
+fi

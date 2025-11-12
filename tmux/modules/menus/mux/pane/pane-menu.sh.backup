@@ -1,0 +1,57 @@
+#!/bin/bash
+tmux display-menu -x W -y S \
+  "Zoom Toggle" z "resize-pane -Z" \
+  "Break Pane (follow)" b "break-pane" \
+  "Break Pane (don't follow)" B "break-pane -d" \
+  "Kill Pane" x "kill-pane" \
+  "" \
+  "Move Pane" m "move-pane -t :+1" \
+  "Select Pane" o "display-panes" \
+  "Switch Pane" S "display-popup -E -w 95% -h 95% '${TMUX_SCRIPTS}/tmux-switch-pane.sh'" \
+  "Join Pane (interactive)" J "run-shell '~/.core/cfg/tmux/scripts/menus/pane-join-menu.sh'" \
+  "" \
+  "Swap Pane" s "swap-pane -t :+1" \
+  "Swap with selected" q "display-panes { swapp -t '%%' }" \
+  "Swap Panes/Windows (interactive)" P "run-shell '~/.core/cfg/tmux/scripts/menus/pane-swap-menu.sh'" \
+  "" \
+  "Move Pane Up" u "swap-pane -U" \
+  "Move Pane Down" d "swap-pane -D" \
+  "Rotate Panes Clockwise" r "rotate-window" \
+  "Rotate Panes Counter-Clockwise" R "rotate-window -D" \
+  "" \
+  "Split Before (Left)" 1 "split-window -hb" \
+  "Split Before (Above)" 2 "split-window -vb" \
+  "Split After (Right)" 3 "split-window -h" \
+  "Split After (Below)" 4 "split-window -v" \
+  "" \
+  "Join Pane Here (Above)" k "display-panes { join-pane -vb -s '%%' }" \
+  "Join Pane Here (Below)" j "display-panes { join-pane -v -s '%%' }" \
+  "Join Pane Here (Left)" H "display-panes { join-pane -hb -s '%%' }" \
+  "Join Pane Here (Right)" L "display-panes { join-pane -h -s '%%' }" \
+  "" \
+  "Layouts Menu" l "run-shell '~/.core/cfg/tmux/scripts/menus/layout-menu.sh'" \
+  "" \
+  "Toggle pane synchronization" y "if -F '#{pane_synchronized}' 'set -w synchronize-panes off; display \"Sync off\"' 'set -w synchronize-panes on; display \"Sync on\"'" \
+  "Vertical Split" v "run-shell '~/.core/cfg/tmux/scripts/actions/vsplit.sh'" \
+  "Horizontal Split" h "run-shell '~/.core/cfg/tmux/scripts/actions/hsplit.sh'" \
+  "" \
+  "Back" Tab "run-shell '~/.core/cfg/tmux/scripts/menus/main-menu.sh'"
+
+# Switch between synchronize all pane
+# bind -N "Toggle pane synchronization" C-y \
+#   if -F '#{pane_synchronized}' \
+#     'set -w synchronize-panes off; display "Sync off"' \
+#     'set -w synchronize-panes on; display "Sync on"'
+#
+#
+# =========================================#
+#  Pane Moving
+# =========================================
+# bind M-m move-pane -t '.-'
+# bind M-h move-pane -h -t '.-'
+
+# =========================================
+# Next/Previous Pane
+# =========================================
+# bind -n C-S-x selectp -t :.+ \; resizep -Z  # next pane zoom
+# bind -n C-x selectp -t :.+                   # next pane

@@ -1,0 +1,418 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# ========== CONFIGURATION ==========
+WEZTERM_CONFIG_DIR="$HOME/.config/wezterm"
+THEMES_DIR="$WEZTERM_CONFIG_DIR/themes"
+SESSION_THEMES_DIR="$THEMES_DIR/session_themes"
+
+# SSH hosts
+declare -A SSH_HOSTS
+SSH_HOSTS["core-server"]="theron@chaoscore.org"
+
+RED=$'\033[0;31m'
+GREEN=$'\033[0;32m'
+BLUE=$'\033[0;34m'
+YELLOW=$'\033[1;33m'
+PURPLE=$'\033[0;35m'
+CYAN=$'\033[0;36m'
+BOLD=$'\033[1m'
+DIM=$'\033[2m'
+NC=$'\033[0m'
+
+# Current session
+CURRENT_SESSION=$(tmux display-message -p '#S')
+
+# Create a temporary file to store session data for preview
+TEMP_SESSION_DATA=$(mktemp /tmp/tmux-sessions.XXXXXX)
+trap "rm -f $TEMP_SESSION_DATA" EXIT
+
+# ========== HELPER FUNCTIONS ==========
+
+get_safe_name() {
+    echo "$1" | sed 's/[^a-zA-Z0-9_-]/_/g'
+}
+
+get_short_hostname() {
+    local full_host="$1"
+    case "$full_host" in
+    "$(hostname -f)") echo "$(hostname -s)" ;;
+    "chaoscore.org") echo "chaoscore" ;;
+    *) echo "$full_host" ;;
+    esac
+}
+
+# Get session preview for index
+get_session_preview() {
+    local idx="$1"
+
+    # Read session data from temp file
+    local session_data=$(sed -n "${idx}p" "$TEMP_SESSION_DATA")
+    if [[ -z "$session_data" ]]; then
+        echo "No session data found"
+        return
+    fi
+
+    IFS='|' read -r type host session desc <<<"$session_data"
+
+    # Format display name
+    local display_name=""
+    case "$type" in
+    "local")
+        local short_host=$(hostname -s)
+        display_name="Theron@${short_host}"
+        ;;
+    "docker")
+        display_name="Theron@${host}.docker"
+        ;;
+    "ssh")
+        local short_host="$host"
+        [[ "$host" == "chaoscore.org" ]] && short_host="chaoscore"
+        display_name="Theron@${short_host}"
+        ;;
+    esac
+
+    # Get theme
+    local safe_name=$(echo "${type}_${host}_${session}" | sed 's/[^a-zA-Z0-9_-]/_/g')
+    local theme_file="$SESSION_THEMES_DIR/${safe_name}.txt"
+    local theme=$([[ -f "$theme_file" ]] && cat "$theme_file" || echo "Default")
+
+    # Color based on type
+    local color=""
+    case "$type" in
+    "local") color="\033[0;34m" ;;
+    "docker") color="\033[0;32m" ;;
+    "ssh") color="\033[0;35m" ;;
+    esac
+
+    # Display header
+    echo -e "\033[1m${color}━━━ $display_name ━━━\033[0m"
+    echo -e "\033[1mSession:\033[0m $session"
+    echo -e "\033[1mType:\033[0m $type"
+    echo -e "\033[1mHost:\033[0m $host"
+    echo -e "\033[1mTheme:\033[0m $theme"
+    echo ""
+
+    # Current session indicator
+    if [[ "$type" == "local" && "$session" == "$CURRENT_SESSION" ]]; then
+        echo -e "\033[1m\033[0;32m>>> CURRENT SESSION <<<\033[0m\n"
+    fi
+
+    # Show detailed session info
+    case "$type" in
+    "local")
+        # Get windows with more detail
+        echo -e "\033[1mWindows:\033[0m"
+        tmux list-windows -t "$session" -F '#{window_index}:#{window_name} [#{window_width}x#{window_height}] (#{window_panes} panes) #{?window_active,*,}' 2>/dev/null | while read -r window; do
+            local win_idx=$(echo "$window" | cut -d: -f1)
+            local win_info=$(echo "$window" | cut -d' ' -f2-)
+            echo -e "  \033[0;36mWindow $win_idx\033[0m: $win_info"
+
+            # Show panes in each window
+            tmux list-panes -t "$session:$win_idx" -F '    #{pane_index}: #{pane_current_command} [#{pane_width}x#{pane_height}]' 2>/dev/null
+        done || echo "  No windows"
+
+        # Show session info
+        echo -e "\n\033[1mSession Info:\033[0m"
+        tmux list-sessions -F 'Created: #{session_created_string}' -f "#{==:#{session_name},$session}" 2>/dev/null | sed 's/^/  /'
+        ;;
+
+    "docker")
+        echo -e "\033[1mWindows:\033[0m"
+        docker exec "$host" tmux list-windows -t "$session" -F '#{window_index}:#{window_name} [#{window_width}x#{window_height}] (#{window_panes} panes) #{?window_active,*,}' 2>/dev/null | while read -r window; do
+            local win_idx=$(echo "$window" | cut -d: -f1)
+            local win_info=$(echo "$window" | cut -d' ' -f2-)
+            echo -e "  \033[0;36mWindow $win_idx\033[0m: $win_info"
+
+            docker exec "$host" tmux list-panes -t "$session:$win_idx" -F '    #{pane_index}: #{pane_current_command} [#{pane_width}x#{pane_height}]' 2>/dev/null
+        done || echo "  No windows"
+        ;;
+
+    "ssh")
+        echo -e "\033[1mWindows:\033[0m"
+        ssh -o ConnectTimeout=2 "$host" "tmux list-windows -t '$session' -F '#{window_index}:#{window_name} [#{window_width}x#{window_height}] (#{window_panes} panes) #{?window_active,*,}'" 2>/dev/null | while read -r window; do
+            local win_idx=$(echo "$window" | cut -d: -f1)
+            local win_info=$(echo "$window" | cut -d' ' -f2-)
+            echo -e "  \033[0;36mWindow $win_idx\033[0m: $win_info"
+
+            ssh -o ConnectTimeout=2 "$host" "tmux list-panes -t '$session:$win_idx' -F '    #{pane_index}: #{pane_current_command} [#{pane_width}x#{pane_height}]'" 2>/dev/null
+        done || echo "  Connection failed"
+        ;;
+    esac
+}
+
+# No exports needed - preview is self-contained
+
+# Switch to session
+switch_to_session() {
+    local type="$1"
+    local host="$2"
+    local session="$3"
+
+    case "$type" in
+    "local")
+        tmux switch-client -t "$session"
+        ;;
+    "docker")
+        # For docker, we need to be more creative
+        # Create a new window that connects to docker
+        tmux new-window -n "docker:$host:$session" \
+            "docker exec -it '$host' sh -c 'tmux attach-session -t \"$session\"'; echo 'Docker session ended. Press Enter to close.'; read"
+        ;;
+    "ssh")
+        # For SSH, create a new window that connects
+        tmux new-window -n "ssh:$(get_short_hostname "$host"):$session" \
+            "ssh -t '$host' 'tmux attach-session -t \"$session\"'; echo 'SSH session ended. Press Enter to close.'; read"
+        ;;
+    esac
+}
+
+# Main interface
+main() {
+    # Discover sessions
+    local all_sessions=()
+
+    # Local sessions
+    while IFS= read -r session; do
+        [[ -n "$session" ]] && all_sessions+=("local|localhost|$session|Local Session")
+    done < <(tmux list-sessions -F '#{session_name}' 2>/dev/null || true)
+
+    # Docker sessions
+    while IFS= read -r container; do
+        if [[ -n "$container" ]]; then
+            if docker exec "$container" which tmux >/dev/null 2>&1; then
+                local docker_sessions=$(docker exec "$container" tmux list-sessions -F '#{session_name}' 2>/dev/null || echo "")
+                if [[ -n "$docker_sessions" ]]; then
+                    while IFS= read -r dsession; do
+                        [[ -n "$dsession" ]] && all_sessions+=("docker|$container|$dsession|Docker Container")
+                    done <<<"$docker_sessions"
+                fi
+            fi
+        fi
+    done < <(docker ps --format "{{.Names}}" 2>/dev/null || true)
+
+    # SSH sessions
+    for label in "${!SSH_HOSTS[@]}"; do
+        local host="${SSH_HOSTS[$label]}"
+        local sessions=$(ssh -o ConnectTimeout=2 "$host" "tmux list-sessions -F '#{session_name}' 2>/dev/null" 2>/dev/null || echo "")
+        if [[ -n "$sessions" ]]; then
+            while IFS= read -r session; do
+                all_sessions+=("ssh|$host|$session|SSH Remote")
+            done <<<"$sessions"
+        fi
+    done
+
+    # Save session data to temp file
+    >"$TEMP_SESSION_DATA"
+    for session_info in "${all_sessions[@]}"; do
+        echo "$session_info" >>"$TEMP_SESSION_DATA"
+    done
+
+    # Create FZF input
+    local fzf_input=()
+    local index=1
+
+    for session_info in "${all_sessions[@]}"; do
+        IFS='|' read -r type host name desc <<<"$session_info"
+
+        local icon=""
+        case "$type" in
+        "local") icon="🖥️ " ;;
+        "docker") icon="🐳 " ;;
+        "ssh") icon="🌐 " ;;
+        esac
+
+        # Format session name
+        local display_name=""
+        case "$type" in
+        "local")
+            local short_host=$(get_short_hostname "$(hostname -f)")
+            display_name="Theron@${short_host}"
+            ;;
+        "docker")
+            display_name="${host}"
+            ;;
+        "ssh")
+            local short_host=$(get_short_hostname "$host")
+            display_name="Theron@${short_host}"
+            ;;
+        esac
+
+        # Mark current session
+        local current_marker=""
+        if [[ "$type" == "local" && "$name" == "$CURRENT_SESSION" ]]; then
+            current_marker=" ${GREEN}◄ current${NC}"
+        fi
+
+        local line=$(printf "%3d. %s%-30s ${DIM}[%s]${NC}%s" "$index" "$icon" "$name" "$display_name" "$current_marker")
+        fzf_input+=("$line")
+        ((index++))
+    done
+
+    # Add actions
+    fzf_input+=("")
+    fzf_input+=("${BOLD}${YELLOW}═══ Actions ═══${NC}")
+    fzf_input+=("  ${BOLD}[n]${NC} Create new local session")
+    fzf_input+=("  ${BOLD}[k]${NC} Kill session")
+    fzf_input+=("  ${BOLD}[r]${NC} Rename current session")
+    fzf_input+=("  ${BOLD}[q]${NC} Cancel")
+
+    # FZF selection with preview
+    local selected=$(printf '%s\n' "${fzf_input[@]}" | fzf \
+        --ansi \
+        --height=100% \
+        --layout=reverse \
+        --border=none \
+        --prompt="Switch session: " \
+        --header="Session Switcher - ↑↓ navigate, Enter to switch" \
+        --preview-window=right:60% \
+        --preview='
+            line={}
+            if [[ "$line" =~ ^[[:space:]]*([0-9]+)\. ]]; then
+                idx="${BASH_REMATCH[1]}"
+                data=$(sed -n "${idx}p" "'"$TEMP_SESSION_DATA"'" 2>/dev/null)
+                if [[ -n "$data" ]]; then
+                    IFS="|" read -r type host session desc <<< "$data"
+
+                    # Format display name
+                    display_name=""
+                    case "$type" in
+                    "local")
+                        short_host=$(hostname -s)
+                        display_name="Theron@${short_host}"
+                        ;;
+                    "docker")
+                        display_name="Theron@${host}.docker"
+                        ;;
+                    "ssh")
+                        short_host="$host"
+                        [[ "$host" == "chaoscore.org" ]] && short_host="chaoscore"
+                        display_name="Theron@${short_host}"
+                        ;;
+                    esac
+
+                    # Get theme
+                    safe_name=$(echo "${type}_${host}_${session}" | sed "s/[^a-zA-Z0-9_-]/_/g")
+                    theme_file="'"$SESSION_THEMES_DIR"'/${safe_name}.txt"
+                    theme=$([[ -f "$theme_file" ]] && cat "$theme_file" || echo "Default")
+
+                    # Color based on type
+                    color=""
+                    case "$type" in
+                    "local") color="\033[0;34m" ;;
+                    "docker") color="\033[0;32m" ;;
+                    "ssh") color="\033[0;35m" ;;
+                    esac
+
+                    # Display header
+                    echo -e "\033[1m${color}━━━ $display_name ━━━\033[0m"
+                    echo -e "\033[1mSession:\033[0m $session"
+                    echo -e "\033[1mType:\033[0m $type"
+                    echo -e "\033[1mHost:\033[0m $host"
+                    echo -e "\033[1mTheme:\033[0m $theme"
+                    echo ""
+
+                    # Current session indicator
+                    if [[ "$type" == "local" && "$session" == "'"$CURRENT_SESSION"'" ]]; then
+                        echo -e "\033[1m\033[0;32m>>> CURRENT SESSION <<<\033[0m\n"
+                    fi
+
+                    # Show detailed session info
+                    case "$type" in
+                    "local")
+                        echo -e "\033[1mWindows:\033[0m"
+                        tmux list-windows -t "$session" -F "#{window_index}:#{window_name} [#{window_width}x#{window_height}] (#{window_panes} panes) #{?window_active,*,}" 2>/dev/null | while read -r window; do
+                            win_idx=$(echo "$window" | cut -d: -f1)
+                            win_info=$(echo "$window" | cut -d" " -f2-)
+                            echo -e "  \033[0;36mWindow $win_idx\033[0m: $win_info"
+
+                            # Show panes in each window
+                            tmux list-panes -t "$session:$win_idx" -F "    #{pane_index}: #{pane_current_command} [#{pane_width}x#{pane_height}]" 2>/dev/null
+                        done || echo "  No windows"
+
+                        echo -e "\n\033[1mSession Info:\033[0m"
+                        tmux list-sessions -F "Created: #{session_created_string}" -f "#{==:#{session_name},$session}" 2>/dev/null | sed "s/^/  /"
+                        ;;
+
+                    "docker")
+                        echo -e "\033[1mWindows:\033[0m"
+                        docker exec "$host" tmux list-windows -t "$session" -F "#{window_index}:#{window_name} [#{window_width}x#{window_height}] (#{window_panes} panes) #{?window_active,*,}" 2>/dev/null | while read -r window; do
+                            win_idx=$(echo "$window" | cut -d: -f1)
+                            win_info=$(echo "$window" | cut -d" " -f2-)
+                            echo -e "  \033[0;36mWindow $win_idx\033[0m: $win_info"
+
+                            docker exec "$host" tmux list-panes -t "$session:$win_idx" -F "    #{pane_index}: #{pane_current_command} [#{pane_width}x#{pane_height}]" 2>/dev/null
+                        done || echo "  No windows"
+                        ;;
+
+                    "ssh")
+                        echo -e "\033[1mWindows:\033[0m"
+                        ssh -o ConnectTimeout=2 "$host" "tmux list-windows -t \"$session\" -F \"#{window_index}:#{window_name} [#{window_width}x#{window_height}] (#{window_panes} panes) #{?window_active,*,}\"" 2>/dev/null | while read -r window; do
+                            win_idx=$(echo "$window" | cut -d: -f1)
+                            win_info=$(echo "$window" | cut -d" " -f2-)
+                            echo -e "  \033[0;36mWindow $win_idx\033[0m: $win_info"
+
+                            ssh -o ConnectTimeout=2 "$host" "tmux list-panes -t \"$session:$win_idx\" -F \"    #{pane_index}: #{pane_current_command} [#{pane_width}x#{pane_height}]\"" 2>/dev/null
+                        done || echo "  Connection failed"
+                        ;;
+                    esac
+                fi
+            else
+                # Handle action lines
+                case "$line" in
+                    *"Create new"*|*"[n]"*) echo -e "\033[1m\033[1;33mCreate New Session\033[0m\n\nCreate a new local tmux session." ;;
+                    *"Kill"*|*"[k]"*) echo -e "\033[1m\033[0;31mKill Session\033[0m\n\nRemove a session (current session cannot be killed)." ;;
+                    *"Rename"*|*"[r]"*) echo -e "\033[1m\033[1;33mRename Session\033[0m\n\nCurrent: '"$CURRENT_SESSION"'" ;;
+                    *) echo "Navigate sessions with ↑↓" ;;
+                esac
+            fi
+        ')
+
+    # Handle selection
+    case "$selected" in
+    *"[n]"* | *"Create new"*)
+        read -p "New session name: " new_session
+        if [[ -n "$new_session" ]]; then
+            tmux new-session -d -s "$new_session"
+            tmux switch-client -t "$new_session"
+        fi
+        ;;
+    *"[k]"* | *"Kill session"*)
+        # Show sessions to kill (excluding current)
+        local kill_session=$(printf '%s\n' "${fzf_input[@]}" | grep -v "◄ current" | grep -E "^[[:space:]]*[0-9]+\." |
+            fzf --ansi --prompt="Kill session: " --header="Select session to kill")
+        if [[ "$kill_session" =~ ^[[:space:]]*([0-9]+)\. ]]; then
+            local idx="${BASH_REMATCH[1]}"
+            local session_info=$(sed -n "${idx}p" "$TEMP_SESSION_DATA")
+            if [[ -n "$session_info" ]]; then
+                IFS='|' read -r type host name desc <<<"$session_info"
+                if [[ "$type" == "local" && "$name" != "$CURRENT_SESSION" ]]; then
+                    tmux kill-session -t "$name"
+                fi
+            fi
+        fi
+        ;;
+    *"[r]"* | *"Rename"*)
+        read -p "New name for session '$CURRENT_SESSION': " new_name
+        if [[ -n "$new_name" ]]; then
+            tmux rename-session "$new_name"
+        fi
+        ;;
+    *"[q]"* | *"Cancel"* | "")
+        exit 0
+        ;;
+    *)
+        # Extract session number and switch
+        if [[ "$selected" =~ ^[[:space:]]*([0-9]+)\. ]]; then
+            local idx="${BASH_REMATCH[1]}"
+            local session_info=$(sed -n "${idx}p" "$TEMP_SESSION_DATA")
+            if [[ -n "$session_info" ]]; then
+                IFS='|' read -r type host name desc <<<"$session_info"
+                switch_to_session "$type" "$host" "$name"
+            fi
+        fi
+        ;;
+    esac
+}
+
+main

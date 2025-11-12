@@ -1,0 +1,131 @@
+#compdef pacman paci pacr pacrs pacu pacq pacqi pacs
+
+# Pacman ZSH completion with sudo support
+
+_pacman_get_command() {
+    local c
+    for c in ${${(s: :)words}:#-*}; do
+        [[ $c == sudo ]] && continue
+        echo $c
+        return
+    done
+}
+
+_pacman_action_none() {
+    _arguments -s \
+        '-D[Modify database]' \
+        '-Q[Query database]' \
+        '-R[Remove packages]' \
+        '-S[Sync packages]' \
+        '-T[Check dependencies]' \
+        '-U[Upgrade packages]' \
+        '-F[Query the files database]' \
+        '-V[Display version]' \
+        '-h[Display help]'
+}
+
+_pacman_action_query() {
+    local -a query_options
+    query_options=(
+        '-c[List package changelog]'
+        '-d[List packages installed as dependencies]'
+        '-e[List packages explicitly installed]'
+        '-g[View all members of a package group]'
+        '-i[View package information]'
+        '-k[Check package files]'
+        '-l[List package contents]'
+        '-m[List installed packages not found in sync db(s)]'
+        '-n[List installed packages found in sync db(s)]'
+        '-o[Query the package that owns a file]'
+        '-p[Query a package file]'
+        '-q[Show less information]'
+        '-s[Search package names and descriptions]'
+        '-t[List packages not required by any package]'
+        '-u[List packages that can be upgraded]'
+    )
+    
+    _arguments -s : \
+        "$query_options[@]" \
+        '*:package:_pacman_completions_installed_packages'
+}
+
+_pacman_action_remove() {
+    local -a remove_options
+    remove_options=(
+        '-c[Remove old packages from cache]'
+        '-n[Remove unneeded packages]'
+        '-s[Remove dependencies]'
+        '-u[Remove unneeded packages]'
+        '--print[Print targets]'
+        '--noconfirm[Do not ask for confirmation]'
+    )
+    
+    _arguments -s : \
+        "$remove_options[@]" \
+        '*:installed package:_pacman_completions_installed_packages'
+}
+
+_pacman_action_sync() {
+    local -a sync_options
+    sync_options=(
+        '-c[Remove old packages from cache]'
+        '-g[View all members of a package group]'
+        '-i[View package information]'
+        '-l[List packages in a repo]'
+        '-q[Show less information]'
+        '-s[Search package names and descriptions]'
+        '-u[Upgrade installed packages]'
+        '-w[Download packages only]'
+        '-y[Download fresh package databases]'
+        '--needed[Do not reinstall up to date packages]'
+        '--noconfirm[Do not ask for confirmation]'
+    )
+    
+    _arguments -s : \
+        "$sync_options[@]" \
+        '*:package:_pacman_completions_all_packages'
+}
+
+_pacman_completions_installed_packages() {
+    local -a packages
+    packages=(${${(f)"$(pacman -Qq 2>/dev/null)"}})
+    compadd "$@" -a packages
+}
+
+_pacman_completions_all_packages() {
+    local -a packages
+    packages=(${${(f)"$(pacman -Slq 2>/dev/null)"}})
+    compadd "$@" -a packages
+}
+
+_pacman_completions_repositories() {
+    local -a repos
+    repos=(${${(f)"$(pacman -Sl | cut -d' ' -f1 | sort -u 2>/dev/null)"}})
+    compadd "$@" -a repos
+}
+
+_pacman() {
+    case $(_pacman_get_command) in
+        pacman)
+            case $words[2] in
+                -Q*) _pacman_action_query ;;
+                -R*) _pacman_action_remove ;;
+                -S*) _pacman_action_sync ;;
+                -*) _pacman_action_none ;;
+                *) _pacman_action_none ;;
+            esac
+            ;;
+        paci) _pacman_action_sync ;;
+        pacr|pacrs) _pacman_action_remove ;;
+        pacq|pacqi) _pacman_action_query ;;
+        pacs) _arguments '*:search term:' ;;
+        pacu) _arguments ;;
+    esac
+}
+
+# Register completions for helper functions
+compdef _pacman pacman
+compdef '_pacman_action_sync' paci
+compdef '_pacman_action_remove' pacr pacrs
+compdef '_pacman_action_query' pacq pacqi
+compdef '_arguments "*:search term:"' pacs

@@ -1,0 +1,9 @@
+pane	0	0	1	:*	1	arch-asusfx	:/home/theron/.core/cfg/wezterm	1	zsh	:
+pane	core-ide	0	1	:*	1	arch-asusfx	:/home/theron/.core/dev	1	zsh	:
+pane	kdesms-tui	0	1	:##*	1	arch-asusfx	:/home/theron/.core/cfg/wezterm	1	zsh	:
+pane	keyboard-firmware	0	1	:##*	1	arch-asusfx	:/home/theron/.core/cfg/wezterm	1	zsh	:
+window	0	0	:zsh	1	:*	b69d,208x42,0,0,0	:
+window	core-ide	0	:zsh	1	:*	b69e,208x42,0,0,1	:
+window	kdesms-tui	0	:zsh	1	:##*	b69f,208x42,0,0,2	:
+window	keyboard-firmware	0	:zsh	1	:##*	b6a0,208x42,0,0,3	:
+state	core-ide	0

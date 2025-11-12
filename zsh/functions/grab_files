@@ -1,0 +1,20 @@
+#!/usr/bin/env zsh
+# Grab multiple files and copy their contents to clipboard
+
+local files=""
+for file in "$@"; do
+    if [[ -f "$file" ]]; then
+        files+="=== $file ===\n"
+        files+="$(cat "$file")\n\n"
+    else
+        echo "Warning: $file not found" >&2
+   fi
+done
+
+if [[ -n "$files" ]]; then
+    echo -e "$files" | pbcopy  # or xclip/wl-copy
+    echo "Copied ${#} files to clipboard"
+else
+    echo "No valid files to copy" >&2
+    return 1
+fi
