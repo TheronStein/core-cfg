@@ -1,4 +1,4 @@
--- File: ~/.core/cfg/wezterm/modules/custom_icons.lua
+-- File: ~/.core/.sys/configs/wezterm/modules/custom_icons.lua
 -- Custom icon mappings for icons not available in wezterm.nerdfonts
 --
 -- PURPOSE:
@@ -19,7 +19,7 @@ local wezterm = require("wezterm")
 -- Format: name = "unicode_character" -- description
 local custom_icons = {
 	-- File managers and utilities
-	yazi = "🦆", -- 🦆 Duck emoji (Yazi's logo)
+	yazi = "󰇥", -- 󰇥 Duck emoji (Yazi's logo)
 
 	-- Legacy icon name mappings (for backward compatibility)
 	-- These icons don't exist in wezterm.nerdfonts, so we map to suitable alternatives
@@ -40,6 +40,9 @@ local function get_icon(icon_name)
 		return wezterm.nerdfonts.md_application -- Fallback to generic app icon
 	end
 end
+
+-- Note: wezterm.nerdfonts is read-only, so we can't inject custom icons into it
+-- Instead, we expose them through this module's API
 
 -- Export the module
 return {

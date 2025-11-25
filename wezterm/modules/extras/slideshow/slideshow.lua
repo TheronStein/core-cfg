@@ -1,4 +1,4 @@
--- ~/.core/cfg/wezterm/extra/slideshow.lua
+-- ~/.core/.sys/configs/wezterm/extra/slideshow.lua
 -- Enhanced background image slideshow functionality with yazi integration
 
 local wezterm = require("wezterm")

@@ -1,4 +1,4 @@
--- ~/.core/cfg/wezterm/util/env_helper.lua
+-- ~/.core/.sys/configs/wezterm/util/env_helper.lua
 -- Environment configuration helper for Hyprland/Wayland
 
 local runtime_dir = os.getenv("XDG_RUNTIME_DIR") or os.getenv("HOME") .. "/.local/share/wezterm"

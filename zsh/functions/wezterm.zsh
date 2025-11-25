@@ -1,4 +1,4 @@
-# ~/.core/cfg/zsh/wezterm.zsh (or add to .zshrc/.bashrc)
+# ~/.core/.sys/configs/zsh/wezterm.zsh (or add to .zshrc/.bashrc)
 # WezTerm shell integration
 
 # Source WezTerm environment if in WezTerm

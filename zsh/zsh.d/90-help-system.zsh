@@ -1,4 +1,4 @@
-# ~/.core/cfg/zsh/zsh.d/90-help-system.zsh
+# ~/.core/.sys/configs/zsh/zsh.d/90-help-system.zsh
 # Interactive help system for Zsh configuration with colors
 
 # Create help directory if it doesn't exist

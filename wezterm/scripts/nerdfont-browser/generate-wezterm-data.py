@@ -3,12 +3,14 @@
 
 import os
 import json
+import re
 from pathlib import Path
 from collections import defaultdict
 
 # Paths
 HOME = Path.home()
 DATA_FILE = HOME / ".core/cfg/wezterm/.data/wezterm_nerdfont_names.txt"
+CUSTOM_ICONS_FILE = HOME / ".core/cfg/wezterm/modules/custom_icons.lua"
 OUTPUT_DIR = HOME / ".core/cfg/wezterm/scripts/nerdfont-browser/data"
 
 # Category definitions with prefixes
@@ -21,12 +23,34 @@ CATEGORIES = {
     "linux_": {"name": "Linux Logos", "description": "Linux distribution logos", "color": "bright_blue"},
     "md_": {"name": "Material Design", "description": "Material Design icons", "color": "cyan"},
     "oct_": {"name": "Octicons", "description": "GitHub Octicons", "color": "white"},
+    "personal_": {"name": "Personal Icons", "description": "My personal icon definitions", "color": "bright_magenta"},
     "pl_": {"name": "Powerline", "description": "Powerline symbols", "color": "red"},
     "ple_": {"name": "Powerline Extra", "description": "Powerline Extra symbols", "color": "bright_red"},
     "pom_": {"name": "Pomicons", "description": "Pomicons set", "color": "bright_cyan"},
     "seti_": {"name": "Seti UI", "description": "Seti UI file icons", "color": "bright_green"},
     "weather_": {"name": "Weather", "description": "Weather icons", "color": "bright_magenta"},
 }
+
+def parse_custom_icons():
+    """Parse custom_icons.lua to extract icon definitions"""
+    if not CUSTOM_ICONS_FILE.exists():
+        print(f"Warning: {CUSTOM_ICONS_FILE} not found, skipping personal icons")
+        return []
+
+    personal_icons = []
+    with open(CUSTOM_ICONS_FILE) as f:
+        content = f.read()
+        # Match lines like: yazi = "icon", -- comment
+        # or: md_flattr = wezterm.nerdfonts.md_cloud_download,
+        pattern = r'^\s*(\w+)\s*=\s*(?:"[^"]*"|wezterm\.nerdfonts\.\w+)\s*,?\s*(?:--.*)?$'
+        for line in content.split('\n'):
+            match = re.match(pattern, line)
+            if match and not line.strip().startswith('--'):
+                icon_name = match.group(1)
+                # Prefix with "personal_" for categorization
+                personal_icons.append(f"personal_{icon_name}")
+
+    return personal_icons
 
 def main():
     # Read icon names
@@ -38,7 +62,11 @@ def main():
     with open(DATA_FILE) as f:
         icon_names = [line.strip() for line in f if line.strip()]
 
-    print(f"Loaded {len(icon_names)} icon names")
+    # Add personal icons from custom_icons.lua
+    personal_icons = parse_custom_icons()
+    icon_names.extend(personal_icons)
+
+    print(f"Loaded {len(icon_names)} icon names ({len(personal_icons)} personal)")
 
     # Create output directory
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)

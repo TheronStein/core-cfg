@@ -1,4 +1,4 @@
-# ~/.core/cfg/zsh/zsh.d/36-history.zsh
+# ~/.core/.sys/configs/zsh/zsh.d/36-history.zsh
 # History configuration
 
 autoload -U add-zsh-hook

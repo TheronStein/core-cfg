@@ -67,7 +67,17 @@ function M.context_action(tmux_key, wezterm_action, tmux_prefix)
 		if context == "tmux" then
 			-- Check if we're actually in a tmux session
 			local user_vars = pane:get_user_vars()
-			if user_vars.TMUX and user_vars.TMUX ~= "" then
+			local tmux_env = user_vars.TMUX or user_vars.tmux_server
+
+			-- If not in user_vars, try to get from foreground process info
+			if not tmux_env or tmux_env == "" then
+				local proc_info = pane:get_foreground_process_info()
+				if proc_info and proc_info.environ then
+					tmux_env = proc_info.environ.TMUX
+				end
+			end
+
+			if tmux_env and tmux_env ~= "" then
 				-- Send tmux prefix + key
 				if type(tmux_key) == "table" then
 					-- Multiple keys

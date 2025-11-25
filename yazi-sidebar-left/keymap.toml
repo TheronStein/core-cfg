@@ -216,8 +216,8 @@ keymap = [
 
   # Navigation (with yazibar sync)
   # Up/Down (IJKL scheme)
-  { on = "i", run = ["arrow prev", "plugin yazibar-sync"], desc = "Previous file" },
-  { on = "k", run = ["arrow next", "plugin yazibar-sync"], desc = "Next file" },
+  { on = "i", run = ["arrow -1", "plugin yazibar-sync"], desc = "Previous file" },
+  { on = "k", run = ["arrow 1", "plugin yazibar-sync"], desc = "Next file" },
   { on = "<C-i>", run = ["arrow -10%", "plugin yazibar-sync"], desc = "Move cursor up half page" },
   { on = "<C-k>", run = ["arrow 10%", "plugin yazibar-sync"], desc = "Move cursor down half page" },
   { on = "I", run = ["arrow -35%", "plugin yazibar-sync"], desc = "Move cursor up one page" },

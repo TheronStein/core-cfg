@@ -1,0 +1,33 @@
+[build]
+# Use all CPU cores
+jobs = -1
+# Default to faster linker if available
+# rustflags = ["-C", "link-arg=-fuse-ld=mold"]
+
+[target.x86_64-unknown-linux-gnu]
+# Use mold linker for faster linking (if installed)
+linker = "clang"
+rustflags = ["-C", "link-arg=-fuse-ld=mold"]
+
+[net]
+# Use git cli instead of libgit2 (better for complex git configs)
+git-fetch-with-cli = true
+
+[registries.crates-io]
+protocol = "sparse" # faster index updates (default in newer cargo)
+
+[alias]
+b = "build"
+c = "check"
+t = "test"
+r = "run"
+rr = "run --release"
+br = "build --release"
+i = "install"
+u = "uninstall"
+
+[term]
+# Colored output
+color = "auto"
+# Show progress bar
+quiet = false

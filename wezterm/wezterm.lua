@@ -1,5 +1,6 @@
 local wezterm = require("wezterm")
 local Config = require("config")
+local debug_config = require("config.debug")
 -- local tabline_config = require("tabline")
 local conf_dir = wezterm.config_dir
 local modules_dir = conf_dir .. "/modules"
@@ -12,7 +13,7 @@ if not package.path:find(gui_dir, 1, true) then
 end
 -- Add the core path to package path if not already there
 local home = wezterm.home_dir
-local core_env_dir = home .. "/.core/cfg/wezterm"
+local core_env_dir = home .. "/.core/.sys/configs/wezterm"
 local core_env_path = home .. "/?.lua" -- .. '/core/?/init.luaa'
 -- if not package.path:find(core_cfg_path, true) then
 -- 	package.path = package.path .. ";" .. core_cfg_path
@@ -20,27 +21,31 @@ local core_env_path = home .. "/?.lua" -- .. '/core/?/init.luaa'
 -- end
 -- package.path = package.path .. ';' .. keymaps_dir .. '/?.lua;' .. keymaps_dir .. '/?/init.lua'
 
-wezterm.log_info("Home " .. wezterm.home_dir)
--- wezterm.log_error('Core ' .. core_env_dir)
-wezterm.log_info("Config " .. wezterm.config_dir)
+if debug_config.is_enabled("debug_config_init") then
+	wezterm.log_info("[CONFIG] Home: " .. wezterm.home_dir)
+	wezterm.log_info("[CONFIG] Config dir: " .. wezterm.config_dir)
+end
 -- local keymaps_dir = wezterm.home_dir .. '/keymaps'
 -- if not package.path:find(keymaps_dir, 1, true) then
 --     local load_keymaps = true
 -- end
 
+-- Load custom icons early to inject into wezterm.nerdfonts
+-- require("modules.custom_icons")
+
 -- Setup tabline
 require("resurrect").setup()
-local copilot = require("modules.ai.CopilotChat")
-copilot:setup({
-	api = {
-		provider = "copilot",
-		model = "claude-3-5-sonnet-20241022",
-		temperature = 0.1,
-		max_tokens = 4096,
-	},
-})
+-- local copilot = require("modules.ai.CopilotChat")
+-- copilot:setup({
+-- 	api = {
+-- 		provider = "copilot",
+-- 		model = "claude-3-5-sonnet-20241022",
+-- 		temperature = 0.1,
+-- 		max_tokens = 4096,
+-- 	},
+-- })
 -- Load event handlers (no .setup()!)
-require("events.toggle-copilot") -- Just require to register wezterm.on(...)
+-- require("events.toggle-copilot") -- Just require to register wezterm.on(...)
 require("events.workspace_theme_handler").setup() -- Theme management for workspaces
 -- Build and return configuration
 local config_builder = Config
@@ -68,22 +73,20 @@ local config = config_builder.options
 require("tabline_custom").setup(config)
 -- require("launchers.workspace_launcher").setup(config)
 local backdrops = require("backdrops")
-backdrops:set_images_dir("/home/theron/.core/cfg/wezterm/backdrops") -- Set correct wallpaper directory
+backdrops:set_images_dir("/home/theron/.core/.sys/configs/wezterm/backdrops") -- Set correct wallpaper directory
 backdrops:set_images()
 backdrops:set_scroll_attachment(true) -- Enable parallax scrolling for tall images
 -- Set initial backdrop in config
-config.background = backdrops:initial_options(false)
+-- config.background = backdrops:initial_options(false) -- DISABLED: uncomment to re-enable backdrops
 
 require("themes").setup()
 require("modules.gui.overlay-mode-picker").setup()
 
 -- Load event handlers
-require("events.backdrop-cycle").setup()
-require("events.backdrop-refresh-watcher").setup()
-require("events.backdrop-opacity-watcher").setup()
-require("events.leader-activated").setup()
+-- NOTE: Multiple update-status handlers will override each other!
+-- Use unified handler instead of individual ones
+require("events.update-status-unified").setup() -- Must be LAST to not be overridden
 require("events.gui-startup").setup()
-require("events.tab-cleanup").setup()
 require("events.user-var").setup()
 -- require("events.notifications").setup()
 

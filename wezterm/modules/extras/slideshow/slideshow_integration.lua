@@ -1,4 +1,4 @@
--- ~/.core/cfg/wezterm/util/slideshow_integration.lua
+-- ~/.core/.sys/configs/wezterm/util/slideshow_integration.lua
 -- Integrates slideshow module with WezTerm's window configuration
 
 local wezterm = require("wezterm")

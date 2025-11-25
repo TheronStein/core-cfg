@@ -134,8 +134,8 @@ function ApiClient:get_github_token()
 
 	-- Check GitHub Copilot cached tokens (same as CopilotChat.nvim)
 	local config_paths = {
-		os.getenv("HOME") .. "/.core/cfg/github-copilot/hosts.json",
-		os.getenv("HOME") .. "/.core/cfg/github-copilot/apps.json",
+		os.getenv("HOME") .. "/.core/.sys/configs/github-copilot/hosts.json",
+		os.getenv("HOME") .. "/.core/.sys/configs/github-copilot/apps.json",
 	}
 
 	for _, path in ipairs(config_paths) do

@@ -1,4 +1,4 @@
-# ~/.core/cfg/zsh/zsh.d/91-learning-widgets.zsh
+# ~/.core/.sys/configs/zsh/zsh.d/91-learning-widgets.zsh
 # Learning widgets for discovering Zsh features
 
 # Widget to show what a key does before executing

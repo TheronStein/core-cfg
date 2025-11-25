@@ -3,7 +3,7 @@ set folder = "~/.mail"
 set header_cache = "~/.cache/neomutt/headers"
 set message_cachedir = "~/.cache/neomutt/bodies"
 set certificate_file = "/etc/ssl/certs/ca-certificates.crt"
-set mailcap_path = "~/.core/cfg/neomutt/mailcap"
+set mailcap_path = "$CORECFG/neomutt/mailcap"
 set tmpdir = "/tmp"
 
 # SSL Settings
@@ -26,7 +26,7 @@ set forward_quote = yes
 set indent_string = "> "
 
 # Colors
-source ~/.core/cfg/neomutt/colors.muttrc
+source $CORECFG/neomutt/colors.muttrc
 
 # Sidebar
 set sidebar_visible = yes
@@ -55,13 +55,13 @@ set mail_check = 120
 set timeout = 10
 
 # Account Switching
-source ~/.core/cfg/neomutt/gmail.muttrc
-folder-hook $folder 'source ~/.core/cfg/neomutt/gmail.muttrc'
+source $CORECFG/neomutt/gmail.muttrc
+folder-hook $folder 'source $CORECFG/neomutt/gmail.muttrc'
 
 # Macros for switching accounts
-macro index,pager <f2> '<sync-mailbox><enter-command>source ~/.core/cfg/neomutt/gmail.muttrc<enter><change-folder>!<enter>'
-macro index,pager <f3> '<sync-mailbox><enter-command>source ~/.core/cfg/neomutt/proton.muttrc<enter><change-folder>!<enter>'
-macro index,pager <f4> '<sync-mailbox><enter-command>source ~/.core/cfg/neomutt/careview.muttrc<enter><change-folder>!<enter>'
+macro index,pager <f2> '<sync-mailbox><enter-command>source $CORECFG/neomutt/gmail.muttrc<enter><change-folder>!<enter>'
+macro index,pager <f3> '<sync-mailbox><enter-command>source $CORECFG/neomutt/proton.muttrc<enter><change-folder>!<enter>'
+macro index,pager <f4> '<sync-mailbox><enter-command>source $CORECFG/neomutt/careview.muttrc<enter><change-folder>!<enter>'
 
 
 # Navigation

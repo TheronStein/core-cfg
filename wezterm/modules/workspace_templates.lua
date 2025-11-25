@@ -1,4 +1,4 @@
--- ~/.core/cfg/wezterm/modules/workspace_templates.lua
+-- ~/.core/.sys/configs/wezterm/modules/workspace_templates.lua
 -- Workspace template system - save/load workspace layouts with tabs, panes, and directories
 
 local wezterm = require("wezterm")
@@ -7,7 +7,7 @@ local act = wezterm.action
 local M = {}
 
 -- Template storage directory
-local template_dir = wezterm.home_dir .. "/.core/cfg/wezterm/.data/workspace-templates"
+local template_dir = wezterm.home_dir .. "/.core/.sys/configs/wezterm/.data/workspace-templates"
 
 -- Ensure template directory exists
 local function ensure_template_dir()

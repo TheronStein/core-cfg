@@ -2,7 +2,7 @@ local wezterm = require("wezterm")
 local M = {}
 
 -- Path to bookmarks file
-M.bookmarks_file = wezterm.home_dir .. "/.core/cfg/wezterm/.data/bookmarks.json"
+M.bookmarks_file = wezterm.home_dir .. "/.core/.sys/configs/wezterm/.data/bookmarks.json"
 
 -- Load bookmarks from file
 function M.load()

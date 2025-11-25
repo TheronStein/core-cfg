@@ -1,4 +1,4 @@
--- ~/.core/cfg/wezterm/modules/tmux_sessions.lua
+-- ~/.core/.sys/configs/wezterm/modules/tmux_sessions.lua
 -- Tmux session management - spawn tabs that attach to tmux sessions
 
 local wezterm = require("wezterm")
@@ -18,14 +18,21 @@ function M.is_tmux_available()
 end
 
 -- List all tmux sessions with metadata
-function M.list_sessions()
+-- Optional socket_name parameter for specific tmux server
+function M.list_sessions(socket_name)
 	if not M.is_tmux_available() then
 		return {}
 	end
 
 	local sessions = {}
+	local socket_flag = socket_name and string.format("-L '%s' ", socket_name) or ""
 	-- Format: session_name:windows:attached:created:session_group
-	local handle = io.popen([[tmux list-sessions -F '#{session_name}|#{session_windows}|#{session_attached}|#{session_created}|#{session_group}' 2>/dev/null]])
+	local handle = io.popen(
+		string.format(
+			[[tmux %slist-sessions -F '#{session_name}|#{session_windows}|#{session_attached}|#{session_created}|#{session_group}' 2>/dev/null]],
+			socket_flag
+		)
+	)
 
 	if not handle then
 		return sessions
@@ -41,6 +48,7 @@ function M.list_sessions()
 				created = created or "",
 				group = group or "",
 				is_tmux = true, -- Mark as tmux session
+				socket = socket_name, -- Store which socket this session belongs to
 			})
 		end
 	end
@@ -84,26 +92,30 @@ function M.get_session_info(session_name)
 end
 
 -- Create a new tmux session
-function M.create_session(session_name, cwd)
+-- Optional socket_name parameter for specific tmux server
+function M.create_session(session_name, cwd, socket_name)
 	if not M.is_tmux_available() then
 		return false, "tmux not available"
 	end
 
 	cwd = cwd or wezterm.home_dir
+	local socket_flag = socket_name and string.format("-L '%s' ", socket_name) or ""
 
-	local cmd = string.format([[tmux new-session -d -s '%s' -c '%s' 2>/dev/null]], session_name, cwd)
+	local cmd = string.format([[tmux %snew-session -d -s '%s' -c '%s' 2>/dev/null]], socket_flag, session_name, cwd)
 	local result = os.execute(cmd)
 
 	return result == 0 or result == true, result == 0 or result == true and "Session created" or "Failed to create session"
 end
 
 -- Check if a session exists
-function M.session_exists(session_name)
+-- Optional socket_name parameter for specific tmux server
+function M.session_exists(session_name, socket_name)
 	if not M.is_tmux_available() then
 		return false
 	end
 
-	local handle = io.popen(string.format([[tmux has-session -t '%s' 2>/dev/null && echo "exists"]], session_name))
+	local socket_flag = socket_name and string.format("-L '%s' ", socket_name) or ""
+	local handle = io.popen(string.format([[tmux %shas-session -t '%s' 2>/dev/null && echo "exists"]], socket_flag, session_name))
 	if not handle then
 		return false
 	end
@@ -169,23 +181,27 @@ local function generate_view_name(session_name)
 end
 
 -- Spawn a WezTerm tab that attaches to a tmux session with independent view
-function M.spawn_tab_with_session(window, pane, session_name, create_if_missing)
+-- Optional socket parameter for connecting to specific tmux server
+function M.spawn_tab_with_session(window, pane, session_name, create_if_missing, socket_name)
 	if not M.is_tmux_available() then
 		window:toast_notification("Tmux", "tmux not available", nil, 3000)
 		return nil
 	end
 
+	-- Build socket flag if provided
+	local socket_flag = socket_name and string.format("-L '%s' ", socket_name) or ""
+
 	-- Check if session exists
-	local exists = M.session_exists(session_name)
+	local exists = M.session_exists(session_name, socket_name)
 
 	if not exists then
 		if create_if_missing then
-			local success, msg = M.create_session(session_name)
+			local success, msg = M.create_session(session_name, nil, socket_name)
 			if not success then
 				window:toast_notification("Tmux", "Failed to create session: " .. session_name, nil, 3000)
 				return nil
 			end
-			wezterm.log_info("Created new tmux session: " .. session_name)
+			wezterm.log_info("Created new tmux session: " .. session_name .. (socket_name and " (socket: " .. socket_name .. ")" or ""))
 		else
 			window:toast_notification("Tmux", "Session not found: " .. session_name, nil, 3000)
 			return nil
@@ -208,7 +224,8 @@ function M.spawn_tab_with_session(window, pane, session_name, create_if_missing)
 	-- Create independent view using session grouping
 	-- The view session will be destroyed when detached (detach-on-destroy)
 	local attach_cmd = string.format(
-		"tmux new-session -t '%s' -s '%s' \\; set-option -t '%s' detach-on-destroy on\n",
+		"tmux %snew-session -t '%s' -s '%s' \\; set-option -t '%s' detach-on-destroy on\n",
+		socket_flag,
 		session_name,
 		view_name,
 		view_name
@@ -230,6 +247,7 @@ function M.spawn_tab_with_session(window, pane, session_name, create_if_missing)
 			icon_key = resolve_icon(template.icon), -- Resolve icon to character
 			tmux_session = session_name,
 			tmux_view = view_name, -- Store the temporary view name
+			tmux_workspace = socket_name, -- Store the workspace/socket name
 		}
 		wezterm.log_info("Spawned tab with template: " .. (template.title or session_name) .. " (view: " .. view_name .. ")")
 	else
@@ -239,6 +257,7 @@ function M.spawn_tab_with_session(window, pane, session_name, create_if_missing)
 			icon_key = wezterm.nerdfonts.md_bash, -- Actual bash icon character
 			tmux_session = session_name,
 			tmux_view = view_name, -- Store the temporary view name
+			tmux_workspace = socket_name, -- Store the workspace/socket name
 		}
 		wezterm.log_info("Spawned tab with tmux session (no template): " .. session_name .. " (view: " .. view_name .. ")")
 	end
@@ -248,24 +267,28 @@ end
 
 -- Spawn tab with session and optionally set custom name/icon
 -- This function is used when loading templates with explicit icon/title
-function M.spawn_tab_with_custom_session(window, pane, session_name, tab_name, icon, create_if_missing)
+-- Optional socket_name parameter for specific tmux server
+function M.spawn_tab_with_custom_session(window, pane, session_name, tab_name, icon, create_if_missing, socket_name)
 	-- Don't call spawn_tab_with_session here - we want to set our own custom data
 	if not M.is_tmux_available() then
 		window:toast_notification("Tmux", "tmux not available", nil, 3000)
 		return nil
 	end
 
+	-- Build socket flag if provided
+	local socket_flag = socket_name and string.format("-L '%s' ", socket_name) or ""
+
 	-- Check if session exists
-	local exists = M.session_exists(session_name)
+	local exists = M.session_exists(session_name, socket_name)
 
 	if not exists then
 		if create_if_missing then
-			local success, msg = M.create_session(session_name)
+			local success, msg = M.create_session(session_name, nil, socket_name)
 			if not success then
 				window:toast_notification("Tmux", "Failed to create session: " .. session_name, nil, 3000)
 				return nil
 			end
-			wezterm.log_info("Created new tmux session: " .. session_name)
+			wezterm.log_info("Created new tmux session: " .. session_name .. (socket_name and " (socket: " .. socket_name .. ")" or ""))
 		else
 			window:toast_notification("Tmux", "Session not found: " .. session_name, nil, 3000)
 			return nil
@@ -288,7 +311,8 @@ function M.spawn_tab_with_custom_session(window, pane, session_name, tab_name, i
 	-- Create independent view using session grouping
 	-- The view session will be destroyed when detached (detach-on-destroy)
 	local attach_cmd = string.format(
-		"tmux new-session -t '%s' -s '%s' \\; set-option -t '%s' detach-on-destroy on\n",
+		"tmux %snew-session -t '%s' -s '%s' \\; set-option -t '%s' detach-on-destroy on\n",
+		socket_flag,
 		session_name,
 		view_name,
 		view_name
@@ -305,6 +329,7 @@ function M.spawn_tab_with_custom_session(window, pane, session_name, tab_name, i
 		icon_key = resolve_icon(icon), -- Resolve icon to character
 		tmux_session = session_name,
 		tmux_view = view_name, -- Store the temporary view name
+		tmux_workspace = socket_name, -- Store the workspace/socket name
 	}
 
 	wezterm.log_info("Spawned tab with custom tmux session: " .. (tab_name or session_name) .. " (view: " .. view_name .. ")")
@@ -312,18 +337,22 @@ function M.spawn_tab_with_custom_session(window, pane, session_name, tab_name, i
 end
 
 -- Show tmux session selector
-function M.show_session_selector(window, pane)
-	local sessions = M.list_sessions()
+-- Optional socket_name parameter to show sessions from specific workspace
+function M.show_session_selector(window, pane, socket_name)
+	local sessions = M.list_sessions(socket_name)
 
 	if #sessions == 0 then
-		window:toast_notification("Tmux", "No tmux sessions found", nil, 3000)
+		local workspace_info = socket_name and " in workspace '" .. socket_name .. "'" or ""
+		window:toast_notification("Tmux", "No tmux sessions found" .. workspace_info, nil, 3000)
 		return
 	end
 
 	local choices = {}
 
+	-- Header with workspace info if applicable
+	local header_text = socket_name and ("Sessions in workspace: " .. socket_name) or "Select a tmux session to attach:"
 	table.insert(choices, {
-		label = "Select a tmux session to attach:",
+		label = header_text,
 		id = "__header__",
 	})
 
@@ -354,21 +383,23 @@ function M.show_session_selector(window, pane)
 		id = "__create__",
 	})
 
+	local title = socket_name and ("📺 Tmux Sessions (" .. socket_name .. ")") or "📺 Tmux Sessions"
+
 	window:perform_action(
 		act.InputSelector({
-			title = "📺 Tmux Sessions",
+			title = title,
 			choices = choices,
 			fuzzy = true,
 			action = wezterm.action_callback(function(win, p, id)
 				if not id or id:sub(1, 2) == "__" then
 					if id == "__create__" then
-						M.prompt_create_session(win, p)
+						M.prompt_create_session(win, p, socket_name)
 					end
 					return
 				end
 
-				-- Spawn tab with selected session
-				local tab = M.spawn_tab_with_session(win, p, id, false)
+				-- Spawn tab with selected session (with socket if specified)
+				local tab = M.spawn_tab_with_session(win, p, id, false, socket_name)
 				if tab then
 					win:toast_notification("Tmux", "Attached to session: " .. id, nil, 2000)
 				end
@@ -379,23 +410,28 @@ function M.show_session_selector(window, pane)
 end
 
 -- Prompt to create a new session
-function M.prompt_create_session(window, pane)
+-- Optional socket_name parameter for specific tmux server
+function M.prompt_create_session(window, pane, socket_name)
+	local description = socket_name
+			and ("Enter new tmux session name (workspace: " .. socket_name .. "):")
+		or "Enter new tmux session name:"
+
 	window:perform_action(
 		act.PromptInputLine({
-			description = "Enter new tmux session name:",
+			description = description,
 			action = wezterm.action_callback(function(win, p, session_name)
 				if not session_name or session_name == "" then
 					return
 				end
 
 				-- Check if session already exists
-				if M.session_exists(session_name) then
+				if M.session_exists(session_name, socket_name) then
 					win:toast_notification("Tmux", "Session already exists: " .. session_name, nil, 3000)
 					return
 				end
 
-				-- Create and attach to session
-				local tab = M.spawn_tab_with_session(win, p, session_name, true)
+				-- Create and attach to session (with socket if specified)
+				local tab = M.spawn_tab_with_session(win, p, session_name, true, socket_name)
 				if tab then
 					win:toast_notification("Tmux", "Created and attached to: " .. session_name, nil, 2000)
 				end
@@ -484,11 +520,12 @@ function M.check_and_close_dead_sessions(window)
 
 	-- Check each tab
 	for tab_id_str, tab_data in pairs(wezterm.GLOBAL.custom_tabs) do
-		if tab_data.tmux_session then
+		if type(tab_data) == "table" and tab_data.tmux_session then
 			local session_name = tab_data.tmux_session
+			local socket_name = tab_data.tmux_workspace -- Get workspace if present
 
-			-- Check if the parent session still exists
-			if not M.session_exists(session_name) then
+			-- Check if the parent session still exists (with workspace context)
+			if not M.session_exists(session_name, socket_name) then
 				wezterm.log_info("Tmux session '" .. session_name .. "' no longer exists, marking tab for closure")
 				table.insert(tabs_to_close, {
 					tab_id = tonumber(tab_id_str),
@@ -544,35 +581,62 @@ function M.cleanup_orphaned_views()
 		end
 	end
 
-	-- Get all tmux sessions
-	local all_sessions = M.list_sessions()
 	local cleaned_count = 0
 
-	-- Find and kill orphaned view sessions
-	for _, session_info in ipairs(all_sessions) do
-		local session_name = session_info.name
+	-- Get list of all tmux sockets/workspaces to check
+	local sockets_to_check = { nil } -- nil = default socket
 
-		-- Check if this is a view session (contains -view-<timestamp>-<random>)
-		if session_name:match("%-view%-%d+%-%d+$") then
-			-- Check if this view is tracked by an active WezTerm tab
-			local is_tracked = active_view_sessions[session_name] ~= nil
+	-- Try to load tmux workspaces to check workspace-specific sockets
+	local ok, tmux_workspaces = pcall(require, "modules.tmux_workspaces")
+	if ok and tmux_workspaces and tmux_workspaces.workspaces then
+		for workspace_name, _ in pairs(tmux_workspaces.workspaces) do
+			table.insert(sockets_to_check, workspace_name)
+		end
+	end
 
-			-- IMPORTANT: Only clean up views that meet ALL these criteria:
-			-- 1. NOT tracked by WezTerm (not in custom_tabs)
-			-- 2. NOT attached (no clients connected)
-			-- 3. Belongs to a session group (view sessions are always in groups)
-			if not is_tracked and not session_info.attached and session_info.group ~= "" then
-				-- This is an orphaned view - kill it
-				wezterm.log_info("Cleaning up orphaned view session: " .. session_name .. " (group: " .. session_info.group .. ")")
-				if M.kill_session(session_name) then
-					cleaned_count = cleaned_count + 1
-				else
-					wezterm.log_warn("Failed to kill orphaned view session: " .. session_name)
+	-- Check all sockets (default + workspaces)
+	for _, socket_name in ipairs(sockets_to_check) do
+		local all_sessions = M.list_sessions(socket_name)
+
+		-- Find and kill orphaned view sessions
+		for _, session_info in ipairs(all_sessions) do
+			local session_name = session_info.name
+
+			-- Check if this is a view session (more flexible pattern matching)
+			-- Matches: *-view-<timestamp>-<random> (e.g., tmux-17-view-*, floating-view-*, yazi-view-*)
+			if session_name:match("%-view%-%d+%-%d+") then
+				-- Check if this view is tracked by an active WezTerm tab
+				local is_tracked = active_view_sessions[session_name] ~= nil
+
+				-- IMPORTANT: Only clean up views that meet ALL these criteria:
+				-- 1. NOT tracked by WezTerm (not in custom_tabs)
+				-- 2. NOT attached (no clients connected)
+				if not is_tracked and not session_info.attached then
+					-- This is an orphaned view - kill it
+					local socket_info = socket_name and (" [socket: " .. socket_name .. "]") or ""
+					wezterm.log_info(
+						"Cleaning up orphaned view session: "
+							.. session_name
+							.. " (group: "
+							.. (session_info.group or "none")
+							.. ")"
+							.. socket_info
+					)
+
+					-- Build kill command with socket flag if needed
+					local socket_flag = socket_name and string.format("-L '%s' ", socket_name) or ""
+					local kill_cmd = string.format([[tmux %skill-session -t '%s' 2>/dev/null]], socket_flag, session_name)
+
+					if os.execute(kill_cmd) == 0 or os.execute(kill_cmd) == true then
+						cleaned_count = cleaned_count + 1
+					else
+						wezterm.log_warn("Failed to kill orphaned view session: " .. session_name)
+					end
+				elseif is_tracked or session_info.attached then
+					-- Log why we're skipping this session (debug only)
+					local reason = is_tracked and "tracked" or "attached"
+					-- wezterm.log_info("Skipping cleanup of " .. reason .. " view session: " .. session_name)
 				end
-			elseif is_tracked or session_info.attached then
-				-- Log why we're skipping this session
-				local reason = is_tracked and "tracked" or "attached"
-				wezterm.log_info("Skipping cleanup of " .. reason .. " view session: " .. session_name)
 			end
 		end
 	end
@@ -582,6 +646,123 @@ function M.cleanup_orphaned_views()
 	end
 
 	return cleaned_count
+end
+
+-- Show workspace selector first, then session selector
+-- This provides a two-step workflow: workspace -> sessions
+function M.show_workspace_then_session_selector(window, pane)
+	-- Try to load tmux workspaces module
+	local ok, tmux_workspaces = pcall(require, "modules.tmux_workspaces")
+	if not ok or not tmux_workspaces then
+		window:toast_notification("Tmux", "Workspace module not available", nil, 3000)
+		wezterm.log_error("Failed to load tmux_workspaces module")
+		return
+	end
+
+	local choices = {}
+
+	-- Header
+	table.insert(choices, {
+		label = wezterm.nerdfonts.md_server .. " Select Tmux Workspace",
+		id = "__header__",
+	})
+
+	table.insert(choices, {
+		label = "═══════════════════════════════════════════════════",
+		id = "__separator__",
+	})
+
+	-- Sort workspaces alphabetically
+	local sorted_names = {}
+	for name, _ in pairs(tmux_workspaces.workspaces) do
+		table.insert(sorted_names, name)
+	end
+	table.sort(sorted_names)
+
+	-- Add each workspace with status info
+	for _, name in ipairs(sorted_names) do
+		local workspace = tmux_workspaces.workspaces[name]
+		local is_active = tmux_workspaces.is_server_active(name)
+		local config_exists = tmux_workspaces.workspace_config_exists(name)
+
+		-- Status indicators
+		local status_icon = is_active and "●" or "○"
+		local status_text = is_active and "active" or "inactive"
+
+		if not config_exists then
+			status_icon = "⚠"
+			status_text = "no config"
+		end
+
+		-- Get session count if active
+		local session_info = ""
+		if is_active then
+			local sessions = M.list_sessions(name)
+			if #sessions > 0 then
+				session_info = string.format(" (%d session%s)", #sessions, #sessions == 1 and "" or "s")
+			end
+		end
+
+		local label = string.format(
+			"%s  %s %s - %s%s",
+			status_icon,
+			workspace.icon,
+			workspace.display_name,
+			status_text,
+			session_info
+		)
+
+		table.insert(choices, {
+			label = label,
+			id = name,
+		})
+	end
+
+	-- Footer
+	table.insert(choices, {
+		label = "═══════════════════════════════════════════════════",
+		id = "__separator2__",
+	})
+
+	table.insert(choices, {
+		label = wezterm.nerdfonts.md_information .. " Legend: ● active | ○ inactive | ⚠ no config",
+		id = "__legend__",
+	})
+
+	-- Show workspace selector
+	window:perform_action(
+		act.InputSelector({
+			title = "📡 Tmux Workspaces - Select to browse sessions",
+			choices = choices,
+			fuzzy = true,
+			description = "Select a workspace to view its sessions",
+			action = wezterm.action_callback(function(win, p, workspace_id)
+				-- Ignore headers/separators
+				if not workspace_id or workspace_id:sub(1, 2) == "__" then
+					return
+				end
+
+				-- Check if workspace is active
+				local is_active = tmux_workspaces.is_server_active(workspace_id)
+				if not is_active then
+					-- Launch the workspace
+					local workspace = tmux_workspaces.workspaces[workspace_id]
+					win:toast_notification(
+						"Tmux",
+						"Launching workspace: " .. workspace.display_name,
+						nil,
+						2000
+					)
+					tmux_workspaces.launch_workspace(win, p, workspace_id)
+					return
+				end
+
+				-- Show sessions for this workspace
+				M.show_session_selector(win, p, workspace_id)
+			end),
+		}),
+		pane
+	)
 end
 
 return M

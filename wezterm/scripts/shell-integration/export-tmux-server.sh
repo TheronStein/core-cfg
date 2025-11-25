@@ -7,7 +7,7 @@
 #
 # Usage:
 #   Source this in your shell rc file (.bashrc, .zshrc, etc.):
-#   source ~/.core/cfg/wezterm/scripts/shell-integration/export-tmux-server.sh
+#   source ~/.core/.sys/configs/wezterm/scripts/shell-integration/export-tmux-server.sh
 #
 # Or add to your PROMPT_COMMAND (bash) or precmd (zsh)
 # ============================================================================

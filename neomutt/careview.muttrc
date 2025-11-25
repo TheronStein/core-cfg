@@ -4,7 +4,8 @@ set realname = "Theron Steinbrecher"
 
 # IMAP Settings (Google)
 set imap_user = "tsteinbrecher@care-view.com"
-set imap_pass = "`gpg --quiet --for-your-eyes-only --no-tty --decrypt ~/.config/neomutt/passwords/careview.gpg`"
+set my_careview_pass = "`op item get jarbbvolsgqgnft7qm3hqnedvq --fields label=password --reveal`"
+set imap_pass = $my_careview_pass
 set folder = "imaps://imap.gmail.com:993"
 set spoolfile = "+INBOX"
 set postponed = "+[Gmail]/Drafts"
@@ -13,7 +14,7 @@ set record = "+[Gmail]/Sent Mail"
 
 # SMTP Settings (Google)
 set smtp_url = "smtps://tsteinbrecher@care-view.com@smtp.gmail.com:465"
-set smtp_pass = "`gpg --quiet --for-your-eyes-only --no-tty --decrypt ~/.config/neomutt/passwords/careview.gpg`"
+set smtp_pass = $my_careview_pass
 set smtp_authenticators = "login"
 
 # Connection options

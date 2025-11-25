@@ -5,7 +5,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 MANAGER="$SCRIPT_DIR/workspace-manager.sh"
-LOG_FILE="$HOME/.core/cfg/wezterm/.logs/wezterm-mux.log"
+LOG_FILE="$HOME/.core/.sys/configs/wezterm/.logs/wezterm-mux.log"
 MUX_DOMAIN="${WEZTERM_LOCAL_MUX:-asusfx}"
 WINDOW_CLASS="${WEZTERM_WINDOW_CLASS:-wezterm}"
 

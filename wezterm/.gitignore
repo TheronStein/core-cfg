@@ -1,0 +1,14 @@
+*.ref*
+*.bak*
+*.broke*
+.archv
+.core
+.data
+.events
+.state
+.claude
+.gemini
+*CLAUDE*
+backdrops
+themes
+plug

@@ -1,4 +1,4 @@
--- ~/.core/cfg/wezterm/extra/domain_workspace_browser.lua
+-- ~/.core/.sys/configs/wezterm/extra/domain_workspace_browser.lua
 -- Interactive browser for domains and workspaces
 
 local wezterm = require("wezterm")

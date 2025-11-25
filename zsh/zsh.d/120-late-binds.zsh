@@ -1,4 +1,4 @@
-# ~/.core/cfg/zsh/zsh.d/120-late-binds.zsh
+# ~/.core/.sys/configs/zsh/zsh.d/120-late-binds.zsh
 # Late-loading keybindings that require plugins to be loaded first
 
 # History substring search bindings (after plugin is loaded)

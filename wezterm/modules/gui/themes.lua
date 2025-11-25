@@ -1,17 +1,16 @@
 local wezterm = require("wezterm")
+local paths = require("utils.paths")
 local M = {}
 
 -- Paths
-local home = os.getenv("HOME")
-local data_dir = home .. "/.core/cfg/wezterm/.data"
-M.themes_file = data_dir .. "/themes.json"
-M.favorites_file = data_dir .. "/favorite-themes.json"
-M.deleted_file = data_dir .. "/deleted-themes.json"
+M.themes_file = paths.THEMES_FILE
+M.favorites_file = paths.FAVORITES_FILE
+M.deleted_file = paths.DELETED_THEMES_FILE
 M.preview_file = "/tmp/wezterm_theme_preview.txt"
 
 -- Ensure data directory exists
 local function ensure_dir()
-	os.execute("mkdir -p " .. data_dir)
+	os.execute("mkdir -p " .. paths.WEZTERM_DATA)
 end
 
 -- Get only dark themes

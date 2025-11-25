@@ -3,7 +3,7 @@ local act = wezterm.action
 local M = {}
 
 -- Session storage directory
-local session_dir = wezterm.home_dir .. "/.core/cfg/wezterm/.data/sessions"
+local session_dir = wezterm.home_dir .. "/.core/.sys/configs/wezterm/.data/sessions"
 
 -- Ensure session directory exists
 local function ensure_session_dir()
@@ -1040,6 +1040,7 @@ function M.show_menu(window, pane)
 		{ id = "workspace_management", label = "🌐 Workspace Management" },
 		{ id = "tab_management", label = "📑 Tab Management" },
 		{ id = "pane_management", label = "🪟 Pane Management" },
+		{ id = "tmux_management", label = "🖥️  TMUX Management" },
 		{ id = "separator1", label = "─── 🎨 RESOURCES ───" },
 		{ id = "keymaps", label = "⌨️  Keymaps" },
 		{ id = "themes", label = "🎨 Themes" },
@@ -1083,37 +1084,71 @@ function M.show_menu(window, pane)
 						}),
 						p
 					)
+				elseif id == "tmux_management" then
+					-- Show unified TMUX management menu
+					local ok_tmux_workspaces, tmux_workspaces = pcall(require, "modules.tmux_workspaces")
+
+					if ok_tmux_workspaces then
+						tmux_workspaces.show_workspace_handler_menu(win, p, true)
+					else
+						wezterm.log_error("Failed to load tmux_workspaces module")
+					end
 				elseif id == "keymaps" then
 					-- Open keymap browser script (same as LEADER+F4)
 					win:perform_action(
 						act.SpawnCommandInNewTab({
-							args = { wezterm.home_dir .. "/.core/cfg/wezterm/scripts/keymap-browser/keymap-browser.sh" },
+							args = { wezterm.home_dir .. "/.core/.sys/configs/wezterm/scripts/keymap-browser/keymap-browser.sh" },
 						}),
 						p
 					)
 				elseif id == "themes" then
-					-- Open theme browser script (same as LEADER+F5)
-					local workspace = win:active_workspace() or "default"
-					-- Start theme watcher for live preview
-					win:perform_action(wezterm.action.EmitEvent("start-theme-watcher"), p)
-					-- Small delay to ensure watcher starts
-					wezterm.time.call_after(0.1, function()
-						win:perform_action(
-							act.SpawnCommandInNewTab({
-								args = { wezterm.home_dir .. "/.core/cfg/wezterm/scripts/theme-browser/theme-browser.sh" },
-								set_environment_variables = {
-									WEZTERM_WORKSPACE = workspace,
-									THEME_BROWSER_PREVIEW_MODE = "template",
-								},
-							}),
-							p
-						)
-					end)
+					-- Show theme browser submenu
+					local theme_choices = {
+						{ id = "back", label = "← Go Back to Main Menu" },
+						{ id = "separator", label = "─────────────────────────────" },
+						{ id = "theme_standard", label = "🎨 Theme Browser (Standard)" },
+						{ id = "theme_popup", label = "🪟 Theme Browser (Popup with Preview)" },
+					}
+					win:perform_action(
+						act.InputSelector({
+							action = wezterm.action_callback(function(inner_win, inner_pane, theme_id)
+								if theme_id == "back" then
+									M.show_menu(inner_win, inner_pane)
+								elseif theme_id == "theme_standard" then
+									-- Standard theme browser
+									local workspace = inner_win:active_workspace() or "default"
+									-- Start theme watcher for live preview
+									inner_win:perform_action(wezterm.action.EmitEvent("start-theme-watcher"), inner_pane)
+									-- Small delay to ensure watcher starts
+									wezterm.time.call_after(0.1, function()
+										inner_win:perform_action(
+											act.SpawnCommandInNewTab({
+												args = { wezterm.home_dir .. "/.core/.sys/configs/wezterm/scripts/theme-browser/theme-browser.sh" },
+												set_environment_variables = {
+													WEZTERM_WORKSPACE = workspace,
+													THEME_BROWSER_PREVIEW_MODE = "template",
+												},
+											}),
+											inner_pane
+										)
+									end)
+								elseif theme_id == "theme_popup" then
+									-- Popup theme browser with split preview in tmux popup
+									local script_path = wezterm.home_dir .. "/.core/.sys/configs/wezterm/scripts/tmux-theme-browser/theme-browser-popup.sh"
+									inner_pane:send_text(script_path .. "\n")
+								end
+							end),
+							title = "🎨 Theme Browser Options",
+							choices = theme_choices,
+							fuzzy = false,
+						}),
+						p
+					)
 				elseif id == "nerdfont_picker" then
 					-- Open nerdfont browser script (same as LEADER+F3)
 					win:perform_action(
 						act.SpawnCommandInNewTab({
-							args = { wezterm.home_dir .. "/.core/cfg/wezterm/scripts/nerdfont-browser/wezterm-browser.sh" },
+							args = { wezterm.home_dir .. "/.core/.sys/configs/wezterm/scripts/nerdfont-browser/wezterm-browser.sh" },
 						}),
 						p
 					)

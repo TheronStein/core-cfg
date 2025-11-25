@@ -1,5 +1,6 @@
+local paths = require("utils.paths")
 local wezterm = require("wezterm")
-local colors = require("themes.custom")
+local colors = dofile(wezterm.config_dir .. "/.data/themes/custom.lua")
 
 -- Load debug configuration
 local debug_config = require("config.debug")
@@ -22,7 +23,7 @@ load_metadata = function(skip_generation)
 	if DEBUG_METADATA then
 		wezterm.log_info("Loading Image Data Function Init...")
 	end
-	local metadata_file = os.getenv("HOME") .. "/.core/cfg/wezterm/.data/backgrounds.json"
+	local metadata_file = paths.BACKGROUNDS_FILE
 	local success, stdout = pcall(function()
 		local handle = io.popen("cat " .. metadata_file .. " 2>/dev/null")
 		if not handle then
@@ -59,7 +60,7 @@ write_imagedata = function()
 	if DEBUG_METADATA then
 		wezterm.log_info("Writing Image Data Function Init...")
 	end
-	local metadata_file = os.getenv("HOME") .. "/.core/cfg/wezterm/.data/backgrounds.json"
+	local metadata_file = paths.BACKGROUNDS_FILE
 	local should_regenerate = false
 	-- Check if metadata exists and is recent (less than 1 hour old)
 	local handle = io.open(metadata_file, "r")
@@ -82,7 +83,7 @@ write_imagedata = function()
 		if DEBUG_METADATA then
 			wezterm.log_info("Generating image metadata...")
 		end
-		os.execute(os.getenv("HOME") .. "/.core/cfg/wezterm/scripts/generate-image-metadata.sh &")
+		os.execute(paths.GENERATE_METADATA_SCRIPT .. " &")
 	end
 	-- Pass true to skip generation to avoid infinite recursion
 	return load_metadata(true)
@@ -92,9 +93,9 @@ local metadata_json = load_metadata()
 
 -- -- Get image dimensions from metadata
 local function get_image_dimensions(image_path)
-  if not metadata_json then
-      return 1920, 1080
-  end
+	if not metadata_json then
+		return 1920, 1080
+	end
 
 	local pattern = '"'
 		.. image_path:gsub("[%-%.%+%[%]%(%)%$%^%%%?%*]", "%%%1")
@@ -184,8 +185,8 @@ end
 
 -- Helper function to backup metadata with directory hash
 local function backup_metadata(current_link)
-	local metadata_file = os.getenv("HOME") .. "/.core/cfg/wezterm/.data/backgrounds.json"
-	local metadata_backup_dir = os.getenv("HOME") .. "/.core/cfg/wezterm/.data/metadata-backups"
+	local metadata_file = paths.BACKGROUNDS_FILE
+	local metadata_backup_dir = paths.METADATA_BACKUP_DIR
 
 	-- Create backup directory if it doesn't exist
 	os.execute("mkdir -p " .. metadata_backup_dir)
@@ -204,8 +205,8 @@ end
 
 -- Helper function to restore metadata if available
 local function restore_metadata(new_dir)
-	local metadata_file = os.getenv("HOME") .. "/.core/cfg/wezterm/.data/backgrounds.json"
-	local metadata_backup_dir = os.getenv("HOME") .. "/.core/cfg/wezterm/.data/metadata-backups"
+	local metadata_file = paths.BACKGROUNDS_FILE
+	local metadata_backup_dir = paths.METADATA_BACKUP_DIR
 	local hash = get_dir_hash(new_dir)
 	local backup_file = metadata_backup_dir .. "/backgrounds-" .. hash .. ".json"
 
@@ -229,9 +230,9 @@ end
 function BackDrops:rotate_cycles(window)
 	local home = os.getenv("HOME")
 	local wallpapers_dir = home .. "/Pictures/wallpapers"
-	local backdrops_dir = home .. "/.core/cfg/wezterm/backdrops"
-	local wezterm_backdrops = home .. "/.core/cfg/wezterm/backdrops"
-	local state_file = home .. "/.core/cfg/wezterm/.data/.backdrop_state"
+	local backdrops_dir = paths.WEZTERM_BACKDROPS
+	local wezterm_backdrops = paths.WEZTERM_BACKDROPS
+	local state_file = paths.BACKDROP_STATE_FILE
 
 	-- Read current state (0 = backdrops, 1 = wallpapers)
 	local state = 0
@@ -287,9 +288,9 @@ function BackDrops:rotate_cycles(window)
 		if DEBUG_METADATA then
 			wezterm.log_info("Generating fresh metadata for new backdrop directory...")
 		end
-		local metadata_file = home .. "/.core/cfg/wezterm/.data/backgrounds.json"
+		local metadata_file = paths.BACKGROUNDS_FILE
 		os.execute("> " .. metadata_file) -- Clear the file
-		os.execute(home .. "/.core/cfg/wezterm/scripts/generate-image-metadata.sh")
+		os.execute(paths.GENERATE_METADATA_SCRIPT)
 	end
 
 	-- Reload metadata and refresh images

@@ -17,7 +17,7 @@ done
 
 # Function to check if keymaps have been modified
 should_regenerate() {
-    local keymaps_dir="$HOME/.core/cfg/wezterm/keymaps"
+    local keymaps_dir="$HOME/.core/.sys/configs/wezterm/keymaps"
 
     # If data file doesn't exist, regenerate
     if [[ ! -f "$KEYMAPS_FILE" ]]; then

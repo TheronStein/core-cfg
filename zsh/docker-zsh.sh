@@ -52,7 +52,7 @@ run_container() {
     echo -e "${GREEN}Starting zsh configuration test container (config: $config)...${NC}"
 
     if [[ "$config" == "main" ]]; then
-        ZDOTDIR=/home/$USERNAME/.core/cfg/zsh ZSH_CONFIG=main docker-compose up -d
+        ZDOTDIR=/home/$USERNAME/.core/.sys/configs/zsh ZSH_CONFIG=main docker-compose up -d
     else
         ZSH_CONFIG=safe docker-compose up -d
     fi
@@ -67,7 +67,7 @@ test_config() {
 
 test_main_config() {
     echo -e "${YELLOW}Testing main zsh configuration...${NC}"
-    ZDOTDIR=/home/$USERNAME/.core/cfg/zsh docker-compose run --rm zsh-env zsh -d -f -c 'source $ZDOTDIR/.zshenv && source $ZDOTDIR/.zshrc && echo "Main configuration loaded successfully"'
+    ZDOTDIR=/home/$USERNAME/.core/.sys/configs/zsh docker-compose run --rm zsh-env zsh -d -f -c 'source $ZDOTDIR/.zshenv && source $ZDOTDIR/.zshrc && echo "Main configuration loaded successfully"'
 }
 
 debug_config() {
@@ -77,7 +77,7 @@ debug_config() {
 
 debug_main_config() {
     echo -e "${YELLOW}Running main config in debug mode...${NC}"
-    ZDOTDIR=/home/$USERNAME/.core/cfg/zsh DEBUG_ZSH=1 docker-compose run --rm zsh-env zsh -i -l
+    ZDOTDIR=/home/$USERNAME/.core/.sys/configs/zsh DEBUG_ZSH=1 docker-compose run --rm zsh-env zsh -i -l
 }
 
 clean_all() {

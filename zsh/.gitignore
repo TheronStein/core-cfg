@@ -1,0 +1,60 @@
+# Zinit plugin installations and cache
+.zinit/
+zinit/plugins/
+zinit/completions/
+zinit/snippets/
+zinit/polaris/
+
+# Zsh runtime files
+.zsh_history
+.zcompdump
+.zcompdump.*
+*.zwc
+*.zwc.old
+
+*cache*
+
+# Compiled modules
+zinit/plugins/*/module/
+zinit/plugins/*/build/
+zinit/plugins/*/zsh/
+
+# Local customizations (user-specific)
+.zshrc.local
+.zshenv.local
+*.local
+
+# Backup files
+*.bak
+*.backup
+*.newest.bak
+*.old
+
+# Logs
+logs/*.log
+
+# Recent directories tracking
+.chpwd-recent-dirs
+
+# Accidental vim files
+:q
+:w
+:wq
+
+# Temporary files
+*.tmp
+*.temp
+.DS_Store
+._.DS_Store
+
+# Docker build artifacts
+docker-scripts/
+docker-exports/
+
+# Broken submodules
+zshmarks/
+
+*.ref*
+.cache
+cache
+cache

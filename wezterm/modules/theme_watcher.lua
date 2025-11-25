@@ -1,4 +1,4 @@
--- ~/.core/cfg/wezterm/util/theme_watcher.lua
+-- ~/.core/.sys/configs/wezterm/util/theme_watcher.lua
 -- Live theme preview watcher for the fzf theme browser
 
 local wezterm = require("wezterm")

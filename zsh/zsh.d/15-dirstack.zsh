@@ -1,4 +1,4 @@
-# ~/.core/cfg/zsh/zsh.d/35-dirstack.zsh
+# ~/.core/.sys/configs/zsh/zsh.d/35-dirstack.zsh
 # Directory stack setup with improved startup protection
 
 # Prevent multiple loading

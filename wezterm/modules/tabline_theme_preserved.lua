@@ -18,7 +18,7 @@ local M = {}
 M.preserved_theme = {
 	tab = {
 		active = { fg = "#01F9C6", bg = "#444267" },
-		inactive = { fg = "#19dfcf", bg = "#292D3E" },
+		inactive = { fg = "#cdd6f4", bg = "#444267" },
 		inactive_hover = { fg = "#f1fc79", bg = "#444267" },
 	},
 
@@ -54,24 +54,24 @@ M.preserved_theme = {
 	},
 
 	-- WEZTERM mode (purple theme)
-	wez_mode = {
-		a = { fg = "#292D3E", bg = "#987afb" },
-		b = { fg = "#987afb", bg = "#444267" },
-		c = { fg = "#987afb", bg = "#292D3E" },
-		x = { fg = "#987afb", bg = "#292D3E" },
-		y = { fg = "#987afb", bg = "#444267" },
-		z = { fg = "#292D3E", bg = "#987afb" },
+	wezterm_mode = {
+		a = { fg = "#292D3E", bg = "#8470FF" },
+		b = { fg = "#8470FF", bg = "#444267" },
+		c = { fg = "#8470FF", bg = "#292D3E" },
+		x = { fg = "#8470FF", bg = "#292D3E" },
+		y = { fg = "#8470FF", bg = "#444267" },
+		z = { fg = "#292D3E", bg = "#8470FF" },
 	},
 
-	-- -- TMUX mode (orange theme)
-	-- tmux_mode = {
-	-- 	b = { fg = "#292D3E", bg = "#8BE9FD" },
-	-- 	a = { fg = "#8BE9FD", bg = "#444267" },
-	-- 	c = { fg = "#8BE9FD", bg = "#292D3E" },
-	-- 	x = { fg = "#8BE9FD", bg = "#292D3E" },
-	-- 	y = { fg = "#8BE9FD", bg = "#444267" },
-	-- 	z = { fg = "#292D3E", bg = "#8BE9FD" },
-	-- },
+	-- TMUX mode (green theme)
+	tmux_mode = {
+		a = { fg = "#292D3E", bg = "#69FF94" },
+		b = { fg = "#69FF94", bg = "#444267" },
+		c = { fg = "#69FF94", bg = "#292D3E" },
+		x = { fg = "#69FF94", bg = "#292D3E" },
+		y = { fg = "#69FF94", bg = "#444267" },
+		z = { fg = "#292D3E", bg = "#69FF94" },
+	},
 
 	-- SUPER mode (yellow theme)
 	super_mode = {

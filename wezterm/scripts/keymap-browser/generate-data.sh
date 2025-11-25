@@ -11,7 +11,7 @@ TEMP_FILE="/tmp/wezterm-keymap-gen-$$.lua"
 # Create data directory if it doesn't exist
 mkdir -p "$DATA_DIR"
 
-# Create a temporary wrapper script
+# Create a temporary wrapper script that uses current config
 cat > "$TEMP_FILE" << 'EOLUA'
 local wezterm = require("wezterm")
 
@@ -19,24 +19,12 @@ local wezterm = require("wezterm")
 package.path = package.path
 	.. ";"
 	.. wezterm.home_dir
-	.. "/.core/cfg/wezterm/?.lua;"
+	.. "/.core/.sys/configs/wezterm/?.lua;"
 	.. wezterm.home_dir
-	.. "/.core/cfg/wezterm/?/init.lua"
+	.. "/.core/.sys/configs/wezterm/?/init.lua"
 
--- Load keymaps module to get all keybindings
-local keymaps = require("keymaps")
-
--- Create config object and populate it
-_G.config = {
-	keys = {},
-	key_tables = {},
-}
-
--- Setup keymaps (this populates config.keys and config.key_tables)
-keymaps.setup(_G.config)
-
--- Now execute the data generator
-dofile(wezterm.home_dir .. "/.core/cfg/wezterm/scripts/keymap-browser/generate-keymap-data.lua")
+-- Execute the data generator script (which now loads keymaps internally)
+dofile(wezterm.home_dir .. "/.core/.sys/configs/wezterm/scripts/keymap-browser/generate-keymap-data.lua")
 
 return {}
 EOLUA
@@ -46,22 +34,43 @@ echo "Generating keymap data..."
 TEMP_OUTPUT="/tmp/wezterm-keymap-output-$$.txt"
 wezterm --config-file "$TEMP_FILE" start --class org.wezfurlong.wezterm.keymap-gen -- sleep 0 > "$TEMP_OUTPUT" 2>&1
 
-# Extract only the JSON from the output
-# The JSON appears in the lua log output, we need to extract it
-grep 'logging > lua: {' "$TEMP_OUTPUT" | sed 's/^.*logging > lua: //' | head -1 > "$OUTPUT_FILE"
+# Extract the JSON from wezterm logging output
+if command -v jq &>/dev/null; then
+    # The JSON is in a log line that contains '> lua: {'
+    # Extract everything after '> lua: ' and take the first valid JSON object
+    grep '> lua: {' "$TEMP_OUTPUT" | sed 's/^.*> lua: //' | head -1 > "$OUTPUT_FILE"
 
-# Clean up temp files
-rm -f "$TEMP_FILE" "$TEMP_OUTPUT"
-
-if [[ -f "$OUTPUT_FILE" ]] && [[ -s "$OUTPUT_FILE" ]]; then
-    echo "✓ Keymap data generated: $OUTPUT_FILE"
-    if command -v jq &>/dev/null; then
+    # Validate and pretty-print
+    if jq '.' "$OUTPUT_FILE" > "$OUTPUT_FILE.tmp" 2>/dev/null; then
+        mv "$OUTPUT_FILE.tmp" "$OUTPUT_FILE"
         cat_count=$(jq '.categories | length' "$OUTPUT_FILE" 2>/dev/null || echo "?")
+        key_count=$(jq '[.categories[].keybinds | length] | add' "$OUTPUT_FILE" 2>/dev/null || echo "?")
+        echo "✓ Keymap data generated: $OUTPUT_FILE"
         echo "  Total categories: $cat_count"
-        # Pretty print the JSON
-        jq '.' "$OUTPUT_FILE" > "${OUTPUT_FILE}.tmp" && mv "${OUTPUT_FILE}.tmp" "$OUTPUT_FILE"
+        echo "  Total keybindings: $key_count"
+    else
+        echo "✗ Failed to validate JSON output"
+        cat "$TEMP_OUTPUT" | tail -20
+        rm -f "$TEMP_FILE" "$TEMP_OUTPUT"
+        exit 1
     fi
 else
+    # Fallback without jq
+    grep '> lua: {' "$TEMP_OUTPUT" | sed 's/^.*> lua: //' | head -1 > "$OUTPUT_FILE"
+    if [[ ! -s "$OUTPUT_FILE" ]]; then
+        echo "✗ Failed to extract JSON from output"
+        rm -f "$TEMP_FILE" "$TEMP_OUTPUT"
+        exit 1
+    fi
+    echo "✓ Keymap data generated: $OUTPUT_FILE"
+fi
+
+rm -f "$TEMP_OUTPUT"
+
+# Clean up temp files
+rm -f "$TEMP_FILE"
+
+if [[ ! -f "$OUTPUT_FILE" ]] || [[ ! -s "$OUTPUT_FILE" ]]; then
     echo "✗ Failed to generate keymap data"
     exit 1
 fi

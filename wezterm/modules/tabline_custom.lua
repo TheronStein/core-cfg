@@ -1,4 +1,4 @@
--- ~/.core/cfg/wezterm/util/tabline.lua
+-- ~/.core/.sys/configs/wezterm/util/tabline.lua
 
 local wezterm = require("wezterm")
 
@@ -32,12 +32,12 @@ function M.setup(config)
 			options = {
 				icons_enabled = true,
 				icons_only = false,
-				padding = 1,
+				padding = 1, -- Minimal padding
 				-- Always use Catppuccin Mocha for tabline (hardcoded, not affected by workspace themes)
 				theme = "Catppuccin Mocha",
 				tab_separators = {
-					left = "  ",
-					right = "  ",
+					left = "",
+					right = "",
 				},
 				-- Use preserved theme overrides
 				theme_overrides = preserved_theme.preserved_theme,
@@ -52,8 +52,8 @@ function M.setup(config)
 				tab_inactive = {
 					{ "smart_title", padding = { left = 1, right = 1 } },
 				},
-				tabline_x = {},
-				tabline_y = { "spotify" },
+				tabline_x = { "local_storage" },
+				tabline_y = { "github" },
 				tabline_z = { "domain" },
 			},
 			extensions = { "resurrect" },

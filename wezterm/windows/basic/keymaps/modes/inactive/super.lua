@@ -1,0 +1,121 @@
+local wezterm = require("wezterm")
+local keymode = require("keymaps.keymode")
+local update_mode_display = require("keymaps.keymode").update_mode_display
+local resize_highlight_color = "#FF00FF"
+local M = {}
+
+function M.setup(config)
+	keymode.create_mode("super_mode", {
+		-- -- Enter WEZTERM mode
+		-- {
+		-- 	key = "w",
+		-- 	action = wezterm.action_callback(function(window, pane)
+		-- 		window:perform_action(
+		-- 			wezterm.action.ActivateKeyTable({
+		-- 				name = "wez_mode",
+		-- 				one_shot = true,
+		-- 				replace_current = true,
+		-- 			}),
+		-- 			pane
+		-- 		)
+		-- 		-- Trigger status update AFTER activating key table
+		-- 		update_mode_display(window, "WEZTERM")
+		-- 	end),
+		-- },
+		--
+		-- -- Enter TMUX mode
+		-- {
+		-- 	key = "t",
+		-- 	action = wezterm.action_callback(function(window, pane)
+		-- 		window:perform_action(
+		-- 			wezterm.action.ActivateKeyTable({
+		-- 				name = "tmux_mode",
+		-- 				one_shot = false,
+		-- 				replace_current = true,
+		-- 			}),
+		-- 			pane
+		-- 		)
+		-- 		-- Trigger status update AFTER activating key table
+		-- 		update_mode_display(window, "TMUX")
+		-- 	end),
+		-- },
+		--
+		-- -- Enter ZSH mode
+		-- {
+		-- 	key = "z",
+		-- 	action = wezterm.action_callback(function(window, pane)
+		-- 		window:perform_action(
+		-- 			wezterm.action.ActivateKeyTable({
+		-- 				name = "zsh_mode",
+		-- 				one_shot = false,
+		-- 				replace_current = true,
+		-- 			}),
+		-- 			pane
+		-- 		)
+		-- 		-- Trigger status update AFTER activating key table
+		-- 		update_mode_display(window, "ZSH")
+		-- 	end),
+		-- },
+		--
+-- 		-- Enter pane mode
+-- 		{
+-- 			key = "p",
+-- 			action = wezterm.action_callback(function(window, pane)
+-- 				window:perform_action(
+-- 					wezterm.action.ActivateKeyTable({
+-- 						name = "pane_mode",
+-- 						one_shot = false,
+-- 						replace_current = true,
+-- 					}),
+-- 					pane
+-- 				)
+-- 				-- Trigger status update AFTER activating key table
+-- 				update_mode_display(window, "GIT")
+-- 			end),
+-- 		},
+--
+-- 		-- Enter NEOVIM mode
+-- 		{
+-- 			key = "n",
+-- 			action = wezterm.action_callback(function(window, pane)
+-- 				window:perform_action(
+-- 					wezterm.action.ActivateKeyTable({
+-- 						name = "neovim_mode",
+-- 						one_shot = false,
+-- 						replace_current = true,
+-- 					}),
+-- 					pane
+-- 				)
+-- 				-- Trigger status update AFTER activating key table
+-- 				update_mode_display(window, "NEOVIM")
+-- 			end),
+-- 		},
+--
+-- 		-- Enter RESIZE mode
+-- 		{
+-- 			key = "r",
+-- 			action = wezterm.action_callback(function(window, pane)
+-- 				local overrides = window:get_config_overrides() or {}
+-- 				overrides.colors = overrides.colors or {}
+-- 				overrides.colors.split = resize_highlight_color
+-- 				window:set_config_overrides(overrides)
+-- 				window:perform_action(
+-- 					wezterm.action.ActivateKeyTable({
+-- 						name = "resize_mode",
+-- 						one_shot = false,
+-- 						replace_current = true,
+-- 					}),
+-- 					pane
+-- 				)
+-- 				-- Trigger status update AFTER activating key table
+-- 				update_mode_display(window, "RESIZE")
+-- 			end),
+-- 		},
+--
+-- 		{ key = "Escape", action = "PopKeyTable" },
+-- 		{ key = "q", action = "PopKeyTable" },
+-- 		{ key = "c", mods = "CTRL", action = "PopKeyTable" },
+-- 	})
+-- end
+
+return M

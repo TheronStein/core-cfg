@@ -1,7 +1,7 @@
 #!/bin/bash
 # Backup zinit installation and prepare for fresh bootstrap
 
-cd /home/theron/.core/cfg/zsh || exit 1
+cd /home/theron/.core/.sys/configs/zsh || exit 1
 
 # Create backup with timestamp
 backup_name="zinit.backup-$(date +%Y%m%d-%H%M%S)"

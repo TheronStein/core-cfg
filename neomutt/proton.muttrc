@@ -4,7 +4,8 @@ set realname = "Theron Steinbrecher"
 
 # IMAP Settings (ProtonMail Bridge)
 set imap_user = "theron@chaoscore.org"
-set imap_pass = "`gpg --quiet --for-your-eyes-only --no-tty --decrypt ~/.config/neomutt/passwords/proton.gpg`"
+set my_proton_pass = "`gpg --quiet --for-your-eyes-only --no-tty --decrypt $VAULT_KEYRING/neomutt/proton.gpg`"
+set imap_pass = $my_proton_pass
 set folder = "imap://127.0.0.1:1143"
 set spoolfile = "+INBOX"
 set postponed = "+Drafts"
@@ -21,7 +22,7 @@ set mail_check = 60
 
 # SMTP Settings (ProtonMail Bridge)
 set smtp_url = "smtp://theron@chaoscore.org@127.0.0.1:1025"
-set smtp_pass = "`gpg --quiet --for-your-eyes-only --no-tty --decrypt ~/.config/neomutt/passwords/proton.gpg`"
+set smtp_pass = $my_proton_pass
 
 # Connection options
 set ssl_starttls = no

@@ -2,7 +2,7 @@
 # Script to create example workspace templates
 # You can customize these to match your common workflows
 
-TEMPLATE_DIR="$HOME/.core/cfg/wezterm/.data/workspace-templates"
+TEMPLATE_DIR="$HOME/.core/.sys/configs/wezterm/.data/workspace-templates"
 mkdir -p "$TEMPLATE_DIR"
 
 # Template 1: Config Workspace - for editing configuration files
@@ -17,7 +17,7 @@ cat > "$TEMPLATE_DIR/config.json" <<'EOF'
       "icon": "",
       "panes": [
         {
-          "cwd": "$HOME/.core/cfg/wezterm",
+          "cwd": "$HOME/.core/.sys/configs/wezterm",
           "title": ""
         }
       ]
@@ -27,7 +27,7 @@ cat > "$TEMPLATE_DIR/config.json" <<'EOF'
       "icon": "",
       "panes": [
         {
-          "cwd": "$HOME/.core/cfg/nvim",
+          "cwd": "$HOME/.core/.sys/configs/nvim",
           "title": ""
         }
       ]
@@ -37,7 +37,7 @@ cat > "$TEMPLATE_DIR/config.json" <<'EOF'
       "icon": "",
       "panes": [
         {
-          "cwd": "$HOME/.core/cfg/zsh",
+          "cwd": "$HOME/.core/.sys/configs/zsh",
           "title": ""
         }
       ]

@@ -16,7 +16,7 @@ local config = {
 	direction = "Right",
 	size = { Percent = 30 }, -- Fixed 30% of window width
 	tmux_session = "ai",
-	script_path = wezterm.home_dir .. "/.core/cfg/wezterm/scripts/claude-tmux-manager.sh",
+	script_path = wezterm.home_dir .. "/.core/.sys/configs/wezterm/scripts/claude-tmux-manager.sh",
 }
 
 -- State tracking for the claude pane per window

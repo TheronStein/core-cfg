@@ -1,4 +1,4 @@
-# ~/.core/cfg/zsh/zsh.d/99-cleanup.zsh
+# ~/.core/.sys/configs/zsh/zsh.d/99-cleanup.zsh
 # Final cleanup and startup completion
 
 # Remove startup guards

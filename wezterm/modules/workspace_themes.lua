@@ -9,7 +9,7 @@ local home = os.getenv("HOME")
 local M = {}
 
 -- Path to workspace themes storage
-M.themes_dir = home .. "/.core/cfg/wezterm/.state/workspace-themes"
+M.themes_dir = home .. "/.core/.sys/configs/wezterm/.state/workspace-themes"
 M.themes_file = M.themes_dir .. "/themes.json"
 
 -- Ensure the themes directory exists

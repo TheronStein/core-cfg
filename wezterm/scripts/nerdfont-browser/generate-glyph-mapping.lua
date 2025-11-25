@@ -5,8 +5,8 @@ local wezterm = require('wezterm')
 local nf = wezterm.nerdfonts
 
 -- Read icon names
-local data_file = wezterm.home_dir .. "/.core/cfg/wezterm/.data/wezterm_nerdfont_names.txt"
-local output_file = wezterm.home_dir .. "/.core/cfg/wezterm/scripts/nerdfont-browser/data/icon-name-to-glyph.txt"
+local data_file = wezterm.home_dir .. "/.core/.sys/configs/wezterm/.data/wezterm_nerdfont_names.txt"
+local output_file = wezterm.home_dir .. "/.core/.sys/configs/wezterm/scripts/nerdfont-browser/data/icon-name-to-glyph.txt"
 
 local file = io.open(data_file, "r")
 if not file then

@@ -4,7 +4,7 @@ table.insert(config.keys, {
 	mods = "CTRL|ALT|SHIFT",
 	action = wezterm.action_callback(function(window, pane)
 		-- Use the mux-aware script
-		local script = home .. "/.core/cfg/wezterm/scripts/yazi-slideshow-mux.sh"
+		local script = home .. "/.core/.sys/configs/wezterm/scripts/yazi-slideshow-mux.sh"
 		os.execute("chmod +x " .. script)
 
 		-- Set environment variables for the script

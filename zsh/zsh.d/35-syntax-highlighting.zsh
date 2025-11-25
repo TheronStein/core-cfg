@@ -1,4 +1,4 @@
-# ~/.core/cfg/zsh/zsh.d/35-syntax-highlighting.zsh
+# ~/.core/.sys/configs/zsh/zsh.d/35-syntax-highlighting.zsh
 # Syntax highlighting color configuration
 
 # This function will be called after fast-syntax-highlighting loads

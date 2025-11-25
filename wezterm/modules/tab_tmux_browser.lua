@@ -1,4 +1,4 @@
--- ~/.core/cfg/wezterm/modules/tab_tmux_browser.lua
+-- ~/.core/.sys/configs/wezterm/modules/tab_tmux_browser.lua
 -- Unified browser for both tab templates and tmux sessions
 
 local wezterm = require("wezterm")

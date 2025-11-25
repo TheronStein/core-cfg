@@ -19,9 +19,9 @@ local wezterm = require("wezterm")
 package.path = package.path
 	.. ";"
 	.. wezterm.home_dir
-	.. "/.core/cfg/wezterm/?.lua;"
+	.. "/.core/.sys/configs/wezterm/?.lua;"
 	.. wezterm.home_dir
-	.. "/.core/cfg/wezterm/?/init.lua"
+	.. "/.core/.sys/configs/wezterm/?/init.lua"
 
 -- Load keymaps module to get all keybindings
 local keymaps = require("keymaps")
@@ -36,7 +36,7 @@ _G.config = {
 keymaps.setup(_G.config)
 
 -- Now execute the data generator
-dofile(wezterm.home_dir .. "/.core/cfg/wezterm/scripts/keymap-browser/generate-keymap-data.lua")
+dofile(wezterm.home_dir .. "/.core/.sys/configs/wezterm/scripts/keymap-browser/generate-keymap-data.lua")
 
 return {}
 EOLUA

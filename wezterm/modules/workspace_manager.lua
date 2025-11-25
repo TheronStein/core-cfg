@@ -1,4 +1,4 @@
--- ~/.core/cfg/wezterm/modules/workspace_manager.lua
+-- ~/.core/.sys/configs/wezterm/modules/workspace_manager.lua
 -- Unified Workspace Manager - handles workspaces and templates in one place
 
 local wezterm = require("wezterm")
@@ -11,7 +11,7 @@ local has_tab_state, tab_state_mod = pcall(require, "resurrect.tab_state")
 local M = {}
 
 -- Template storage directory
-local template_dir = wezterm.home_dir .. "/.core/cfg/wezterm/.data/workspace-templates"
+local template_dir = wezterm.home_dir .. "/.core/.sys/configs/wezterm/.data/workspace-templates"
 
 -- Ensure template directory exists
 local function ensure_template_dir()

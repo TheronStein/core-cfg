@@ -1,4 +1,4 @@
-# ~/.core/cfg/zsh/zsh.d/01-startup-guard.zsh
+# ~/.core/.sys/configs/zsh/zsh.d/01-startup-guard.zsh
 # Startup protection and loop prevention
 
 # Prevent multiple loading of this guard

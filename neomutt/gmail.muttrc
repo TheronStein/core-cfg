@@ -4,7 +4,8 @@ set realname = "Theron Steinbrecher"
 
 # IMAP Settings
 set imap_user = "theron.stein@gmail.com"
-set imap_pass = "`gpg --quiet --for-your-eyes-only --no-tty --decrypt ~/.config/neomutt/passwords/gmail.gpg`"
+set my_gmail_pass = "`op item get dmodwnwuhqjivb7hg57nfb5rne --fields label=password --reveal`"
+set imap_pass = $my_gmail_pass
 set folder = "imaps://imap.gmail.com:993"
 set spoolfile = "+INBOX"
 set postponed = "+[Gmail]/Drafts"
@@ -13,7 +14,7 @@ set record = "+[Gmail]/Sent Mail"
 
 # SMTP Settings
 set smtp_url = "smtps://theron.stein@gmail.com@smtp.gmail.com:465"
-set smtp_pass = "`gpg --quiet --for-your-eyes-only --no-tty --decrypt ~/.config/neomutt/passwords/gmail.gpg`"
+set smtp_pass = $my_gmail_pass
 set smtp_authenticators = "login"
 
 # Connection options

@@ -3,13 +3,18 @@
 
 local wezterm = require("wezterm")
 
--- This expects to be run with config already loaded
--- Access global config via _G if it exists
-local config = _G.config or {
+-- Load the keymaps module to get all current bindings
+local keymaps = require("keymaps")
+
+-- Create a fresh config and populate it with current keybindings
+local config = {
 	keys = {},
 	key_tables = {},
 	leader = { key = "Space", mods = "SUPER", timeout_milliseconds = 1000 },
 }
+
+-- Setup keymaps to populate config
+keymaps.setup(config)
 
 -- Helper to normalize modifier names
 local function normalize_mods(mods)
@@ -19,8 +24,14 @@ local function normalize_mods(mods)
 	return mods
 end
 
+-- Track which keybinds we've seen to detect duplicates/context-aware bindings
+local seen_bindings = {}
+
 -- Helper to get action description
-local function get_action_description(action)
+local function get_action_description(action, key, mods)
+	-- Generate a unique key for this binding
+	local bind_key = (mods or "NONE") .. "+" .. (key or "?")
+
 	if type(action) == "string" then
 		-- Handle string actions
 		if action == "ActivateCopyMode" then
@@ -92,7 +103,48 @@ local function get_action_description(action)
 			return "Disabled/Unbound"
 		elseif action.EmitEvent then
 			local event_name = action.EmitEvent or "unknown"
-			return "Emit event: " .. event_name
+			-- Check for context-aware keybindings (they emit user-defined events)
+			if event_name:match("^user%-defined") then
+				-- These are context-aware actions from context_manager
+				-- Check if we've seen this binding before - if so, it's likely a duplicate from context module
+				if seen_bindings[bind_key] then
+					return nil -- Skip duplicate
+				end
+				seen_bindings[bind_key] = true
+
+				-- Describe based on the key binding itself
+				if key == "c" and mods == "LEADER" then
+					return "Create new tab/window (context-aware)"
+				elseif key == "x" and mods == "LEADER" then
+					return "Close pane (context-aware)"
+				elseif key == "z" and mods == "LEADER" then
+					return "Toggle pane zoom (context-aware)"
+				elseif key == "|" and mods == "LEADER|SHIFT" then
+					return "Split vertically (context-aware)"
+				elseif key == "-" and mods == "LEADER" then
+					return "Split horizontally (context-aware)"
+				elseif key == "[" and mods == "LEADER" then
+					return "Enter copy mode (context-aware)"
+				elseif key == "`" and mods == "LEADER" then
+					return "Enter copy mode (context-aware)"
+				elseif key == "Escape" then
+					return "Exit mode"
+				elseif key == "q" then
+					return "Exit mode"
+				elseif key == "c" and mods == "CTRL" then
+					return "Exit mode"
+				elseif key == "T" and mods == "LEADER|CTRL" then
+					return "Toggle WezTerm/tmux context mode"
+				elseif key == "\\" and mods == "ALT" then
+					return "Toggle sidebar"
+				elseif key == "\\" and mods == "CTRL|SHIFT" then
+					return "Toggle sidebar"
+				else
+					return "Context-aware action"
+				end
+			else
+				return "Emit event: " .. event_name
+			end
 		elseif action.InputSelector then
 			local title = action.InputSelector.title or "selector"
 			return "Show selector: " .. title
@@ -184,24 +236,27 @@ if config.keys then
 		local mods = normalize_mods(keybind.mods)
 		local action = keybind.action
 		-- Use desc field if available, otherwise get action description
-		local description = keybind.desc or get_action_description(action)
+		local description = keybind.desc or get_action_description(action, key, mods)
 
-		-- Initialize category if it doesn't exist
-		if not categories[mods] then
-			categories[mods] = {
-				name = mods .. " Keys",
-				description = mods .. " + Key combinations",
-				icon = "⌨",
-				keybinds = {},
-			}
+		-- Skip if description is nil (filtered duplicates)
+		if description then
+			-- Initialize category if it doesn't exist
+			if not categories[mods] then
+				categories[mods] = {
+					name = mods .. " Keys",
+					description = mods .. " + Key combinations",
+					icon = "⌨",
+					keybinds = {},
+				}
+			end
+
+			table.insert(categories[mods].keybinds, {
+				key = key,
+				mods = mods,
+				display = format_key_display(key, mods),
+				description = description,
+			})
 		end
-
-		table.insert(categories[mods].keybinds, {
-			key = key,
-			mods = mods,
-			display = format_key_display(key, mods),
-			description = description,
-		})
 	end
 end
 
@@ -226,14 +281,17 @@ if config.key_tables then
 				local key = keybind.key
 				local mods = normalize_mods(keybind.mods)
 				local action = keybind.action
-				local description = get_action_description(action)
+				local description = get_action_description(action, key, mods)
 
-				table.insert(categories[category_key].keybinds, {
-					key = key,
-					mods = mods,
-					display = format_key_display(key, mods),
-					description = description,
-				})
+				-- Skip if description is nil (filtered duplicates)
+				if description then
+					table.insert(categories[category_key].keybinds, {
+						key = key,
+						mods = mods,
+						display = format_key_display(key, mods),
+						description = description,
+					})
+				end
 			end
 		end
 	end

@@ -3,8 +3,8 @@
 STATE=$BACKDROP_STATE
 OVERRIDE=$!
 WALLPAPERS="$HOME/Pictures/wallpapers"
-BACKDROPS="$HOME/.core/cfg/wezterm/backdrops"
-WEZTERM_DIR="$HOME/.core/cfg/wezterm"
+BACKDROPS="$HOME/.core/.sys/configs/wezterm/backdrops"
+WEZTERM_DIR="$HOME/.core/.sys/configs/wezterm"
 METADATA_FILE="$WEZTERM_DIR/.data/backgrounds.json"
 METADATA_BACKUP_DIR="$WEZTERM_DIR/.data/metadata-backups"
 
@@ -50,7 +50,7 @@ restore_metadata() {
 backup_metadata
 
 # Determine new backdrop directory
-rm -rf $HOME/.core/cfg/wezterm/backdrops
+rm -rf $HOME/.core/.sys/configs/wezterm/backdrops
 if [[ $STATE == 0 ]]; then
   NEW_BACKDROPS=$WALLPAPERS
   export BACKDROP_STATE=1
@@ -60,7 +60,7 @@ else
 fi
 
 echo "Switching to: $NEW_BACKDROPS"
-ln -sf $NEW_BACKDROPS $HOME/.core/cfg/wezterm/backdrops
+ln -sf $NEW_BACKDROPS $HOME/.core/.sys/configs/wezterm/backdrops
 
 # Try to restore metadata for the new directory
 if ! restore_metadata "$NEW_BACKDROPS"; then

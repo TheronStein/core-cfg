@@ -194,7 +194,7 @@ end
 function session_manager.restore_state(window)
 	local workspace_name = window:active_workspace()
 	local file_path = wezterm.home_dir
-		.. "/.core/cfg/wezterm/wezterm-session-manager/wezterm_state_"
+		.. "/.core/.sys/configs/wezterm/wezterm-session-manager/wezterm_state_"
 		.. workspace_name
 		.. ".json"
 
@@ -237,7 +237,7 @@ function session_manager.save_state(window)
 
 	-- Construct the file path based on the workspace name
 	local file_path = wezterm.home_dir
-		.. "/.core/cfg/wezterm/wezterm-session-manager/wezterm_state_"
+		.. "/.core/.sys/configs/wezterm/wezterm-session-manager/wezterm_state_"
 		.. data.name
 		.. ".json"
 

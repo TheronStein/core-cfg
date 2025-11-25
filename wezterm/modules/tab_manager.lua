@@ -96,7 +96,7 @@ function M.show_main_menu(window, pane)
 					end
 				elseif id == "tmux_attach" then
 					if tmux_sessions then
-						tmux_sessions.show_session_selector(win, p)
+						tmux_sessions.show_workspace_then_session_selector(win, p)
 					end
 				elseif id == "tmux_create" then
 					if tmux_sessions then

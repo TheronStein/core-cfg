@@ -1,4 +1,4 @@
--- File: ~/.core/cfg/wezterm/mdi_icons.lua
+-- File: ~/.core/.sys/configs/wezterm/mdi_icons.lua
 -- WezTerm module that provides corrected Material Design Icons mappings (mdi_* → md_*)
 -- This fixes the missing icons issue caused by Nerd Fonts v3.0.0 breaking changes
 --

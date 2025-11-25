@@ -1,5 +1,3 @@
-#Track Navigation/Handling
-[[keymaps]]
 command = "NextTrack"
 key_sequence = "e"
 [[keymaps]]
@@ -133,6 +131,12 @@ key_sequence = "s"
 [[keymaps]]
 command = "SelectNextOrScrollDown"
 key_sequence = "k"
+[[keymaps]]
+command = "PageSelectPreviousOrScrollUp"
+key_sequence = "C-i"
+[[keymaps]]
+command = "PageSelectNextOrScrollDown"
+key_sequence = "C-k"
 [[keymaps]]
 command = "PageSelectPreviousOrScrollUp"
 key_sequence = "C-w"

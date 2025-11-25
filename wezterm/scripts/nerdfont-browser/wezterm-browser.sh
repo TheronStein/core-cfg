@@ -6,7 +6,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DATA_DIR="$SCRIPT_DIR/data"
 CATEGORIES_FILE="$DATA_DIR/categories.json"
-WEZTERM_NERDFONT_DATA="$HOME/.core/cfg/wezterm/.data/wezterm_nerdfont_names.txt"
+WEZTERM_NERDFONT_DATA="$HOME/.core/.sys/configs/wezterm/.data/wezterm_nerdfont_names.txt"
 
 # Ensure dependencies
 for cmd in fzf jq; do

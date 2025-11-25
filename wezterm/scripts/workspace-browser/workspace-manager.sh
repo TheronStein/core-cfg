@@ -6,7 +6,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DATA_DIR="$SCRIPT_DIR/data"
 WORKSPACES_FILE="$DATA_DIR/workspaces.json"
-LOG_FILE="$HOME/.core/cfg/wezterm/.logs/wezterm-mux.log"
+LOG_FILE="$HOME/.core/.sys/configs/wezterm/.logs/wezterm-mux.log"
 
 # Ensure log directory exists
 mkdir -p "$(dirname "$LOG_FILE")"
