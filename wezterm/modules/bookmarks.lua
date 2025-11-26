@@ -1,8 +1,9 @@
 local wezterm = require("wezterm")
+local paths = require("utils.paths")
 local M = {}
 
 -- Path to bookmarks file
-M.bookmarks_file = wezterm.home_dir .. "/.core/.sys/configs/wezterm/.data/bookmarks.json"
+M.bookmarks_file = paths.WEZTERM_DATA .. "/bookmarks.json"
 
 -- Migration function to convert old format to new
 function M.migrate_bookmarks(old_bookmarks)

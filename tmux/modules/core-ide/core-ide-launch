@@ -1,0 +1,16 @@
+#!/bin/bash
+# Launch Core-IDE with specified context
+
+CONTEXT="${1:-main}"
+SOCKET_PATH="/tmp/tmux-core-ide-${CONTEXT}"
+CORE_IDE_BASE="${HOME}/.local/state/core-ide"
+
+# Check if socket already exists
+if tmux -L "core-ide-${CONTEXT}" list-sessions &>/dev/null; then
+    echo "Core-IDE context '${CONTEXT}' is already running"
+    echo "Attaching to existing session..."
+    exec tmux -L "core-ide-${CONTEXT}" attach
+else
+    echo "Starting Core-IDE context: ${CONTEXT}"
+    exec tmux -L "core-ide-${CONTEXT}" new-session -s "${CONTEXT}-main"
+fi

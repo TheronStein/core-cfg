@@ -10,13 +10,14 @@ local M = {}
 local wezterm = require("wezterm")
 local act = wezterm.action
 local mux = wezterm.mux
+local paths = require("utils.paths")
 
 -- Configuration
 local config = {
 	direction = "Right",
 	size = { Percent = 30 }, -- Fixed 30% of window width
 	tmux_session = "ai",
-	script_path = wezterm.home_dir .. "/.core/.sys/configs/wezterm/scripts/claude-tmux-manager.sh",
+	script_path = paths.WEZTERM_SCRIPTS .. "/claude-tmux-manager.sh",
 }
 
 -- State tracking for the claude pane per window

@@ -1,0 +1,22 @@
+#!/bin/bash
+# Display status of all Core-IDE contexts
+
+echo "Core-IDE Status Report"
+echo "====================="
+
+for socket in /tmp/tmux-core-ide-*; do
+    if [ -S "$socket" ]; then
+        context="${socket##*/tmux-core-ide-}"
+        echo ""
+        echo "Context: ${context}"
+        echo "  Socket: ${socket}"
+        echo "  Sessions:"
+        tmux -S "$socket" list-sessions 2>/dev/null | sed 's/^/    /'
+        echo "  Windows:"
+        tmux -S "$socket" list-windows -a 2>/dev/null | head -5 | sed 's/^/    /'
+    fi
+done
+
+echo ""
+echo "Memory Usage:"
+ps aux | grep -E "tmux.*core-ide" | grep -v grep | awk '{sum+=$6} END {printf "  Total: %.2f MB\n", sum/1024}'

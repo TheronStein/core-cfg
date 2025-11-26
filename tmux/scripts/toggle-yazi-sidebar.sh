@@ -62,10 +62,10 @@ else
         printf '\033]2;%s\033\\' '$YAZI_PANE_TITLE'
 
         # Set yazi config location (using sidebar-specific config)
-        export YAZI_CONFIG_HOME=\"\$HOME/.core/cfg/yazi-sidebar\"
+        export YAZI_CONFIG_HOME=\"\${YAZI_CONFIG_HOME:-\$CORE_CFG/yazi}/profiles/sidebar-left\"
 
         # Run yazi with persistent mode
-        $HOME/.core/cfg/tmux/scripts/yazi-sidebar-persistent.sh \"$current_dir\"
+        \$TMUX_CONF/scripts/yazi-sidebar-persistent.sh \"$current_dir\"
     ")
 
     # Save the pane ID for tracking

@@ -1,10 +1,18 @@
 #!/bin/bash
-tmux display-menu -x W -y S \
-  "Back" Bspace "run-shell '$TMUX_MENUS/main-menu.sh'" \
+# TMUX Management Menu
+
+MENU_NAV="$TMUX_MENUS/menu-nav.sh"
+PARENT_MENU=$("$MENU_NAV" get "$(basename "$0")" "main-menu.sh")
+
+tmux display-menu -x C -y C -T "#[fg=#73daca,bold]󰙀 TMUX Management " \
+  "󰑓 Reload Configuration" r "source-file '$TMUX_CONF/tmux.conf' ; display 'Tmux config reloaded'" \
   "" \
-  "Reload Config" r "run-shell '~/.core/cfg/tmux/events/reload-config.sh'" \
-  "Save" S "run-shell '~/.core/cfg/tmux/plugins/tmux-resurrect/scripts/save.sh && tmux display-message \"Session saved at \$(date +%H:%M:%S)\"'" \
-  "Restore" R "display-popup -E -w 85% -h 85% '~/.core/cfg/tmux/plugins/tmux-resurrect/scripts/restore.sh'" \
+  "󰒲 Sessions" s "run-shell '$TMUX_MENUS/tmux/session-menu.sh'" \
+  "󰒫 Kill Server" K "confirm-before -p 'Kill tmux server? (y/n)' 'kill-server'" \
   "" \
-  "Restart" T "confirm-before -p 'Reset tmux (save, kill, relaunch)? (y/n)' 'display-popup -E -w 60% -h 40% ~/.core/cfg/tmux/events/reset-tmux.sh'" \
-  "Quit/Kill" X "confirm-before -p 'Quit Tmux? (y/n)' 'kill-server'"
+  " Plugins" p "run-shell '$TMUX_MENUS/tmux/plugin-menu.sh'" \
+  "󰚰 Install Plugins" I "run-shell '$TMUX_CONF/plugins/tpm/bindings/install_plugins'" \
+  "󰚰 Update Plugins" U "run-shell '$TMUX_CONF/plugins/tpm/bindings/update_plugins'" \
+  "󰚰 Clean Plugins" C "run-shell '$TMUX_CONF/plugins/tpm/bindings/clean_plugins'" \
+  "" \
+  "󰁮 Back" b "run-shell '$TMUX_MENUS/$PARENT_MENU'"

@@ -1,0 +1,13 @@
+# Powerline (9 icons)
+# Generated from WezTerm nerdfonts
+# Format: icon_name (glyphs rendered by WezTerm picker)
+
+pl_branch
+pl_current_line
+pl_hostname
+pl_left_hard_divider
+pl_left_soft_divider
+pl_line_number
+pl_readonly
+pl_right_hard_divider
+pl_right_soft_divider

@@ -1,2 +1,0 @@
-docker run --name my-espocrm -e ESPOCRM_SITE_URL=http://162.248.95.73:8080 -p 6000:80 --link mysql:mysql -d espocrm/espocrm
-docker run --name my-espocrm -e ESPOCRM_SITE_URL=http://162.248.95.73:6000 -p 6000:80 --link mysql:mysql -d espocrm/espocrm

@@ -1,1 +1,0 @@
-https://github.com/samoshkin/tmux-plugin-sysstat

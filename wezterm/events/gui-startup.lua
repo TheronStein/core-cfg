@@ -1,4 +1,5 @@
 local wezterm = require("wezterm")
+local paths = require("utils.paths")
 
 local M = {}
 
@@ -7,7 +8,7 @@ function M.setup()
 	local state_manager = resurrect.state_manager
 
 	-- Configure save directory
-	state_manager.change_state_save_dir(wezterm.config_dir .. "/.data/resurrect")
+	state_manager.change_state_save_dir(paths.WEZTERM_DATA .. "/resurrect")
 
 	-- Enable periodic auto-saving
 	state_manager.periodic_save({

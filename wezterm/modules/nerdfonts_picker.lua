@@ -19,7 +19,8 @@ local function load_icon_names()
     wezterm.log_info("Loaded " .. #icons .. " nerdfonts from " .. data_file)
     return icons
   else
-    wezterm.log_warn("Nerdfonts data file not found, using curated list. Run: ~/.core/.sys/configs/wezterm/scripts/scrape-nerdfonts.sh")
+    local paths = require("utils.paths")
+    wezterm.log_warn("Nerdfonts data file not found, using curated list. Run: " .. paths.WEZTERM_SCRIPTS .. "/scrape-nerdfonts.sh")
     -- Fallback to curated list
     return {
       "cod_terminal", "cod_file", "cod_folder", "cod_git_branch", "cod_git_commit",

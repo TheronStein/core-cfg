@@ -3,7 +3,7 @@
 # Listens to hover/cd events from the sidebar and displays file previews
 
 # Use a separate config that shows only the preview column
-export YAZI_CONFIG_HOME="$HOME/.core/cfg/yazi-preview"
+export YAZI_CONFIG_HOME="${YAZI_CONFIG_HOME:-$CORE_CFG/yazi}/profiles/sidebar-right"
 
 # Create the preview-only config if it doesn't exist
 if [ ! -d "$YAZI_CONFIG_HOME" ]; then
@@ -39,11 +39,13 @@ image_alloc = 1073741824
 EOF
 
     # Symlink the other configs
-    ln -sf "$HOME/.core/cfg/yazi/init.lua" "$YAZI_CONFIG_HOME/init.lua"
-    ln -sf "$HOME/.core/cfg/yazi/keymap.toml" "$YAZI_CONFIG_HOME/keymap.toml"
-    ln -sf "$HOME/.core/cfg/yazi/theme.toml" "$YAZI_CONFIG_HOME/theme.toml"
-    ln -sf "$HOME/.core/cfg/yazi/plugins" "$YAZI_CONFIG_HOME/plugins"
-    ln -sf "$HOME/.core/cfg/yazi/flavors" "$YAZI_CONFIG_HOME/flavors"
+    # Symlink shared configs from main yazi directory
+    local YAZI_MAIN="${YAZI_CONFIG_HOME%/profiles/*}"
+    ln -sf "$YAZI_MAIN/init.lua" "$YAZI_CONFIG_HOME/init.lua"
+    ln -sf "$YAZI_MAIN/keymap.toml" "$YAZI_CONFIG_HOME/keymap.toml"
+    ln -sf "$YAZI_MAIN/theme.toml" "$YAZI_CONFIG_HOME/theme.toml"
+    ln -sf "$YAZI_MAIN/plugins" "$YAZI_CONFIG_HOME/plugins"
+    ln -sf "$YAZI_MAIN/flavors" "$YAZI_CONFIG_HOME/flavors"
 fi
 
 # Get the starting directory from yazi sidebar

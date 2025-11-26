@@ -96,20 +96,20 @@ create_sidebar() {
         printf '\033]2;yazi-sidebar\033\\\\'
 
         # Set yazi config location (uses parent + current columns for navigation)
-        export YAZI_CONFIG_HOME=\"\$HOME/.core/cfg/yazi-sidebar-left\"
+        export YAZI_CONFIG_HOME=\"\${YAZI_CONFIG_HOME:-\$CORE_CFG/yazi}/profiles/sidebar-left\"
 
         # Set yazibar side for sync plugin
         export YAZIBAR_SIDE=\"left\"
 
         # Run yazi in persistent mode
-        \$HOME/.core/cfg/tmux/scripts/yazi-sidebar-persistent.sh \"$current_dir\"
+        \$TMUX_CONF/scripts/yazi-sidebar-persistent.sh \"$current_dir\"
     ")
 
     # Save the pane ID
     set_sidebar_pane "$new_pane_id"
 
     # Lock the sidebar width to prevent other panes from affecting it
-    "$HOME/.core/cfg/tmux/scripts/layout-manager.sh" lock-width "$new_pane_id" "$SIDEBAR_WIDTH"
+    "$TMUX_CONF/scripts/layout-manager.sh" lock-width "$new_pane_id" "$SIDEBAR_WIDTH"
 
     # Return to the previous pane
     tmux select-pane -t "$current_pane"
@@ -173,7 +173,7 @@ disable_sidebar() {
     local sidebar_id=$(get_sidebar_pane)
     if [ -n "$sidebar_id" ] && pane_exists "$sidebar_id"; then
         # Unlock the sidebar before killing it
-        "$HOME/.core/cfg/tmux/scripts/layout-manager.sh" unlock "$sidebar_id"
+        "$TMUX_CONF/scripts/layout-manager.sh" unlock "$sidebar_id"
         tmux kill-pane -t "$sidebar_id"
     fi
 

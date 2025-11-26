@@ -9,7 +9,7 @@ source "$SCRIPT_DIR/yazibar-utils.sh"
 # CONFIGURATION
 # ============================================================================
 
-YAZI_CONFIG_DIR="$HOME/.core/cfg/yazi-sidebar-right"
+YAZI_CONFIG_DIR="${YAZI_CONFIG_HOME:-$CORE_CFG/yazi}/profiles/sidebar-right"
 RIGHT_SIDEBAR_TITLE="yazibar-right"
 
 # ============================================================================

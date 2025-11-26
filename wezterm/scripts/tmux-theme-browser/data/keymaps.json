@@ -1,0 +1,945 @@
+{
+  "categories": [
+    {
+      "count": 8,
+      "description": "Leader + Ctrl + Key combinations",
+      "icon": "",
+      "id": "LEADER|CTRL",
+      "is_key_table": false,
+      "keybinds": [
+        {
+          "description": "Send literal: CTRL+Tab",
+          "display": "<leader+ctrl>Tab",
+          "key": "Tab",
+          "mods": "LEADER|CTRL"
+        },
+        {
+          "description": "Emit event: user-defined-0",
+          "display": "<leader+ctrl>w",
+          "key": "w",
+          "mods": "LEADER|CTRL"
+        },
+        {
+          "description": "Emit event: user-defined-1",
+          "display": "<leader+ctrl>t",
+          "key": "t",
+          "mods": "LEADER|CTRL"
+        },
+        {
+          "description": "Emit event: user-defined-2",
+          "display": "<leader+ctrl>s",
+          "key": "s",
+          "mods": "LEADER|CTRL"
+        },
+        {
+          "description": "Emit event: user-defined-3",
+          "display": "<leader+ctrl>z",
+          "key": "z",
+          "mods": "LEADER|CTRL"
+        },
+        {
+          "description": "Emit event: user-defined-4",
+          "display": "<leader+ctrl>p",
+          "key": "p",
+          "mods": "LEADER|CTRL"
+        },
+        {
+          "description": "Emit event: user-defined-5",
+          "display": "<leader+ctrl>n",
+          "key": "n",
+          "mods": "LEADER|CTRL"
+        },
+        {
+          "description": "Emit event: user-defined-6",
+          "display": "<leader+ctrl>r",
+          "key": "r",
+          "mods": "LEADER|CTRL"
+        }
+      ],
+      "name": "Leader+Ctrl Keys"
+    },
+    {
+      "count": 3,
+      "description": "Ctrl + Key combinations",
+      "icon": "",
+      "id": "CTRL",
+      "is_key_table": false,
+      "keybinds": [
+        {
+          "description": "DisableDefaultAssignment",
+          "display": "<ctrl>Tab",
+          "key": "Tab",
+          "mods": "CTRL"
+        },
+        {
+          "description": "Send string: \u001b[96;5u",
+          "display": "<ctrl>`",
+          "key": "`",
+          "mods": "CTRL"
+        },
+        {
+          "description": "DisableDefaultAssignment",
+          "display": "<ctrl>d",
+          "key": "d",
+          "mods": "CTRL"
+        }
+      ],
+      "name": "Control Keys"
+    },
+    {
+      "count": 1,
+      "description": "Keys without modifiers",
+      "icon": "",
+      "id": "NONE",
+      "is_key_table": false,
+      "keybinds": [
+        {
+          "description": "ShowDebugOverlay",
+          "display": "F12",
+          "key": "F12",
+          "mods": "NONE"
+        }
+      ],
+      "name": "Direct Keys"
+    },
+    {
+      "count": 4,
+      "description": "Shift + Key combinations",
+      "icon": "⇧",
+      "id": "SHIFT",
+      "is_key_table": false,
+      "keybinds": [
+        {
+          "description": "DisableDefaultAssignment",
+          "display": "<shift>Space",
+          "key": "Space",
+          "mods": "SHIFT"
+        },
+        {
+          "description": "Scroll up by page",
+          "display": "<shift>PageUp",
+          "key": "PageUp",
+          "mods": "SHIFT"
+        },
+        {
+          "description": "Scroll down by page",
+          "display": "<shift>PageDown",
+          "key": "PageDown",
+          "mods": "SHIFT"
+        },
+        {
+          "description": "Send string: \u001b\r",
+          "display": "<shift>Enter",
+          "key": "Enter",
+          "mods": "SHIFT"
+        }
+      ],
+      "name": "Shift Keys"
+    },
+    {
+      "count": 8,
+      "description": "Super/Win + Key combinations",
+      "icon": "",
+      "id": "SUPER",
+      "is_key_table": false,
+      "keybinds": [
+        {
+          "description": "Scroll up by page",
+          "display": "<super>UpArrow",
+          "key": "UpArrow",
+          "mods": "SUPER"
+        },
+        {
+          "description": "Scroll down by page",
+          "display": "<super>DownArrow",
+          "key": "DownArrow",
+          "mods": "SUPER"
+        },
+        {
+          "description": "Activate pane Up",
+          "display": "<super>w",
+          "key": "w",
+          "mods": "SUPER"
+        },
+        {
+          "description": "Activate pane Down",
+          "display": "<super>s",
+          "key": "s",
+          "mods": "SUPER"
+        },
+        {
+          "description": "Activate pane Left",
+          "display": "<super>a",
+          "key": "a",
+          "mods": "SUPER"
+        },
+        {
+          "description": "Activate pane Right",
+          "display": "<super>d",
+          "key": "d",
+          "mods": "SUPER"
+        },
+        {
+          "description": "Activate tab next",
+          "display": "<super>e",
+          "key": "e",
+          "mods": "SUPER"
+        },
+        {
+          "description": "Activate tab previous",
+          "display": "<super>q",
+          "key": "q",
+          "mods": "SUPER"
+        }
+      ],
+      "name": "Super Keys"
+    },
+    {
+      "count": 2,
+      "description": "Super + Shift + Key combinations",
+      "icon": "",
+      "id": "SUPER|SHIFT",
+      "is_key_table": false,
+      "keybinds": [
+        {
+          "description": "Move tab right",
+          "display": "<super+shift>e",
+          "key": "e",
+          "mods": "SUPER|SHIFT"
+        },
+        {
+          "description": "Move tab left",
+          "display": "<super+shift>q",
+          "key": "q",
+          "mods": "SUPER|SHIFT"
+        }
+      ],
+      "name": "Super+Shift Keys"
+    },
+    {
+      "count": 7,
+      "description": "Key table for leader_mode mode",
+      "icon": "⚡",
+      "id": "KEYTABLE_leader_mode",
+      "is_key_table": true,
+      "keybinds": [
+        {
+          "description": "Split pane horizontally (down)",
+          "display": "<shift>|",
+          "key": "|",
+          "mods": "SHIFT"
+        },
+        {
+          "description": "Split pane vertically (right)",
+          "display": "-",
+          "key": "-",
+          "mods": "NONE"
+        },
+        {
+          "description": "TogglePaneZoomState",
+          "display": "z",
+          "key": "z",
+          "mods": "NONE"
+        },
+        {
+          "description": "Emit event: user-defined-13",
+          "display": "Escape",
+          "key": "Escape",
+          "mods": "NONE"
+        },
+        {
+          "description": "Emit event: user-defined-14",
+          "display": "Escape",
+          "key": "Escape",
+          "mods": "NONE"
+        },
+        {
+          "description": "Emit event: user-defined-15",
+          "display": "q",
+          "key": "q",
+          "mods": "NONE"
+        },
+        {
+          "description": "Emit event: user-defined-16",
+          "display": "<ctrl>c",
+          "key": "c",
+          "mods": "CTRL"
+        }
+      ],
+      "name": "Leader Mode"
+    },
+    {
+      "count": 16,
+      "description": "Key table for nav_panes mode",
+      "icon": "⚡",
+      "id": "KEYTABLE_nav_panes",
+      "is_key_table": true,
+      "keybinds": [
+        {
+          "description": "Rotate panes Clockwise",
+          "display": "r",
+          "key": "r",
+          "mods": "NONE"
+        },
+        {
+          "description": "Rotate panes CounterClockwise",
+          "display": "R",
+          "key": "R",
+          "mods": "NONE"
+        },
+        {
+          "description": "Activate pane Left",
+          "display": "a",
+          "key": "a",
+          "mods": "NONE"
+        },
+        {
+          "description": "Activate pane Right",
+          "display": "d",
+          "key": "d",
+          "mods": "NONE"
+        },
+        {
+          "description": "Activate pane Up",
+          "display": "w",
+          "key": "w",
+          "mods": "NONE"
+        },
+        {
+          "description": "Activate pane Down",
+          "display": "s",
+          "key": "s",
+          "mods": "NONE"
+        },
+        {
+          "description": "Activate pane Left",
+          "display": "j",
+          "key": "j",
+          "mods": "NONE"
+        },
+        {
+          "description": "Activate pane Right",
+          "display": "l",
+          "key": "l",
+          "mods": "NONE"
+        },
+        {
+          "description": "Activate pane Up",
+          "display": "i",
+          "key": "i",
+          "mods": "NONE"
+        },
+        {
+          "description": "Activate pane Down",
+          "display": "k",
+          "key": "k",
+          "mods": "NONE"
+        },
+        {
+          "description": "Exit current key table/mode",
+          "display": "Escape",
+          "key": "Escape",
+          "mods": "NONE"
+        },
+        {
+          "description": "Exit current key table/mode",
+          "display": "<ctrl>C",
+          "key": "C",
+          "mods": "CTRL"
+        },
+        {
+          "description": "Exit current key table/mode",
+          "display": "q",
+          "key": "q",
+          "mods": "NONE"
+        },
+        {
+          "description": "Emit event: user-defined-10",
+          "display": "Escape",
+          "key": "Escape",
+          "mods": "NONE"
+        },
+        {
+          "description": "Emit event: user-defined-11",
+          "display": "q",
+          "key": "q",
+          "mods": "NONE"
+        },
+        {
+          "description": "Emit event: user-defined-12",
+          "display": "<ctrl>c",
+          "key": "c",
+          "mods": "CTRL"
+        }
+      ],
+      "name": "Nav Panes"
+    },
+    {
+      "count": 11,
+      "description": "Key table for pane_selection_mode mode",
+      "icon": "⚡",
+      "id": "KEYTABLE_pane_selection_mode",
+      "is_key_table": true,
+      "keybinds": [
+        {
+          "description": "Scroll up by page",
+          "display": "<super>UpArrow",
+          "key": "UpArrow",
+          "mods": "SUPER"
+        },
+        {
+          "description": "Scroll down by page",
+          "display": "<super>DownArrow",
+          "key": "DownArrow",
+          "mods": "SUPER"
+        },
+        {
+          "description": "Activate pane Left",
+          "display": "h",
+          "key": "h",
+          "mods": "NONE"
+        },
+        {
+          "description": "Activate pane Down",
+          "display": "j",
+          "key": "j",
+          "mods": "NONE"
+        },
+        {
+          "description": "Activate pane Up",
+          "display": "k",
+          "key": "k",
+          "mods": "NONE"
+        },
+        {
+          "description": "Activate pane Right",
+          "display": "l",
+          "key": "l",
+          "mods": "NONE"
+        },
+        {
+          "description": "Enter pane mode mode",
+          "display": "Enter",
+          "key": "Enter",
+          "mods": "NONE"
+        },
+        {
+          "description": "Enter pane mode mode",
+          "display": "Space",
+          "key": "Space",
+          "mods": "NONE"
+        },
+        {
+          "description": "Emit event: user-defined-20",
+          "display": "Escape",
+          "key": "Escape",
+          "mods": "NONE"
+        },
+        {
+          "description": "Emit event: user-defined-21",
+          "display": "q",
+          "key": "q",
+          "mods": "NONE"
+        },
+        {
+          "description": "Emit event: user-defined-22",
+          "display": "<ctrl>c",
+          "key": "c",
+          "mods": "CTRL"
+        }
+      ],
+      "name": "Pane Selection Mode"
+    },
+    {
+      "count": 25,
+      "description": "Key table for resize_mode mode",
+      "icon": "⚡",
+      "id": "KEYTABLE_resize_mode",
+      "is_key_table": true,
+      "keybinds": [
+        {
+          "description": "Activate pane Left",
+          "display": "j",
+          "key": "j",
+          "mods": "NONE"
+        },
+        {
+          "description": "Activate pane Right",
+          "display": "l",
+          "key": "l",
+          "mods": "NONE"
+        },
+        {
+          "description": "Activate pane Up",
+          "display": "i",
+          "key": "i",
+          "mods": "NONE"
+        },
+        {
+          "description": "Activate pane Down",
+          "display": "k",
+          "key": "k",
+          "mods": "NONE"
+        },
+        {
+          "description": "Resize pane Left by 5",
+          "display": "a",
+          "key": "a",
+          "mods": "NONE"
+        },
+        {
+          "description": "Resize pane Right by 5",
+          "display": "d",
+          "key": "d",
+          "mods": "NONE"
+        },
+        {
+          "description": "Resize pane Up by 5",
+          "display": "w",
+          "key": "w",
+          "mods": "NONE"
+        },
+        {
+          "description": "Resize pane Down by 5",
+          "display": "s",
+          "key": "s",
+          "mods": "NONE"
+        },
+        {
+          "description": "Resize pane Left by 2",
+          "display": "<ctrl>a",
+          "key": "a",
+          "mods": "CTRL"
+        },
+        {
+          "description": "Resize pane Right by 2",
+          "display": "<ctrl>d",
+          "key": "d",
+          "mods": "CTRL"
+        },
+        {
+          "description": "Resize pane Up by 2",
+          "display": "<ctrl>w",
+          "key": "w",
+          "mods": "CTRL"
+        },
+        {
+          "description": "Resize pane Down by 2",
+          "display": "<ctrl>s",
+          "key": "s",
+          "mods": "CTRL"
+        },
+        {
+          "description": "Resize pane Left by 10",
+          "display": "<shift>a",
+          "key": "a",
+          "mods": "SHIFT"
+        },
+        {
+          "description": "Resize pane Right by 10",
+          "display": "<shift>d",
+          "key": "d",
+          "mods": "SHIFT"
+        },
+        {
+          "description": "Resize pane Up by 10",
+          "display": "<shift>w",
+          "key": "w",
+          "mods": "SHIFT"
+        },
+        {
+          "description": "Resize pane Down by 10",
+          "display": "<shift>s",
+          "key": "s",
+          "mods": "SHIFT"
+        },
+        {
+          "description": "Split pane vertically (right)",
+          "display": "b",
+          "key": "b",
+          "mods": "NONE"
+        },
+        {
+          "description": "Split pane horizontally (down)",
+          "display": "v",
+          "key": "v",
+          "mods": "NONE"
+        },
+        {
+          "description": "Close current pane",
+          "display": "x",
+          "key": "x",
+          "mods": "NONE"
+        },
+        {
+          "description": "Exit current key table/mode",
+          "display": "Escape",
+          "key": "Escape",
+          "mods": "NONE"
+        },
+        {
+          "description": "Exit current key table/mode",
+          "display": "<ctrl>C",
+          "key": "C",
+          "mods": "CTRL"
+        },
+        {
+          "description": "Exit current key table/mode",
+          "display": "q",
+          "key": "q",
+          "mods": "NONE"
+        },
+        {
+          "description": "Emit event: user-defined-7",
+          "display": "Escape",
+          "key": "Escape",
+          "mods": "NONE"
+        },
+        {
+          "description": "Emit event: user-defined-8",
+          "display": "q",
+          "key": "q",
+          "mods": "NONE"
+        },
+        {
+          "description": "Emit event: user-defined-9",
+          "display": "<ctrl>c",
+          "key": "c",
+          "mods": "CTRL"
+        }
+      ],
+      "name": "Resize Mode"
+    },
+    {
+      "count": 6,
+      "description": "Key table for super_mode mode",
+      "icon": "⚡",
+      "id": "KEYTABLE_super_mode",
+      "is_key_table": true,
+      "keybinds": [
+        {
+          "description": "Exit current key table/mode",
+          "display": "Escape",
+          "key": "Escape",
+          "mods": "NONE"
+        },
+        {
+          "description": "Exit current key table/mode",
+          "display": "q",
+          "key": "q",
+          "mods": "NONE"
+        },
+        {
+          "description": "Exit current key table/mode",
+          "display": "<ctrl>c",
+          "key": "c",
+          "mods": "CTRL"
+        },
+        {
+          "description": "Emit event: user-defined-23",
+          "display": "Escape",
+          "key": "Escape",
+          "mods": "NONE"
+        },
+        {
+          "description": "Emit event: user-defined-24",
+          "display": "q",
+          "key": "q",
+          "mods": "NONE"
+        },
+        {
+          "description": "Emit event: user-defined-25",
+          "display": "<ctrl>c",
+          "key": "c",
+          "mods": "CTRL"
+        }
+      ],
+      "name": "Super Mode"
+    },
+    {
+      "count": 6,
+      "description": "Key table for tmux_mode mode",
+      "icon": "⚡",
+      "id": "KEYTABLE_tmux_mode",
+      "is_key_table": true,
+      "keybinds": [
+        {
+          "description": "Exit current key table/mode",
+          "display": "Escape",
+          "key": "Escape",
+          "mods": "NONE"
+        },
+        {
+          "description": "Exit current key table/mode",
+          "display": "q",
+          "key": "q",
+          "mods": "NONE"
+        },
+        {
+          "description": "Exit current key table/mode",
+          "display": "<ctrl>c",
+          "key": "c",
+          "mods": "CTRL"
+        },
+        {
+          "description": "Emit event: user-defined-17",
+          "display": "Escape",
+          "key": "Escape",
+          "mods": "NONE"
+        },
+        {
+          "description": "Emit event: user-defined-18",
+          "display": "q",
+          "key": "q",
+          "mods": "NONE"
+        },
+        {
+          "description": "Emit event: user-defined-19",
+          "display": "<ctrl>c",
+          "key": "c",
+          "mods": "CTRL"
+        }
+      ],
+      "name": "Tmux Mode"
+    },
+    {
+      "count": 6,
+      "description": "Key table for wez_mode mode",
+      "icon": "⚡",
+      "id": "KEYTABLE_wez_mode",
+      "is_key_table": true,
+      "keybinds": [
+        {
+          "description": "Exit current key table/mode",
+          "display": "Escape",
+          "key": "Escape",
+          "mods": "NONE"
+        },
+        {
+          "description": "Exit current key table/mode",
+          "display": "q",
+          "key": "q",
+          "mods": "NONE"
+        },
+        {
+          "description": "Exit current key table/mode",
+          "display": "<ctrl>c",
+          "key": "c",
+          "mods": "CTRL"
+        },
+        {
+          "description": "Emit event: user-defined-26",
+          "display": "Escape",
+          "key": "Escape",
+          "mods": "NONE"
+        },
+        {
+          "description": "Emit event: user-defined-27",
+          "display": "q",
+          "key": "q",
+          "mods": "NONE"
+        },
+        {
+          "description": "Emit event: user-defined-28",
+          "display": "<ctrl>c",
+          "key": "c",
+          "mods": "CTRL"
+        }
+      ],
+      "name": "Wez Mode"
+    },
+    {
+      "description": "Built-in WezTerm copy mode keybindings",
+      "icon": "📋",
+      "id": "DEFAULT_COPY_MODE",
+      "is_default": true,
+      "is_key_table": true,
+      "keybinds": [
+        {
+          "description": "Move to next placeholder",
+          "display": "Tab",
+          "key": "Tab",
+          "mods": "NONE"
+        },
+        {
+          "description": "Copy selection and exit",
+          "display": "Enter",
+          "key": "Enter",
+          "mods": "NONE"
+        },
+        {
+          "description": "Exit copy mode",
+          "display": "Escape",
+          "key": "Escape",
+          "mods": "NONE"
+        },
+        {
+          "description": "Exit copy mode",
+          "display": "q",
+          "key": "q",
+          "mods": "NONE"
+        },
+        {
+          "description": "Move left",
+          "display": "h",
+          "key": "h",
+          "mods": "NONE"
+        },
+        {
+          "description": "Move down",
+          "display": "j",
+          "key": "j",
+          "mods": "NONE"
+        },
+        {
+          "description": "Move up",
+          "display": "k",
+          "key": "k",
+          "mods": "NONE"
+        },
+        {
+          "description": "Move right",
+          "display": "l",
+          "key": "l",
+          "mods": "NONE"
+        },
+        {
+          "description": "Move forward one word",
+          "display": "w",
+          "key": "w",
+          "mods": "NONE"
+        },
+        {
+          "description": "Move backward one word",
+          "display": "b",
+          "key": "b",
+          "mods": "NONE"
+        },
+        {
+          "description": "Move to start of line",
+          "display": "0",
+          "key": "0",
+          "mods": "NONE"
+        },
+        {
+          "description": "Move to end of line",
+          "display": "<shift>$",
+          "key": "$",
+          "mods": "SHIFT"
+        },
+        {
+          "description": "Toggle character selection",
+          "display": "v",
+          "key": "v",
+          "mods": "NONE"
+        },
+        {
+          "description": "Toggle line selection",
+          "display": "<shift>V",
+          "key": "V",
+          "mods": "SHIFT"
+        },
+        {
+          "description": "Go to end",
+          "display": "<shift>G",
+          "key": "G",
+          "mods": "SHIFT"
+        },
+        {
+          "description": "Go to start (press twice)",
+          "display": "g",
+          "key": "g",
+          "mods": "NONE"
+        },
+        {
+          "description": "Toggle selection endpoint",
+          "display": "o",
+          "key": "o",
+          "mods": "NONE"
+        },
+        {
+          "description": "Copy selection",
+          "display": "y",
+          "key": "y",
+          "mods": "NONE"
+        },
+        {
+          "description": "Search forward",
+          "display": "/",
+          "key": "/",
+          "mods": "NONE"
+        },
+        {
+          "description": "Search backward",
+          "display": "<shift>?",
+          "key": "?",
+          "mods": "SHIFT"
+        },
+        {
+          "description": "Next search match",
+          "display": "n",
+          "key": "n",
+          "mods": "NONE"
+        },
+        {
+          "description": "Previous search match",
+          "display": "<shift>N",
+          "key": "N",
+          "mods": "SHIFT"
+        }
+      ],
+      "name": "Copy Mode (Default)"
+    },
+    {
+      "description": "Built-in WezTerm search mode keybindings",
+      "icon": "🔍",
+      "id": "DEFAULT_SEARCH_MODE",
+      "is_default": true,
+      "is_key_table": true,
+      "keybinds": [
+        {
+          "description": "Accept search and exit",
+          "display": "Enter",
+          "key": "Enter",
+          "mods": "NONE"
+        },
+        {
+          "description": "Cancel search",
+          "display": "Escape",
+          "key": "Escape",
+          "mods": "NONE"
+        },
+        {
+          "description": "Next match",
+          "display": "<ctrl>n",
+          "key": "n",
+          "mods": "CTRL"
+        },
+        {
+          "description": "Previous match",
+          "display": "<ctrl>p",
+          "key": "p",
+          "mods": "CTRL"
+        },
+        {
+          "description": "Toggle regex",
+          "display": "<ctrl>r",
+          "key": "r",
+          "mods": "CTRL"
+        },
+        {
+          "description": "Clear search",
+          "display": "<ctrl>u",
+          "key": "u",
+          "mods": "CTRL"
+        }
+      ],
+      "name": "Search Mode (Default)"
+    }
+  ],
+  "leader_key": {
+    "key": "Space",
+    "mods": "SUPER",
+    "timeout": 1000
+  }
+}

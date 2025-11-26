@@ -2,15 +2,100 @@
 .*
 !.gitignore
 .archv
-.logs
-.ssh
-.gnupg
 
-# Chezmoi-specific
-.chezmoiignore
-.chezmoi.toml
-# Uncomment if you want to exclude rendered templates (optional)
-# *.tmpl
+# Runtime logs (generated, not source)
+.logs/
+*.log
+logs/
+*.log.*
+
+# Archives (old/deprecated content)
+.archv/
+archives/
+
+# External references (not your work)
+.ref/
+references/
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+.*.sw[a-z]
+
+# ═══════════════════════════════════════════════════════════
+#  Generic junk
+# ═══════════════════════════════════════════════════════════
+.DS_Store
+.DS_Store?
+Thumbs.db
+._*
+.Spotlight-V100
+.Trashes
+*.bak
+*.swp
+*~
+.tmp/
+.temp/
+ehthumbs.db
+thumbs.db
+Desktop.ini
+
+# ============================================================================
+# SELECTIVE IGNORE - .data/ directory
+# ============================================================================
+/.data
+/data
+
+# Ignore generated/cache data
+.data/cache/
+.data/output/
+.data/generated/
+.data/*.db
+.data/*.sqlite
+.data/*.sqlite3
+
+# ============================================================================
+# BACKUP FILES - Never commit
+# ============================================================================
+
+*.bak
+*.backup
+*-backup
+*.old
+*-old
+.bak/
+.backup/
+*.bak
+.bak
+backup/
+backups/
+
+# ============================================================================
+# SECRETS & CREDENTIALS - CRITICAL
+# ============================================================================
+
+# Never commit secrets
+.env
+.env.local
+.env.*.local
+*.key
+*.pem
+*.p12
+*.pfx
+*_rsa
+*_rsa.pub
+*_dsa
+*_ecdsa
+*_ed25519
+credentials.json
+credentials.yaml
+secrets.json
+secrets.yaml
+*.secret
+.secrets/
 
 # Secrets and sensitive files
 *.secret
@@ -22,48 +107,91 @@
 *secrets*
 *.secrets*
 
-*plugins
+# SSH keys (should be in .vault/ anyway)
+id_rsa
+id_dsa
+id_ecdsa
+id_ed25519
+id_chaoscore
+id_*.pub
 
-# Zinit plugin directories (third-party zsh plugins)
-zsh/.zinit/plugins/
-zsh/.zinit/bin/
+# GPG
+*.gpg
+*.asc
+secring.gpg
+pubring.gpg
+.ssh
+.gnupg
 
-# Neovim submodule/external repo
-nvim/
+# ============================================================================
+# LANGUAGE-SPECIFIC
+# ============================================================================
 
-# Spotify TUI submodule/external repo
-media/spotify-tui/
+# --- Lua ---
+luac.out
+*.luac
 
-# GSPT build directory (likely external or generated)
-media/gspt/build/
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+.pytest_cache/
+.coverage
+htmlcov/
+*.egg-info/
+dist/
+build/
+*.egg
 
-# Archives (if you move files here but don't want to commit certain ones)
-archive/*.bak
-archive/*/*.log
 
-# Scripts or bins with machine-specific data
-bin/asus/*.log
-bin/*/cache/
-bin/*/temp/
-bin/asus/thermal.log
+# ═══════════════════════════════════════════════════════════
+#  Language / build tool lockfiles & caches (common in dotfiles)
+# ═══════════════════════════════════════════════════════════
+go.sum
+pnpm-lock.yaml
+yarn.lock
+package-lock.json
+Bun.lockb
 
-# IDE or editor-specific
-.idea/
-.vscode/
-*.code-workspace
+# --- Rust ---
+target/
+Cargo.lock
+*.rs.bk
+*.pdb
 
-lazy-lock.json
+# --- Go ---
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+go.work
 
-node_modules
-claude
-data
-.archv
-.theme
+# --- Node.js ---
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm
+.yarn
+.pnp.*
+.yarn-integrity
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
 
-*.log
-
-*.tar.gz
-*.swp
 
 # Compiled Lua sources
 luac.out
@@ -78,6 +206,11 @@ luac.out
 *.ko
 *.obj
 *.elf
+*.a
+*.lib
+*.so
+*.dll
+*.out
 
 # Precompiled Headers
 *.gch
@@ -104,3 +237,110 @@ luac.out
 *.i*86
 *.x86_64
 *.hex
+
+
+# ============================================================================
+# DEVELOPMENT TOOLS
+# ============================================================================
+
+# IDEs
+.vscode/
+.idea/
+*.iml
+.fleet/
+.vim/
+*.swp
+
+# Neovim
+.nvim/
+.neoconf.json
+
+# LSP
+.ccls-cache/
+.clangd/
+.rust-analyzer/
+
+# Debugging
+.gdb_history
+.lldb_history
+core
+vgcore.*
+
+# ═══════════════════════════════════════════════════════════
+#  Tool-specific caches / state / lockfiles
+# ═══════════════════════════════════════════════════════════
+# Neovim
+nvim/.undo/
+nvim/.swp/
+nvim/.netrwhist
+nvim/lazy-lock.json          # only if you use lazy.nvim and don't want to commit lockfile
+nvim/.sessions/
+
+# Zsh
+.zsh_history
+.zcompdump*
+
+# Tmux
+tmux/resurrect/
+tmux/plugins/tpm/            # tpm manages its own plugins, treat like node_modules
+
+# Yazi — THE IMPORTANT PART FOR YOU
+yazi/plugins/                # ← never commit ya pack-managed plugins
+yazi/dev/                    # ← local checkouts you're hacking on
+yazi/state/                  # ← cache, history, etc.
+# → DO commit yazi/packages.toml (so we explicitly un-ignore it below)
+
+# Tmux
+tmux-resurrect/
+.tmux/resurrect/
+
+# Task databases (if not in .life/planning/)
+*.db-shm
+*.db-wal
+
+# But COMMIT configuration data (comment out if you want to ignore)
+# .data/config/
+# .data/samples/
+
+# Chezmoi-specific
+.chezmoiignore
+.chezmoi.toml
+
+# Starship (if you use it)
+.starship/
+
+# Direnv
+.direnv/
+.envrc.private
+
+# ═══════════════════════════════════════════════════════════
+#  Explicitly UN-IGNORE files we DO want to track
+# ═══════════════════════════════════════════════════════════
+!yazi/packages.toml          # ← commit this so `ya pack install --all` works everywhere
+!.envrc                      # ← if you use direnv and want the base file tracked
+
+# ═══════════════════════════════════════════════════════════
+#  Optional: ignore everything in OS-specific or machine-local dirs
+# ═══════════════════════════════════════════════════════════
+local/
+machine-local/
+secrets/
+*.local
+
+# ============================================================================
+# BUILD & COMPILED
+# ============================================================================
+
+# Compiled output
+obj/
+out/
+build/
+dist/
+*.class
+*.pyc
+*.pyo
+
+# Archives (if you move files here but don't want to commit certain ones)
+archive/*.bak
+archive/*/*.log
+*plugins

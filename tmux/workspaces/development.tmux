@@ -15,6 +15,13 @@
 # Source the base tmux configuration
 source-file "~/.core/cfg/tmux/tmux.conf"
 
+set -g @resurrect-hook-post-save-all 'echo "Development server saved: $(date)" >> ~/.tmux/resurrect/development/save.log'
+set -g @resurrect-hook-post-restore-all 'echo "Development server restored: $(date)" >> ~/.tmux/resurrect/development/restore.log'
+# Optional: Capture additional state
+set -g @resurrect-capture-pane-contents 'on'
+set -g @resurrect-strategy-nvim 'session'
+
+
 # ============================================================================
 # Server-Specific Settings
 # ============================================================================
@@ -33,13 +40,7 @@ set-environment -g TMUX_SERVER_NAME "development"
 # This keeps development server sessions separate from other servers
 set -g @resurrect-dir "~/.tmux/resurrect/development"
 
-# Optional: Capture additional state
-set -g @resurrect-capture-pane-contents 'on'
-set -g @resurrect-strategy-nvim 'session'
-
 # Optional: Custom save/restore hooks for development server
-# set -g @resurrect-hook-post-save-all 'echo "Development server saved: $(date)" >> ~/.tmux/resurrect/development/save.log'
-# set -g @resurrect-hook-post-restore-all 'echo "Development server restored: $(date)" >> ~/.tmux/resurrect/development/restore.log'
 
 # ============================================================================
 # Development Server Keybindings (Optional Overrides)

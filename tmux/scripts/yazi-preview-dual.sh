@@ -3,7 +3,7 @@
 # Shows file/directory previews: directories as native lists, files as syntax-highlighted content
 
 # Use the yazi-sidebar-right config (current + preview columns)
-export YAZI_CONFIG_HOME="$HOME/.core/cfg/yazi-sidebar-right"
+export YAZI_CONFIG_HOME="${YAZI_CONFIG_HOME:-$CORE_CFG/yazi}/profiles/sidebar-right"
 
 # Set yazibar side for sync
 export YAZIBAR_SIDE="right"
@@ -17,7 +17,7 @@ START_DIR="${1:-$PWD}"
 # Start sync watcher in background if sidebar exists
 if [ -n "$SIDEBAR_PANE" ] && tmux list-panes -F "#{pane_id}" | grep -q "^${SIDEBAR_PANE}$"; then
     # Launch sync watcher detached (survives exec)
-    nohup "$HOME/.core/cfg/tmux/modules/yazibar/scripts/yazibar-sync-watcher.sh" "$SIDEBAR_PANE" "$CURRENT_PANE" >/dev/null 2>&1 &
+    nohup "$TMUX_MODULES/yazibar/scripts/yazibar-sync-watcher.sh" "$SIDEBAR_PANE" "$CURRENT_PANE" >/dev/null 2>&1 &
     WATCHER_PID=$!
 
     # Save watcher PID for cleanup

@@ -1,0 +1,9 @@
+*\tZero or more\tMatches 0 or more of previous\tGreedy by default. *? lazy, *+ possessive (in PCRE).\tInput: 'aaab' Pattern: /a*/ Matches: 'aaa'
++\tOne or more\tMatches 1 or more of previous\t+? lazy, ++ possessive.\tInput: 'aaab' Pattern: /a+/ Matches: 'aaa'
+?\tZero or one\tMatches 0 or 1 of previous\t?? lazy.\tInput: 'ab' Pattern: /a?/ Matches: 'a'
+{n}\tExactly n\tMatches exactly n of previous\tFixed count.\tInput: 'aaa' Pattern: /a{3}/ Matches: 'aaa'
+{n,}\tAt least n\tMatches n or more of previous\t{n,}? lazy.\tInput: 'aaaa' Pattern: /a{2,}/ Matches: 'aaaa'
+{n,m}\tBetween n and m\tMatches between n and m of previous\t{n,m}? lazy.\tInput: 'aaa' Pattern: /a{2,4}/ Matches: 'aaa'
+*?\tLazy zero or more\tMatches 0 or more, as few as possible\tAdd ? to make lazy.\tInput: 'aaab aaa' Pattern: /a*?a/ Matches minimal
++?\tLazy one or more\tMatches 1 or more, as few as possible\tLazy version.\tInput: 'aaab' Pattern: /a+?b/ Matches 'aaab' minimal a
+*+\tPossessive zero or more\tMatches 0 or more, no backtrack\tPossessive, optimizes in some engines.\tInput: 'aaa" ' Pattern: /".*+"/ Matches fail if needed

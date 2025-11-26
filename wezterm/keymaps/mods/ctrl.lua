@@ -85,6 +85,12 @@ function M.setup(config)
 			mods = "CTRL|SHIFT",
 			action = wezterm.action.DisableDefaultAssignment,
 		},
+		{
+			key = "R",
+			mods = "CTRL|SHIFT",
+			action = wezterm.action.DisableDefaultAssignment,
+		},
+		-- {
 		-- {
 		-- 	key = "W",
 		-- 	mods = "CTRL|SHIFT",

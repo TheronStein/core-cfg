@@ -2,6 +2,7 @@
 -- General configuration settings
 local wezterm = require("wezterm")
 local act = wezterm.action
+local paths = require("utils.paths")
 -- local gpu_adapters = require("utils.gpuadapters")  -- DISABLED: causes EGL crash
 local debug_config = require("config.debug")
 
@@ -80,8 +81,8 @@ local config = {
 	enable_kitty_graphics = true,
 	-- debug_key_events = debug_config.debug_key_events or false,
 	automatically_reload_config = false,
-	default_cwd = "/home/theron/.core",
 	-- enable_osc52 = true,
+	default_cwd = os.getenv("CORE") or paths.HOME .. "/.core",
 
 	-- GPU Configuration
 	-- front_end = "WebGpu",

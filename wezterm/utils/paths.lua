@@ -42,5 +42,6 @@ M.NVIM_CONFIG = M.CORECFG .. "/nvim"
 M.TMUX_CONFIG = M.CORECFG .. "/tmux"
 M.YAZI_CONFIG = M.CORECFG .. "/yazi"
 M.NCSPOT_CONFIG = M.CORECFG .. "/media/ncspot"
+M.GITHUB_COPILOT_CONFIG = M.CORECFG .. "/github-copilot"
 
 return M

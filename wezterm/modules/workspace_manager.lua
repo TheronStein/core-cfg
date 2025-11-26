@@ -3,6 +3,7 @@
 
 local wezterm = require("wezterm")
 local act = wezterm.action
+local paths = require("utils.paths")
 
 -- Try to load resurrect module for proper pane layout handling
 local has_resurrect, pane_tree_mod = pcall(require, "resurrect.pane_tree")
@@ -11,7 +12,7 @@ local has_tab_state, tab_state_mod = pcall(require, "resurrect.tab_state")
 local M = {}
 
 -- Template storage directory
-local template_dir = wezterm.home_dir .. "/.core/.sys/configs/wezterm/.data/workspace-templates"
+local template_dir = paths.WEZTERM_DATA .. "/workspace-templates"
 
 -- Ensure template directory exists
 local function ensure_template_dir()

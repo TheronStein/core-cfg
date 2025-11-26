@@ -1,0 +1,223 @@
+{
+  "assistant": {
+    "name": "Claude Code",
+    "version": "1.0.0",
+    "permissions": {
+      "fileSystem": {
+        "read": [
+          "~/.core/cfg/nvim/**",
+          "~/.core/cfg/zsh.d/**",
+          "~/.tmux.conf",
+          "~/.local/share/zsh/**",
+          "~/.core/cfg/tmux/**",
+          "~/.core/cfg/yazi/**",
+          "~/.core/cfg/docker/**",
+          "~/.core/cfg/wezterm/**",
+          "~/.local/share/**",
+          "~/.cache/**"
+        ],
+        "write": [
+          "~/.config/nvim/**",
+          "~/.core/cfg/zsh.d/**",
+          "~/.tmux.conf",
+          "~/.core/cfg/tmux/**"
+        ]
+      },
+      "process": {
+        "spawn": [
+          {
+            "label": "bash",
+            "command": "/usr/bin/env",
+            "args": [
+              "bash",
+              "-lc"
+            ]
+          },
+          {
+            "label": "zsh",
+            "command": "/usr/bin/zsh",
+            "args": [
+              "-ic"
+            ]
+          },
+          {
+            "label": "nvim-headless",
+            "command": "nvim",
+            "args": [
+              "--headless",
+              "-c"
+            ]
+          },
+          {
+            "label": "git",
+            "command": "/usr/bin/git",
+            "args": []
+          }
+        ]
+      }
+    },
+    "tools": {
+      "fileOps": {
+        "readFile": {
+          "description": "Read a file’s contents",
+          "usage": "readFile(path: string) → string"
+        },
+        "writeFile": {
+          "description": "Write contents to a file",
+          "usage": "writeFile(path: string, contents: string) → void"
+        },
+        "diff": {
+          "description": "Show unified diff between two files",
+          "usage": "runShell(\"diff -u <old> <new>\")"
+        },
+        "patch": {
+          "description": "Apply a patch to files",
+          "usage": "runShell(\"patch -p1 < file.patch\")"
+        }
+      },
+      "search": {
+        "grep": {
+          "description": "Recursive text search",
+          "usage": "grep -R --color=always <pattern> <path>"
+        },
+        "rg": {
+          "description": "Lightning-fast recursive search",
+          "usage": "rg --color=always <pattern> <path>"
+        },
+        "fd": {
+          "description": "Fast file-finder",
+          "usage": "fd <pattern> <path>"
+        }
+      },
+      "formatLint": {
+        "shellcheck": {
+          "description": "Lint and static analysis for shell scripts",
+          "usage": "shellcheck <file>"
+        },
+        "luacheck": {
+          "description": "Lua code analysis",
+          "usage": "luacheck <file>"
+        },
+        "stylua": {
+          "description": "Auto-format Lua code",
+          "usage": "stylua <file>"
+        },
+        "prettier": {
+          "description": "General-purpose code formatter",
+          "usage": "prettier --write <file>"
+        }
+      },
+      "versionControl": {
+        "git": {
+          "description": "Source control management",
+          "commands": [
+            {
+              "name": "status",
+              "usage": "git status"
+            },
+            {
+              "name": "diff",
+              "usage": "git diff"
+            },
+            {
+              "name": "log",
+              "usage": "git log --oneline --graph"
+            },
+            {
+              "name": "applyPatch",
+              "usage": "git apply <patch-file>"
+            }
+          ]
+        }
+      },
+      "debugProfiling": {
+        "strace": {
+          "description": "Trace system calls",
+          "usage": "strace -f -o out.strace <command>"
+        },
+        "lsof": {
+          "description": "List open files/sockets",
+          "usage": "lsof -p <pid>"
+        },
+        "perf": {
+          "description": "Linux performance profiling",
+          "usage": "perf record -g <command>"
+        },
+        "gdb": {
+          "description": "Native code debugger",
+          "usage": "gdb --args <binary> <args>"
+        }
+      },
+      "interactive": {
+        "htop": {
+          "description": "Interactive process viewer",
+          "usage": "htop"
+        },
+        "tmux": {
+          "description": "Terminal multiplexer control",
+          "commands": [
+            {
+              "name": "listSessions",
+              "usage": "tmux list-sessions"
+            },
+            {
+              "name": "attach",
+              "usage": "tmux attach -t <session>"
+            },
+            {
+              "name": "newSession",
+              "usage": "tmux new -d -s <name>"
+            }
+          ]
+        },
+        "tmuxp": {
+          "description": "TMUX session manager from YAML/JSON",
+          "usage": "tmuxp load <session.yaml>"
+        },
+        "entr": {
+          "description": "Run commands on file-change",
+          "usage": "ls **/*.zsh | entr -c <cmd>"
+        }
+      },
+      "shellPluginMgr": {
+        "zinit": {
+          "description": "Zsh plugin installation & management",
+          "usage": "zinit install <repo> ; zinit update"
+        },
+        "plug": {
+          "description": "Plugin manager for Zsh",
+          "usage": "plug install ; plug update"
+        }
+      },
+      "docker": {
+        "description": "Container management for isolated testing",
+        "commands": [
+          {
+            "name": "run",
+            "usage": "docker run --rm -v $(pwd):/work -w /work <image> <cmd>"
+          },
+          {
+            "name": "exec",
+            "usage": "docker exec -it <container> <cmd>"
+          }
+        ]
+      }
+    },
+    "workspace": {
+      "root": "~/",
+      "globs": [
+        "**/*.vim",
+        "**/*.lua",
+        "**/*.zsh",
+        "**/*.tmux.conf",
+        "**/*.yaml",
+        "**/*.json"
+      ]
+    }
+  },
+  "permissions": {
+    "allow": [
+      "Bash(ls:*)"
+    ]
+  }
+}

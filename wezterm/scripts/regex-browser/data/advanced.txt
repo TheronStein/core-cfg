@@ -1,0 +1,9 @@
+\p{Property}\tUnicode property\tChars with property\t\p{L} any letter, with u.\tInput: 'é' Pattern: /\p{L}/u Matches: 'é'
+\P{Property}\tNegate property\tNot with property\t\P{L}\tInput: '1' Pattern: /\P{L}/u Matches: '1'
+(?R)\tRecursion\tRecurse whole pattern\tFor nested.\tBalanced: /^\((?>[^()]|(?R))*\)$/
+(?&name)\tSubroutine call\tCall named group\tDefine (?<name>...) then (?&name)\t
+(?>)\tAtomic group\tNo backtrack\tOptimizes.\t
+(?(n)yes|no)\tConditional group\tIf n matched\t\t
+(?(? =cond)yes|no)\tConditional assertion\tIf lookahead\t\t
+\u{hhhhh}\tUnicode point\tUp to \u{10FFFF}\tWith u flag.\t
+ balancer\tBalancing groups\t.NET specific for balanced.\t

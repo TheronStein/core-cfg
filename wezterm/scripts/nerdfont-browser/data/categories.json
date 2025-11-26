@@ -1,0 +1,116 @@
+{
+  "categories": [
+    {
+      "name": "Codicons",
+      "file": "wezterm-codicons.txt",
+      "description": "VS Code icons (438 icons)",
+      "color": "blue",
+      "icon_name": "cod_account",
+      "count": 438
+    },
+    {
+      "name": "Custom",
+      "file": "wezterm-custom.txt",
+      "description": "Custom programming icons (41 icons)",
+      "color": "magenta",
+      "icon_name": "custom_ada",
+      "count": 41
+    },
+    {
+      "name": "Devicons",
+      "file": "wezterm-devicons.txt",
+      "description": "Developer and tech icons (508 icons)",
+      "color": "green",
+      "icon_name": "dev_aarch64",
+      "count": 508
+    },
+    {
+      "name": "FA Extension",
+      "file": "wezterm-fa-extension.txt",
+      "description": "Font Awesome Extension (170 icons)",
+      "color": "bright_yellow",
+      "icon_name": "fae_apple_fruit",
+      "count": 170
+    },
+    {
+      "name": "Font Awesome",
+      "file": "wezterm-font-awesome.txt",
+      "description": "Font Awesome 4.x icons (1817 icons)",
+      "color": "yellow",
+      "icon_name": "fa_500px",
+      "count": 1817
+    },
+    {
+      "name": "Linux Logos",
+      "file": "wezterm-linux-logos.txt",
+      "description": "Linux distribution logos (130 icons)",
+      "color": "bright_blue",
+      "icon_name": "linux_almalinux",
+      "count": 130
+    },
+    {
+      "name": "Material Design",
+      "file": "wezterm-material-design.txt",
+      "description": "Material Design icons (6880 icons)",
+      "color": "cyan",
+      "icon_name": "md_ab_testing",
+      "count": 6880
+    },
+    {
+      "name": "Octicons",
+      "file": "wezterm-octicons.txt",
+      "description": "GitHub Octicons (310 icons)",
+      "color": "white",
+      "icon_name": "oct_accessibility",
+      "count": 310
+    },
+    {
+      "name": "Personal Icons",
+      "file": "wezterm-personal-icons.txt",
+      "description": "My personal icon definitions (3 icons)",
+      "color": "bright_magenta",
+      "icon_name": "personal_md_flattr",
+      "count": 3
+    },
+    {
+      "name": "Pomicons",
+      "file": "wezterm-pomicons.txt",
+      "description": "Pomicons set (11 icons)",
+      "color": "bright_cyan",
+      "icon_name": "pom_away",
+      "count": 11
+    },
+    {
+      "name": "Powerline",
+      "file": "wezterm-powerline.txt",
+      "description": "Powerline symbols (9 icons)",
+      "color": "red",
+      "icon_name": "pl_branch",
+      "count": 9
+    },
+    {
+      "name": "Powerline Extra",
+      "file": "wezterm-powerline-extra.txt",
+      "description": "Powerline Extra symbols (34 icons)",
+      "color": "bright_red",
+      "icon_name": "ple_backslash_separator",
+      "count": 34
+    },
+    {
+      "name": "Seti UI",
+      "file": "wezterm-seti-ui.txt",
+      "description": "Seti UI file icons (167 icons)",
+      "color": "bright_green",
+      "icon_name": "seti_apple",
+      "count": 167
+    },
+    {
+      "name": "Weather",
+      "file": "wezterm-weather.txt",
+      "description": "Weather icons (228 icons)",
+      "color": "bright_magenta",
+      "icon_name": "weather_alien",
+      "count": 228
+    }
+  ]
+}

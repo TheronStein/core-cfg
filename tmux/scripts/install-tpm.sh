@@ -1,14 +1,23 @@
-#!/usr/bin/env bash
+#!/bin/bash
+# Install TPM (Tmux Plugin Manager)
 
-# TPM installation script
-TPM_DIR="$HOME/.core/cfg/tmux/plugins/tpm"
+TMUX_CONF="/home/theron/.core/.sys/cfg/tmux"
+PLUGIN_DIR="$TMUX_CONF/plugins"
 
-if [ ! -d "$TPM_DIR" ]; then
-    echo "Installing Tmux Plugin Manager..."
-    git clone https://github.com/tmux-plugins/tpm "$TPM_DIR"
-    echo "TPM installed successfully!"
-    echo "Now reload tmux config with: tmux source ~/.core/cfg/tmux/tmux.conf"
-    echo "Then press Prefix + M-i to install plugins"
+# Create plugins directory if it doesn't exist
+mkdir -p "$PLUGIN_DIR"
+
+# Clone TPM if not already installed
+if [ ! -d "$PLUGIN_DIR/tpm" ]; then
+    echo "Installing TPM..."
+    git clone https://github.com/tmux-plugins/tpm "$PLUGIN_DIR/tpm"
 else
-    echo "TPM is already installed at $TPM_DIR"
+    echo "TPM already installed"
 fi
+
+# Make tpm executable
+chmod +x "$PLUGIN_DIR/tpm/tpm"
+chmod +x "$PLUGIN_DIR/tpm/bin/install_plugins"
+
+echo "TPM installation complete"
+echo "Press prefix + I (capital i) in tmux to install plugins"

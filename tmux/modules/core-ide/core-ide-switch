@@ -1,0 +1,31 @@
+#!/bin/bash
+# Switch between Core-IDE contexts
+
+CORE_IDE_BASE="${HOME}/.local/state/core-ide"
+CURRENT_SOCKET="${TMUX%%,*}"
+
+# Get list of active sockets
+echo "Active Core-IDE contexts:"
+for socket in /tmp/tmux-core-ide-*; do
+    if [ -S "$socket" ]; then
+        context="${socket##*/tmux-core-ide-}"
+        sessions=$(tmux -S "$socket" list-sessions 2>/dev/null | wc -l)
+        echo "  ${context}: ${sessions} sessions"
+    fi
+done
+
+# Use fzf if available, otherwise read input
+if command -v fzf >/dev/null 2>&1; then
+    CONTEXT=$(ls /tmp/tmux-core-ide-* 2>/dev/null | xargs -n1 basename | sed 's/tmux-core-ide-//' | fzf --prompt="Select context: ")
+else
+    read -p "Enter context to switch to: " CONTEXT
+fi
+
+if [ -n "$CONTEXT" ]; then
+    SOCKET_PATH="/tmp/tmux-core-ide-${CONTEXT}"
+    if [ -S "$SOCKET_PATH" ]; then
+        tmux -L "core-ide-${CONTEXT}" switch-client
+    else
+        echo "Context '${CONTEXT}' not found or not active"
+    fi
+fi

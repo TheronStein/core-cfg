@@ -67,7 +67,7 @@ export -f handle_yazi_event
 cd "$START_DIR" || exit 1
 
 # Set yazi config directory
-export YAZI_CONFIG_HOME="${YAZI_CONFIG_HOME:-$HOME/.core/cfg/yazi-sidebar}"
+export YAZI_CONFIG_HOME="${YAZI_CONFIG_HOME:-${CORE_CFG}/yazi/profiles/sidebar-left}"
 
 # Set yazibar side (used by yazi plugins)
 export YAZIBAR_SIDE="$SIDE"

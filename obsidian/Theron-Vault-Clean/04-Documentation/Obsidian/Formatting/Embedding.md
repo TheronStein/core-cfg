@@ -1,1 +1,0 @@
-![[Embed a note in another note#^]]x

@@ -72,13 +72,13 @@ else
     # Select preview script based on mode
     case "$PREVIEW_MODE" in
         native)
-            preview_script="$HOME/.core/cfg/tmux/scripts/yazi-preview-native.sh"
+            preview_script="$TMUX_CONF/scripts/yazi-preview-native.sh"
             ;;
         dual)
-            preview_script="$HOME/.core/cfg/tmux/scripts/yazi-preview-dual.sh"
+            preview_script="$TMUX_CONF/scripts/yazi-preview-dual.sh"
             ;;
         *)
-            preview_script="$HOME/.core/cfg/tmux/scripts/yazi-preview-watcher.sh"
+            preview_script="$TMUX_CONF/scripts/yazi-preview-watcher.sh"
             ;;
     esac
 

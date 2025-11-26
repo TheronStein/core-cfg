@@ -1,0 +1,74 @@
+{
+  "categories": [
+    {
+      "name": "Basics",
+      "icon_name": "📘",
+      "description": "Fundamental concepts and syntax of regular expressions. Regex (Regular Expressions) are patterns used to match character combinations in strings. They are supported in most programming languages and tools like grep, sed, awk, Python (re module), JavaScript, etc. Regex engines vary slightly (e.g., PCRE vs POSIX), but core concepts are similar. Always test patterns as behavior can differ across flavors (e.g., Java vs Perl).",
+      "count": 6,
+      "file": "basics.txt"
+    },
+    {
+      "name": "Anchors",
+      "icon_name": "⚓",
+      "description": "Anchors assert positions in the string without consuming characters. They are zero-width assertions. Use them to specify where matches should occur relative to the start/end of string or lines. In multiline mode (often /m flag), ^ and $ match start/end of lines. Word boundaries \\b match where a word char meets a non-word char.",
+      "count": 7,
+      "file": "anchors.txt"
+    },
+    {
+      "name": "Quantifiers",
+      "icon_name": "🔢",
+      "description": "Quantifiers specify how many times a pattern or group should match. They can be greedy (match as much as possible) or lazy (match as little as possible, add ? after quantifier). Greedy: *, +, {n,}. Lazy: *?, +?, {n,]?. Possessive quantifiers (e.g., *+) prevent backtracking for optimization in some engines.",
+      "count": 9,
+      "file": "quantifiers.txt"
+    },
+    {
+      "name": "Character Classes",
+      "icon_name": "🔤",
+      "description": "Character classes match any one character from a set. Use [ ] to define. Negate with ^ inside. Ranges like a-z. Shorthand: \\d (digit), \\w (word char: alphanumeric + _), \\s (whitespace). Negated: \\D, \\W, \\S. In Unicode mode, these can match more chars. POSIX classes like [:alpha:] for alphabetic chars.",
+      "count": 12,
+      "file": "char_classes.txt"
+    },
+    {
+      "name": "Groups and Capturing",
+      "icon_name": "📁",
+      "description": "Groups allow treating multiple chars as a unit. () for capturing groups (store matched text for backreferences or extraction). Non-capturing: (?:). Named groups: (?P<name>) or (?<name>) depending on flavor. Backreferences: \\1, \\2, or ${name}. Conditionals: (?(condition)yes|no).",
+      "count": 10,
+      "file": "groups.txt"
+    },
+    {
+      "name": "Lookarounds",
+      "icon_name": "👀",
+      "description": "Lookarounds are zero-width assertions that check for patterns without consuming chars. Positive lookahead: (?=pattern). Negative lookahead: (?!pattern). Lookbehind: (?<=pattern) positive, (?<!pattern) negative. Lookbehinds may have fixed-width requirements in some engines.",
+      "count": 4,
+      "file": "lookarounds.txt"
+    },
+    {
+      "name": "Modifiers and Flags",
+      "icon_name": "⚙️",
+      "description": "Flags change regex behavior globally. Common: i (case-insensitive), m (multiline: ^/$ per line), s (dotall: . matches newline), g (global: find all matches), x (extended: ignore whitespace in pattern). Unicode u flag for full Unicode matching. Flags are often set outside the pattern, e.g., /pattern/im.",
+      "count": 8,
+      "file": "modifiers.txt"
+    },
+    {
+      "name": "Special Characters",
+      "icon_name": "✨",
+      "description": "Meta-characters with special meaning: . * + ? | ( ) [ ] { } ^ $ \\. Escape with \\ to match literally. . matches any char except newline (unless /s flag). | for alternation. In char classes, some lose meaning (e.g., * is literal inside []).",
+      "count": 11,
+      "file": "special_chars.txt"
+    },
+    {
+      "name": "Advanced Topics",
+      "icon_name": "🚀",
+      "description": "Advanced features like recursion (?R), subroutines (?&name), atomic groups (?>pattern) to prevent backtracking, balancing groups in .NET. Unicode properties \\p{Property}, e.g., \\p{L} for letters. Performance: avoid catastrophic backtracking with nested quantifiers.",
+      "count": 9,
+      "file": "advanced.txt"
+    },
+    {
+      "name": "Common Patterns",
+      "icon_name": "🛠️",
+      "description": "Pre-built patterns for common tasks. Email: [a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,}. URL: https?://[\\w.-]+(?:\\.[\\w.-]+)+[\\w-._~:/?#[\\]@!$&'()*+,;=]*. Always validate beyond regex as they can't fully parse complex formats like HTML.",
+      "count": 10,
+      "file": "common_patterns.txt"
+    }
+  ]
+}

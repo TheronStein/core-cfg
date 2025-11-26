@@ -1,21 +1,35 @@
 #!/bin/bash
-tmux display-menu -x W -y S \
+# Main Menu - Top level navigation
+
+MENU_NAV="$TMUX_MENUS/menu-nav.sh"
+
+# Helper to open submenu with parent tracking
+om() {
+  "$MENU_NAV" set "$(basename "$1")" "main-menu.sh"
+  echo "run-shell '\$TMUX_MENUS/$1'"
+}
+
+tmux display-menu -x C -y C -T "#[fg=#e0af68,bold] Main Menu " \
   "Zoom Toggle" z "resize-pane -Z" \
-  " Vertical Split" v "run-shell '~/.core/cfg/tmux/events/vsplit.sh'" \
-  " Horizontal Split" d "run-shell '~/.core/cfg/tmux/events/hsplit.sh'" \
+  " Vertical Split" v "run-shell '~/.core/cfg/tmux/events/vsplit.sh'" \
+  " Horizontal Split" d "run-shell '~/.core/cfg/tmux/events/hsplit.sh'" \
   "" \
-  "󰂮 Pane Management" a "run-shell '$TMUX_MENUS/mux/pane-menu.sh'" \
-  "󰖯 Window Management" w "run-shell '$TMUX_MENUS/mux/window-menu.sh'" \
-  " Layout Management" l "run-shell '$TMUX_MENUS/mux/layout-menu.sh'" \
+  "󰂮 Pane Management" a "$(om mux/pane-menu.sh)" \
+  "󰖯 Window Management" w "$(om mux/window-menu.sh)" \
+  " Layout Management" l "$(om mux/layout-menu.sh)" \
   "" \
-  "Keybind References Menu" k "run-shell '$TMUX_MENUS/keybinds-menu.sh'" \
-  "Key Modes Menu" m "run-shell '$TMUX_MENUS/keymodes-menu.sh'" \
-  "󱂬 Popup Windows Menu" f "run-shell '$TMUX_MENUS/popup-windows.sh'" \
-  "Sidebar Menu" b "run-shell '$TMUX_MENUS/sidebar-menu.sh'" \
+  "Keybind References Menu" k "$(om keybinds-menu.sh)" \
+  "Key Modes Menu" m "$(om modes/keymodes-menu.sh)" \
+  "󱂬 Popup Windows Menu" f "$(om popup-windows.sh)" \
+  "Sidebar Menu" b "$(om mux/sidebar-menu.sh)" \
   "" \
-  "󰙀 TMUX Management" t "run-shell '$TMUX_MENUS/tmux-menu.sh'" \
-  "󰹬 Session Management" s "run-shell '$TMUX_MENUS/tmux/session-menu.sh'" \
-  " Plugin Management" p "run-shell '$TMUX_MENUS/plugin-menu.sh'"
+  "󰙀 TMUX Management" t "$(om tmux-menu.sh)" \
+  "󰹬 Session Management" s "$(om tmux/session-menu.sh)" \
+  " Plugin Management" p "$(om tmux/plugin-menu.sh)" \
+  "󰏘 Theme Selector" T "run-shell '$TMUX_CONF/modules/themes/theme-switcher.sh'" \
+  "" \
+  "󰒓 Config Management" c "$(om config-management.sh)" \
+  " App Management" A "$(om app-management.sh)"
 
 # 󰾱 Email
 # 󰖟 Notes

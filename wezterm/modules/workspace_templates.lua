@@ -3,11 +3,12 @@
 
 local wezterm = require("wezterm")
 local act = wezterm.action
+local paths = require("utils.paths")
 
 local M = {}
 
 -- Template storage directory
-local template_dir = wezterm.home_dir .. "/.core/.sys/configs/wezterm/.data/workspace-templates"
+local template_dir = paths.WEZTERM_DATA .. "/workspace-templates"
 
 -- Ensure template directory exists
 local function ensure_template_dir()

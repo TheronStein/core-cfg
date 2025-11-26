@@ -1,3 +1,0 @@
-Index:
-
-- [[Saved Server Configurations]]

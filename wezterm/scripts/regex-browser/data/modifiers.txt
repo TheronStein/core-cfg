@@ -1,0 +1,15 @@
+ii\tCase insensitive\tIgnore case\t/abc/i Matches 'AbC'\tGlobal flag outside pattern.
+g\tGlobal\tFind all matches\t/ a /g All 'a'\t
+m\tMultiline\t^ $ match line start/end\t/ ^a /m 'a' after newline\t
+s\tDotall\t. matches newline\t/ a.b /s 'a\nb'\t
+u\tUnicode\tFull Unicode support\t/ \p{L} /u Matches letters\t
+y\tSticky\tMatch from lastIndex\tJS, / a /y\t
+x\tExtended\tIgnore whitespace, allow comments\t/ a b #comment /x 'ab'\t
+U\tUngreedy\tQuantifiers lazy by default\tPCRE, / a+ /U Greedy to lazy\t\tCase insensitive\tIgnore case\t/abc/i Matches 'AbC'\tGlobal flag outside pattern.
+g\tGlobal\tFind all matches\t/ a /g All 'a'\t
+m\tMultiline\t^ $ match line start/end\t/ ^a /m 'a' after newline\t
+s\tDotall\t. matches newline\t/ a.b /s 'a\nb'\t
+u\tUnicode\tFull Unicode support\t/ \p{L} /u Matches letters\t
+y\tSticky\tMatch from lastIndex\tJS, / a /y\t
+x\tExtended\tIgnore whitespace, allow comments\t/ a b #comment /x 'ab'\t
+U\tUngreedy\tQuantifiers lazy by default\tPCRE, / a+ /U Greedy to lazy\t

@@ -1,0 +1,45 @@
+# Custom (41 icons)
+# Generated from WezTerm nerdfonts
+# Format: icon_name (glyphs rendered by WezTerm picker)
+
+custom_ada
+custom_asm
+custom_astro
+custom_bazel
+custom_c
+custom_chuck
+custom_common_lisp
+custom_cpp
+custom_crystal
+custom_default
+custom_electron
+custom_elixir
+custom_elm
+custom_emacs
+custom_fennel
+custom_firebase
+custom_folder
+custom_folder_config
+custom_folder_git
+custom_folder_git_branch
+custom_folder_github
+custom_folder_npm
+custom_folder_oct
+custom_folder_open
+custom_go
+custom_home
+custom_kotlin
+custom_msdos
+custom_neovim
+custom_orgmode
+custom_play_arrow
+custom_prettier
+custom_puppet
+custom_purescript
+custom_ruby
+custom_scheme
+custom_toml
+custom_v_lang
+custom_vim
+custom_vitruvian
+custom_windows

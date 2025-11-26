@@ -1,0 +1,22 @@
+{
+  "workspaces": [
+    {
+      "name": "wezterm",
+      "occupied": false,
+      "created": "2025-10-12T10:00:00Z",
+      "last_used": "2025-10-12T10:00:00Z"
+    }
+    {
+      "name": "yazi",
+      "occupied": false,
+      "created": "2025-10-12T10:00:00Z",
+      "last_used": "2025-10-12T10:00:00Z"
+    }
+    {
+      "name": "zsh",
+      "occupied": false,
+      "created": "2025-10-12T10:00:00Z",
+      "last_used": "2025-10-12T10:00:00Z"
+    }
+  ]
+}

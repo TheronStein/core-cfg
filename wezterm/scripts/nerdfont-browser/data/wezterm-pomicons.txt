@@ -1,0 +1,15 @@
+# Pomicons (11 icons)
+# Generated from WezTerm nerdfonts
+# Format: icon_name (glyphs rendered by WezTerm picker)
+
+pom_away
+pom_clean_code
+pom_external_interruption
+pom_internal_interruption
+pom_long_pause
+pom_pair_programming
+pom_pomodoro_done
+pom_pomodoro_estimated
+pom_pomodoro_squashed
+pom_pomodoro_ticking
+pom_short_pause

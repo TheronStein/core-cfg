@@ -1,0 +1,11 @@
+\\ \tEscape\tMakes special literal\tTo match * use \*\tInput: '*' Pattern: /\*/ Matches: '*'
+\n\tNewline\tLine feed\t\tInput: 'a\nb' Pattern: /a\nb/ Matches
+\r\tCarriage return\tCR\t\t
+\t\tTab\tHT\t\t
+\v\tVertical tab\tVT\t\t
+\f\tForm feed\tFF\t\t
+\0\tNull char\tNUL\tDo not follow with digit.\t
+\xhh\tHex char\tTwo hex digits\t\x41 'A'\t
+\uhhhh\tUnicode UTF-16\tFour hex\t\u0041 'A'\t
+\cX\tControl char\tA-Z for ctrl\t\cM CR\t
+\xxx\tOctal char\tThree octal\t\101 'A'\t

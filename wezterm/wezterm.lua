@@ -1,6 +1,7 @@
 local wezterm = require("wezterm")
 local Config = require("config")
 local debug_config = require("config.debug")
+local paths = require("utils.paths")
 -- local tabline_config = require("tabline")
 local conf_dir = wezterm.config_dir
 local modules_dir = conf_dir .. "/modules"
@@ -13,7 +14,7 @@ if not package.path:find(gui_dir, 1, true) then
 end
 -- Add the core path to package path if not already there
 local home = wezterm.home_dir
-local core_env_dir = home .. "/.core/.sys/configs/wezterm"
+local core_env_dir = paths.WEZTERM_CONFIG
 local core_env_path = home .. "/?.lua" -- .. '/core/?/init.luaa'
 -- if not package.path:find(core_cfg_path, true) then
 -- 	package.path = package.path .. ";" .. core_cfg_path
@@ -73,7 +74,7 @@ local config = config_builder.options
 require("tabline_custom").setup(config)
 -- require("launchers.workspace_launcher").setup(config)
 local backdrops = require("backdrops")
-backdrops:set_images_dir("/home/theron/.core/.sys/configs/wezterm/backdrops") -- Set correct wallpaper directory
+backdrops:set_images_dir(paths.WEZTERM_BACKDROPS) -- Set correct wallpaper directory
 backdrops:set_images()
 backdrops:set_scroll_attachment(true) -- Enable parallax scrolling for tall images
 -- Set initial backdrop in config

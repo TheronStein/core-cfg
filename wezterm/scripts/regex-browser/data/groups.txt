@@ -1,0 +1,10 @@
+()\tCapturing group\tGroups and captures the match\tFor backrefs \1.\tInput: 'abc abc' Pattern: /(abc) \1/ Matches: 'abc abc'
+(?:)\tNon-capturing group\tGroups without capturing\tNo backref, better performance.\tInput: 'abc' Pattern: /(?:ab)c/ Matches: 'abc'
+(?<name>)\tNamed capturing group\tCaptures with name\tBackref \k<name>.\tInput: 'abc' Pattern: /(?<group>ab)c/ Matches: 'abc', group='ab'
+\n\tBackreference\tReferences nth group\t\1 for first.\tInput: 'aa' Pattern: /(a)\1/ Matches: 'aa'
+\k<name>\tNamed backref\tReferences named group\tDepending on flavor.\tInput: 'aa' Pattern: /(?<char>a)\k<char>/ Matches: 'aa'
+(?(n)yes|no)\tConditional\tIf group n matched, yes else no\tCondition on group.\tInput: 'ab' Pattern: /(a)?(?(1)b|c)/ Matches: 'ab'
+(?(?=cond)yes|no)\tLookaround conditional\tIf assertion true, yes else no\tCondition on lookahead.\tInput: 'ab' Pattern: /a(?(?=b)b|c)/ Matches: 'ab'
+(?#comment)\tComment\tInline comment\tWith x flag, ignored.\tInput: 'a' Pattern: /a(?#test)/x Matches: 'a'
+(?>\tAtomic group\tNon-backtracking group\tPossessive, no backtrack.\tInput: 'aaab' Pattern: /(?>a+)ab/ No match
+(?R)\tRecursion\tRecurse the pattern\tFor nested structures.\tBalanced parens: /^\((?>[^()]+|(?R))*\)$/

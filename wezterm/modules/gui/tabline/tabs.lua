@@ -90,9 +90,24 @@ local function tabs(tab)
 	local tab_id = tostring(tab.tab_id)
 	local tab_meta = wezterm.GLOBAL.custom_tabs and wezterm.GLOBAL.custom_tabs[tab_id]
 
-	-- Override mode color with workspace color if available
+	-- Color priority (highest to lowest):
+	-- 1. tmux workspace color (if in tmux workspace)
+	-- 2. custom tab color (from color picker)
+	-- 3. default mode color
+
+	-- Priority 1: Override mode color with workspace color if available (HIGHEST PRIORITY)
 	if tab_meta and tab_meta.tmux_workspace_color then
 		mode_bg = tab_meta.tmux_workspace_color
+	else
+		-- Priority 2: Use custom tab color if set (and not in tmux workspace)
+		local ok_color_picker, color_picker = pcall(require, "modules.tab_color_picker")
+		if ok_color_picker then
+			local custom_color = color_picker.get_tab_color(tab_id)
+			if custom_color then
+				mode_bg = custom_color
+			end
+		end
+		-- Priority 3: Default mode color (already set above, no action needed)
 	end
 
 	-- Helper function to truncate with ".." suffix
@@ -180,9 +195,26 @@ local function tabs(tab)
 	end
 
 	-- Determine the title text
+	-- Priority: custom > tmux > default
 	local title_text = ""
-	-- Both active and inactive tabs: show tmux_server/tmux_session if in tmux, otherwise CWD
-	if tmux_workspace and tmux_session ~= "" then
+	local has_custom_title = false
+
+	-- Check for custom title first (highest priority)
+	if tab_meta and tab_meta.title then
+		title_text = tab_meta.title
+		has_custom_title = true
+
+		-- If custom title AND has custom icon, override the display_icon
+		if tab_meta.icon_key and tab_meta.icon_key ~= "" then
+			display_icon = tab_meta.icon_key
+		end
+		-- Note: If in tmux workspace but no custom icon, tmux icon is preserved from above
+
+		if debug_config.is_enabled("debug_tabline_tabs") then
+			wezterm.log_info("[TABLINE:TABS] Using custom title:", title_text, "icon:", display_icon)
+		end
+	-- Fallback to tmux title (medium priority)
+	elseif tmux_workspace and tmux_session ~= "" then
 		-- Use shortname from workspace metadata if available
 		local server_name = tmux_workspace
 		if tmux_workspaces then
@@ -192,6 +224,7 @@ local function tabs(tab)
 			end
 		end
 		title_text = server_name .. "/" .. tmux_session
+	-- Fallback to default title (lowest priority)
 	else
 		-- Not in tmux: show CWD name
 		local cwd_uri = tab.active_pane.current_working_dir

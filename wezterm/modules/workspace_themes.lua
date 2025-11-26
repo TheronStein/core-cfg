@@ -2,14 +2,14 @@
 -- Manages themes per workspace with JSON persistence
 
 local wezterm = require("wezterm")
+local paths = require("utils.paths")
 local debug_config = require("config.debug")
 local DEBUG = debug_config.debug_mods_workspace or debug_config.debug_all
-local home = os.getenv("HOME")
 
 local M = {}
 
 -- Path to workspace themes storage
-M.themes_dir = home .. "/.core/.sys/configs/wezterm/.state/workspace-themes"
+M.themes_dir = paths.WEZTERM_STATE .. "/workspace-themes"
 M.themes_file = M.themes_dir .. "/themes.json"
 
 -- Ensure the themes directory exists

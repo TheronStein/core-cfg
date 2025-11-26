@@ -1,0 +1,20 @@
+[
+{
+  "description": "rmlint json-dump of lint files",
+  "cwd": "/home/theron/.core/cfg/yazi/logs/rmlint-20251111-115849/",
+  "args": "rmlint --progress --with-color -T df -g -S a --hidden --keep-all-untagged -o pretty -o sh:rmlint.sh -o json:rmlint.json /home/theron/mnt/cachyos/Dropbox",
+  "version": "2.10.3",
+  "rev": "3a1c0a2",
+  "progress": 0,
+  "checksum_type": "blake2b",
+  "merge_directories": false
+}, {
+  "aborted": false,
+  "progress": 100,
+  "total_files": 300833,
+  "ignored_files": 0,
+  "ignored_folders": 0,
+  "duplicates": 0,
+  "duplicate_sets": 0,
+  "total_lint_size": 0
+}]

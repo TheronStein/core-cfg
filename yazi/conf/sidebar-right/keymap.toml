@@ -1,0 +1,60 @@
+#:schema ./.schemas/keymap.json
+
+# RIGHT SIDEBAR KEYMAP
+# Minimal keymap for preview sidebar
+# Receives mirrored navigation from left sidebar
+
+[mgr]
+keymap = [
+  # Basic escape
+  { on = "<Esc>", run = "escape", desc = "Exit visual mode, clear selection, or cancel search" },
+  { on = "<C-c>", run = "close", desc = "Close the current tab, or quit if it's last" },
+  { on = "q", run = "quit", desc = "Quit the process" },
+
+  # Tab management (receives sync from left sidebar)
+  { on = "<C-t>", run = "tab_create --current", desc = "Create a new tab with CWD" },
+  { on = "<C-d>", run = "close", desc = "Close the current tab" },
+  { on = "<C-q>", run = "tab_switch -1 --relative", desc = "Switch to previous tab" },
+  { on = "<C-e>", run = "tab_switch 1 --relative", desc = "Switch to next tab" },
+
+  # Navigation (receives sync from left sidebar, no loop)
+  # Up/Down (IJKL scheme)
+  { on = "i", run = "arrow -1", desc = "Move up" },
+  { on = "k", run = "arrow 1", desc = "Move down" },
+  { on = "<C-i>", run = "arrow -10%", desc = "Move cursor up" },
+  { on = "<Tab>", run = "arrow -10%", desc = "Move cursor up (Tab = Ctrl+i)" },
+  { on = "<C-k>", run = "arrow 10%", desc = "Move cursor down" },
+  { on = "I", run = "arrow -35%", desc = "Move cursor up one page" },
+  { on = "K", run = "arrow 35%", desc = "Move cursor down one page" },
+
+  # Left/Right (IJKL scheme)
+  { on = "j", run = "leave", desc = "Back to the parent directory" },
+  { on = "l", run = "enter", desc = "Enter the child directory" },
+  { on = "J", run = "back", desc = "Back to previous directory" },
+  { on = "L", run = "forward", desc = "Forward to next directory" },
+
+  # Arrow keys (secondary navigation)
+  { on = "<Up>", run = "arrow -1", desc = "Previous file" },
+  { on = "<Down>", run = "arrow 1", desc = "Next file" },
+  { on = "<Left>", run = "leave", desc = "Back to the parent directory" },
+  { on = "<Right>", run = "enter", desc = "Enter the child directory" },
+
+  # Help
+  { on = "~", run = "help", desc = "Open help" },
+  { on = "<F1>", run = "help", desc = "Open help" },
+]
+
+[tasks]
+keymap = [
+  { on = "<Esc>", run = "close", desc = "Close task manager" },
+  { on = "<C-c>", run = "close", desc = "Close task manager" },
+  { on = "w", run = "close", desc = "Close task manager" },
+]
+
+[help]
+keymap = [
+  { on = "<Esc>", run = "escape", desc = "Clear the filter, or hide the help" },
+  { on = "<C-c>", run = "close", desc = "Hide the help" },
+  { on = "i", run = "arrow -1", desc = "Previous item" },
+  { on = "k", run = "arrow 1", desc = "Next item" },
+]

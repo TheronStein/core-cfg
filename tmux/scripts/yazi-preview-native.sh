@@ -3,7 +3,7 @@
 # This shows yazi's built-in preview column in the right pane
 
 # Use a separate config that shows only the preview column
-export YAZI_CONFIG_HOME="$HOME/.core/cfg/yazi-preview"
+export YAZI_CONFIG_HOME="${YAZI_CONFIG_HOME:-$CORE_CFG/yazi}/profiles/sidebar-right"
 
 # Ensure the preview-only config exists
 if [ ! -d "$YAZI_CONFIG_HOME" ]; then
@@ -44,12 +44,13 @@ ueberzug_offset = [0, 0, 0, 0]
 
 EOF
 
-    # Symlink shared configs
-    ln -sf "$HOME/.core/cfg/yazi/init.lua" "$YAZI_CONFIG_HOME/init.lua" 2>/dev/null || true
-    ln -sf "$HOME/.core/cfg/yazi/keymap.toml" "$YAZI_CONFIG_HOME/keymap.toml" 2>/dev/null || true
-    ln -sf "$HOME/.core/cfg/yazi/theme.toml" "$YAZI_CONFIG_HOME/theme.toml" 2>/dev/null || true
-    ln -sf "$HOME/.core/cfg/yazi/plugins" "$YAZI_CONFIG_HOME/plugins" 2>/dev/null || true
-    ln -sf "$HOME/.core/cfg/yazi/flavors" "$YAZI_CONFIG_HOME/flavors" 2>/dev/null || true
+    # Symlink shared configs from main yazi directory
+    local YAZI_MAIN="${YAZI_CONFIG_HOME%/profiles/*}"
+    ln -sf "$YAZI_MAIN/init.lua" "$YAZI_CONFIG_HOME/init.lua" 2>/dev/null || true
+    ln -sf "$YAZI_MAIN/keymap.toml" "$YAZI_CONFIG_HOME/keymap.toml" 2>/dev/null || true
+    ln -sf "$YAZI_MAIN/theme.toml" "$YAZI_CONFIG_HOME/theme.toml" 2>/dev/null || true
+    ln -sf "$YAZI_MAIN/plugins" "$YAZI_CONFIG_HOME/plugins" 2>/dev/null || true
+    ln -sf "$YAZI_MAIN/flavors" "$YAZI_CONFIG_HOME/flavors" 2>/dev/null || true
 fi
 
 # Get the starting directory

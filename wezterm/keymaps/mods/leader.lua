@@ -1,5 +1,6 @@
 local wezterm = require("wezterm")
 local act = wezterm.action
+local paths = require("utils.paths")
 
 -- Safely load optional modules
 local ok1, session_manager = pcall(require, "sessions.manager")
@@ -190,11 +191,25 @@ function M.setup(config)
 	local remaining_keys = {
 
 		{
+			key = "F2",
+			mods = "LEADER",
+			desc = "Set tab color",
+			action = wezterm.action_callback(function(window, pane)
+				local ok_color_picker, color_picker = pcall(require, "modules.tab_color_picker")
+				if ok_color_picker then
+					color_picker.show_color_picker(window, pane)
+				else
+					window:toast_notification("Tab Color Picker", "Module not loaded", nil, 2000)
+				end
+			end),
+		},
+
+		{
 			key = "F3",
 			mods = "LEADER",
 			desc = "Browse Nerd Fonts icons",
 			action = act.SpawnCommandInNewTab({
-				args = { wezterm.home_dir .. "/.core/.sys/configs/wezterm/scripts/nerdfont-browser/wezterm-browser.sh" },
+				args = { paths.WEZTERM_SCRIPTS .. "/nerdfont-browser/wezterm-browser.sh" },
 			}),
 		},
 
@@ -204,7 +219,7 @@ function M.setup(config)
 			mods = "LEADER",
 			desc = "Browse keybindings (interactive)",
 			action = act.SpawnCommandInNewTab({
-				args = { wezterm.home_dir .. "/.core/.sys/configs/wezterm/scripts/keymap-browser/keymap-browser.sh" },
+				args = { paths.WEZTERM_SCRIPTS .. "/keymap-browser/keymap-browser.sh" },
 			}),
 		},
 
@@ -225,7 +240,7 @@ function M.setup(config)
 					-- Launch theme browser in new tab
 					window:perform_action(
 						act.SpawnCommandInNewTab({
-							args = { wezterm.home_dir .. "/.core/.sys/configs/wezterm/scripts/theme-browser/theme-browser.sh" },
+							args = { paths.WEZTERM_SCRIPTS .. "/theme-browser/theme-browser.sh" },
 							set_environment_variables = {
 								WEZTERM_WORKSPACE = workspace,
 								THEME_BROWSER_PREVIEW_MODE = "template",

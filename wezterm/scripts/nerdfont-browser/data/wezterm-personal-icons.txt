@@ -1,0 +1,7 @@
+# Personal Icons (3 icons)
+# Generated from WezTerm nerdfonts
+# Format: icon_name (glyphs rendered by WezTerm picker)
+
+personal_md_flattr
+personal_md_graphics_card
+personal_yazi

@@ -14,7 +14,7 @@ YAZIBAR_LEFT_WIDTH="30%"
 YAZIBAR_RIGHT_WIDTH="25%"
 YAZIBAR_DATA_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/tmux/yazibar"
 YAZIBAR_WIDTH_FILE="$YAZIBAR_DATA_DIR/widths.txt"
-LAYOUT_MANAGER="$HOME/.core/cfg/tmux/scripts/layout-manager.sh"
+LAYOUT_MANAGER="$TMUX_CONF/scripts/layout-manager.sh"
 
 # Ensure data directory exists
 mkdir -p "$YAZIBAR_DATA_DIR"

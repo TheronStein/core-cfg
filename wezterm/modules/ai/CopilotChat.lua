@@ -3,6 +3,7 @@
 
 local wezterm = require("wezterm")
 local act = wezterm.action
+local paths = require("utils.paths")
 
 local M = {}
 
@@ -134,8 +135,8 @@ function ApiClient:get_github_token()
 
 	-- Check GitHub Copilot cached tokens (same as CopilotChat.nvim)
 	local config_paths = {
-		os.getenv("HOME") .. "/.core/.sys/configs/github-copilot/hosts.json",
-		os.getenv("HOME") .. "/.core/.sys/configs/github-copilot/apps.json",
+		paths.GITHUB_COPILOT_CONFIG .. "/hosts.json",
+		paths.GITHUB_COPILOT_CONFIG .. "/apps.json",
 	}
 
 	for _, path in ipairs(config_paths) do

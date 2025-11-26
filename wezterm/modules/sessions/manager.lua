@@ -1,9 +1,10 @@
 local wezterm = require("wezterm")
 local act = wezterm.action
+local paths = require("utils.paths")
 local M = {}
 
 -- Session storage directory
-local session_dir = wezterm.home_dir .. "/.core/.sys/configs/wezterm/.data/sessions"
+local session_dir = paths.WEZTERM_DATA .. "/sessions"
 
 -- Ensure session directory exists
 local function ensure_session_dir()
@@ -1097,7 +1098,7 @@ function M.show_menu(window, pane)
 					-- Open keymap browser script (same as LEADER+F4)
 					win:perform_action(
 						act.SpawnCommandInNewTab({
-							args = { wezterm.home_dir .. "/.core/.sys/configs/wezterm/scripts/keymap-browser/keymap-browser.sh" },
+							args = { paths.WEZTERM_SCRIPTS .. "/keymap-browser/keymap-browser.sh" },
 						}),
 						p
 					)
@@ -1123,7 +1124,7 @@ function M.show_menu(window, pane)
 									wezterm.time.call_after(0.1, function()
 										inner_win:perform_action(
 											act.SpawnCommandInNewTab({
-												args = { wezterm.home_dir .. "/.core/.sys/configs/wezterm/scripts/theme-browser/theme-browser.sh" },
+												args = { paths.WEZTERM_SCRIPTS .. "/theme-browser/theme-browser.sh" },
 												set_environment_variables = {
 													WEZTERM_WORKSPACE = workspace,
 													THEME_BROWSER_PREVIEW_MODE = "template",
@@ -1134,7 +1135,7 @@ function M.show_menu(window, pane)
 									end)
 								elseif theme_id == "theme_popup" then
 									-- Popup theme browser with split preview in tmux popup
-									local script_path = wezterm.home_dir .. "/.core/.sys/configs/wezterm/scripts/tmux-theme-browser/theme-browser-popup.sh"
+									local script_path = paths.WEZTERM_SCRIPTS .. "/tmux-theme-browser/theme-browser-popup.sh"
 									inner_pane:send_text(script_path .. "\n")
 								end
 							end),
@@ -1148,7 +1149,7 @@ function M.show_menu(window, pane)
 					-- Open nerdfont browser script (same as LEADER+F3)
 					win:perform_action(
 						act.SpawnCommandInNewTab({
-							args = { wezterm.home_dir .. "/.core/.sys/configs/wezterm/scripts/nerdfont-browser/wezterm-browser.sh" },
+							args = { paths.WEZTERM_SCRIPTS .. "/nerdfont-browser/wezterm-browser.sh" },
 						}),
 						p
 					)

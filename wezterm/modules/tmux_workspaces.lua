@@ -3,6 +3,7 @@
 
 local wezterm = require("wezterm")
 local act = wezterm.action
+local paths = require("utils.paths")
 local debug_config = require("config.debug")
 
 local M = {}
@@ -112,7 +113,7 @@ M.workspaces = {
 
 -- Get workspace config file path
 function M.get_workspace_config_path(workspace_name)
-	return wezterm.home_dir .. "/.core/.sys/configs/tmux/workspaces/" .. workspace_name .. ".tmux"
+	return paths.TMUX_CONFIG .. "/workspaces/" .. workspace_name .. ".tmux"
 end
 
 -- Check if workspace config exists
