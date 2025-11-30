@@ -1,0 +1,11 @@
+-- Only load cfg folders that live directly under lua/plugins/ or lua/core/
+vim.iter(vim.fs.find("cfg", {
+  path = vim.fn.stdpath("config") .. "/lua",
+  type = "directory",
+}))
+:filter(function(dir)
+  return dir:find("/core/sys/cfg$")
+end)
+:map(function(dir) return dir .. "/**.lua" end)
+:flatten()
+:each(dofile)

@@ -1,4 +1,4 @@
-#:schema ./.schemas/keymap.json
+"$schema" = "https://yazi-rs.github.io/schemas/keymap.json"
 
 [mgr]
 keymap = [
@@ -482,7 +482,10 @@ keymap = [
     "j",
     "i",
   ], run = "cd --interactive", desc = "Jump interactively" },
-  { on = ["f", "f"], run = "plugin fzf", desc = "Jump to a file/directory via fzf" },
+  { on = [
+    "f",
+    "f",
+  ], run = "plugin fzf", desc = "Jump to a file/directory via fzf" },
   { on = "j z", run = "plugin zoxide", desc = "Jump to a directory via zoxide" },
   { on = [
     "j",
@@ -498,11 +501,28 @@ keymap = [
     "b",
   ], run = "plugin fzf-bookmarks --args='jump_by_fzf'", desc = "Jump bookmark by fzf" },
 
+  { on = "/", run = "find --smart", desc = "Find and jump to file by name in current pane" },
   # { on = ["f, d"], run = "search --via=fd", desc = "Search files by name via fd" },
-  { on = ["f", "g"], run = "search --via=rg", desc = "Search files by content via ripgrep" },
-  { on = "f c", run = "escape --search", desc = "Cancel the ongoing search" },
-  { on = "f e", run = "find --smart", desc = "Find next file" },
-  { on = "f q", run = "find --previous --smart", desc = "Find previous file" },
+  { on = [
+    "f",
+    "r",
+  ], run = "search --via=rg", desc = "Search files by content via ripgrep" },
+  { on = [
+    "f",
+    "E",
+  ], run = "escape --search", desc = "Cancel the ongoing search" },
+  { on = [
+    "f",
+    "e",
+  ], run = "find --smart", desc = "Find next file" },
+  { on = [
+    "f",
+    "n",
+  ], run = "filter --smart", desc = "Filter files" },
+  { on = [
+    "f",
+    "q",
+  ], run = "find --previous --smart", desc = "Find previous file" },
   { on = "E", run = "find_arrow", desc = "Next found" },
   { on = "Q", run = "find_arrow --previous", desc = "Previous found" },
   { on = "<C-c>", run = "escape --search", desc = "Cancel the ongoing search" },
@@ -532,8 +552,6 @@ keymap = [
   # desc = "Find content in documents with ripgrep-all and fzf"
 
   # Filter
-  { on = "<C-f> F", run = "filter --smart", desc = "Filter files" },
-  { on = "/", run = "find --smart", desc = "Find and jump to file by name in current pane" },
 
   #Visual mode
   { on = "v", run = "visual_mode", desc = "Enter visual mode (selection mode)" },
@@ -884,6 +902,8 @@ keymap = [
   { on = "<C-a>", run = "toggle_all --state=on", desc = "Select all files" },
   { on = "<C-A>", run = "toggle_all", desc = "Invert selection of all files" },
 
+  { on = "P", run = "plugin mux next", desc = "Cycle through mux previewers" },
+
   # Linemode
   { on = [
     ">",
@@ -1179,19 +1199,29 @@ keymap = [
 [input]
 keymap = [
   { on = "<C-c>", run = "close", desc = "Cancel input" },
+  { on = "Escape", run = "close", desc = "Cancel input" },
   { on = "<Enter>", run = "close --submit", desc = "Submit input" },
+  { on = "<A-q>", run = "close", desc = "Cancel Input" },
+
   { on = "<Esc>", run = "escape", desc = "Back to normal mode, or cancel input" },
   { on = "<C-[>", run = "escape", desc = "Back to normal mode, or cancel input" },
+  { on = "<C-q>", run = "escape", desc = "Back to normal mode, or cancel input" },
+
+  { on = "<Right>", run = "move 1", desc = "Move cursor right" },
+  { on = "<Left>", run = "move -1", desc = "Move cursor left" },
+  { on = "<C-a>", run = "move 1", desc = "Move cursor right" },
+  { on = "<C-d>", run = "move -1", desc = "Move cursor left" },
+  { on = "<C-j>", run = "move 1", desc = "Move cursor right" },
+  { on = "<C-l>", run = "move -1", desc = "Move cursor left" },
+  { on = "<A-a>", run = "move bol", desc = "Move to the BOL" },
+  { on = "<A-d>", run = "move eol", desc = "Move to the EOL" },
+  { on = "<A-j>", run = "move bol", desc = "Move to the BOL" },
+  { on = "<A-l>", run = "move eol", desc = "Move to the EOL" },
 
   # Mode
-  { on = "i", run = "insert", desc = "Enter insert mode" },
-  { on = "I", run = [
-    "move first-char",
-    "insert",
-  ], desc = "Move to the BOL, and enter insert mode" },
-  { on = "a", run = "insert --append", desc = "Enter append mode" },
+  { on = "a", run = "insert", desc = "Enter append mode" },
   { on = "A", run = [
-    "move eol",
+    "move first-char",
     "insert --append",
   ], desc = "Move to the EOL, and enter append mode" },
   { on = "v", run = "visual", desc = "Enter visual mode" },

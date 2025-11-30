@@ -1,6 +1,9 @@
 local wezterm = require("wezterm")
+-- local gui = require("wezterm.gui")
 local act = wezterm.action
 local paths = require("utils.paths")
+-- local logger_leader = require("utils.logger").new({ prefix = "[LEADER]", debug_enabled = true })
+-- local logger_ws_man = require("utils.logger").new({ prefix = "[WORKSPACE MANAGER]", debug_enabled = true })
 
 -- Safely load optional modules
 local ok1, session_manager = pcall(require, "sessions.manager")
@@ -90,7 +93,7 @@ function M.setup(config)
 	-- Workspace Manager (unified module for workspaces and templates)
 	local ok_workspace_manager, workspace_manager = pcall(require, "modules.workspace_manager")
 	if ok_workspace_manager then
-		wezterm.log_info("✅ Workspace manager module loaded successfully")
+		-- logger_ws_man.info("✅ Workspace manager module loaded successfully")
 		-- Workspace manager menu
 		table.insert(keys, {
 			key = "w",
@@ -101,6 +104,7 @@ function M.setup(config)
 			end),
 		})
 	else
+		-- logger_ws_man.error("❌ Failed to load workspace_manager: " .. tostring(workspace_manager))
 		wezterm.log_error("❌ Failed to load workspace_manager: " .. tostring(workspace_manager))
 	end
 
@@ -272,7 +276,12 @@ function M.setup(config)
 				if ok and tmux_sessions and tmux_sessions.is_tmux_available() then
 					local count = tmux_sessions.cleanup_orphaned_views()
 					if count > 0 then
-						window:toast_notification("Tmux Cleanup", "Cleaned up " .. count .. " orphaned view session(s)", nil, 3000)
+						window:toast_notification(
+							"Tmux Cleanup",
+							"Cleaned up " .. count .. " orphaned view session(s)",
+							nil,
+							3000
+						)
 					else
 						window:toast_notification("Tmux Cleanup", "No orphaned view sessions found", nil, 2000)
 					end
@@ -282,20 +291,61 @@ function M.setup(config)
 			end),
 		},
 
-		-- Split Vertical (Right) - splits from current working directory
 		{
 			key = "v",
 			mods = "LEADER",
 			desc = "Split pane vertically (right)",
 			action = wezterm.action_callback(function(window, pane)
-				local cwd_uri = pane:get_current_working_dir()
-				window:perform_action(
-					act.SplitPane({
-						direction = "Right",
-						command = { cwd = cwd_uri },
-					}),
-					pane
-				)
+				local cwd = pane:get_current_working_dir()
+				if cwd then
+					cwd = tostring(cwd):gsub("^file://[^/]*/", "/")
+					window:perform_action(
+						act.SplitPane({
+							direction = "Right",
+							command = {
+								cwd = cwd,
+							},
+						}),
+						pane
+					)
+				else
+					window:perform_action(
+						act.SplitPane({
+							direction = "Right",
+							domain = "CurrentPaneDomain",
+						}),
+						pane
+					)
+				end
+			end),
+		},
+
+		{
+			key = "V",
+			mods = "LEADER",
+			desc = "Split pane vertically (right)",
+			action = wezterm.action_callback(function(window, pane)
+				local cwd = pane:get_current_working_dir()
+				if cwd then
+					cwd = tostring(cwd):gsub("^file://[^/]*/", "/")
+					window:perform_action(
+						act.SplitPane({
+							direction = "Left",
+							command = {
+								cwd = cwd,
+							},
+						}),
+						pane
+					)
+				else
+					window:perform_action(
+						act.SplitPane({
+							direction = "Left",
+							domain = "CurrentPaneDomain",
+						}),
+						pane
+					)
+				end
 			end),
 		},
 
@@ -305,15 +355,59 @@ function M.setup(config)
 			mods = "LEADER",
 			desc = "Split pane horizontally (down)",
 			action = wezterm.action_callback(function(window, pane)
-				local cwd_uri = pane:get_current_working_dir()
-				window:perform_action(
-					act.SplitPane({
-						direction = "Down",
-						command = { cwd = cwd_uri },
-					}),
-					pane
-				)
+				local cwd = pane:get_current_working_dir()
+				if cwd then
+					cwd = tostring(cwd):gsub("^file://[^/]*/", "/")
+					window:perform_action(
+						act.SplitPane({
+							direction = "Down",
+							command = {
+								cwd = cwd,
+							},
+						}),
+						pane
+					)
+				else
+					window:perform_action(
+						act.SplitPane({
+							direction = "Down",
+							domain = "CurrentPaneDomain",
+						}),
+						pane
+					)
+				end
 			end),
+			pane,
+		},
+
+		{
+			key = "D",
+			mods = "LEADER",
+			desc = "Split pane horizontally (Up)",
+			action = wezterm.action_callback(function(window, pane)
+				local cwd = pane:get_current_working_dir()
+				if cwd then
+					cwd = tostring(cwd):gsub("^file://[^/]*/", "/")
+					window:perform_action(
+						act.SplitPane({
+							direction = "Up",
+							command = {
+								cwd = cwd,
+							},
+						}),
+						pane
+					)
+				else
+					window:perform_action(
+						act.SplitPane({
+							direction = "Up",
+							domain = "CurrentPaneDomain",
+						}),
+						pane
+					)
+				end
+			end),
+			pane,
 		},
 
 		-- Context toggle - using LEADER+CTRL+T to avoid conflict with tab templates
@@ -510,7 +604,8 @@ function M.setup(config)
 			end),
 		})
 	else
-		wezterm.log_error("❌ Failed to load workspace_manager: " .. tostring(workspace_manager))
+		logger_ws_man.error("❌ Failed to load workspace_manager: " .. tostring(workspace_manager))
+		-- wezterm.log_error("❌ Failed to load workspace_manager: " .. tostring(workspace_manager))
 	end
 
 	if ok_tmux_sessions then

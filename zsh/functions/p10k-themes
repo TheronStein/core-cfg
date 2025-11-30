@@ -1,0 +1,12 @@
+#!/usr/bin/env zsh
+# Launch Powerlevel10k theme browser
+# Usage: p10k-themes
+
+local browser_script="${ZSH_CORE}/tools/p10k-theme-browser/browser.sh"
+
+if [[ ! -f "$browser_script" ]]; then
+    echo "Error: Theme browser not found at $browser_script" >&2
+    return 1
+fi
+
+"$browser_script"

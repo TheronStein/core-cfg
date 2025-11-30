@@ -10,14 +10,14 @@ end
 
 -- Core paths from environment
 M.HOME = getenv("HOME", os.getenv("USERPROFILE"))
-M.CORECFG = getenv("CORECFG", M.HOME .. "/.core/.sys/configs")
-M.COREENV = getenv("COREENV", M.HOME .. "/.core/.sys/environment")
-M.COREDEV = getenv("COREDEV", M.HOME .. "/.core/.proj")
+M.CORE_CFG = getenv("CORE_CFG", M.HOME .. "/.core/.sys/cfg")
+M.CORE_ENV = getenv("CORE_ENV", M.HOME .. "/.core/.sys/")
+M.CORE_PROJ = getenv("CORE_PROJ", M.HOME .. "/.core/.proj")
 M.CORE_VAULT = getenv("CORE_VAULT", M.HOME .. "/.core/.vault")
 M.CORE_WORK = getenv("CORE_WORK", M.HOME .. "/.core/.work")
 
 -- WezTerm specific paths (all relative to CORECFG)
-M.WEZTERM_CONFIG = M.CORECFG .. "/wezterm"
+M.WEZTERM_CONFIG = M.CORE_CFG .. "/wezterm"
 M.WEZTERM_DATA = M.WEZTERM_CONFIG .. "/.data"
 M.WEZTERM_STATE = M.WEZTERM_CONFIG .. "/.state"
 M.WEZTERM_SCRIPTS = M.WEZTERM_CONFIG .. "/scripts"
@@ -36,12 +36,13 @@ M.METADATA_BACKUP_DIR = M.WEZTERM_DATA .. "/metadata-backups"
 M.GENERATE_METADATA_SCRIPT = M.WEZTERM_SCRIPTS .. "/generate-image-metadata.sh"
 
 -- Common config directories (for launch menu)
-M.ZSH_CONFIG = M.CORECFG .. "/zsh"
-M.HYPR_CONFIG = M.COREENV .. "/desktop/hypr"
-M.NVIM_CONFIG = M.CORECFG .. "/nvim"
-M.TMUX_CONFIG = M.CORECFG .. "/tmux"
-M.YAZI_CONFIG = M.CORECFG .. "/yazi"
-M.NCSPOT_CONFIG = M.CORECFG .. "/media/ncspot"
-M.GITHUB_COPILOT_CONFIG = M.CORECFG .. "/github-copilot"
+M.ZSH_CONFIG = M.CORE_CFG .. "/zsh"
+M.HYPR_CONFIG = M.CORE_ENV .. "/desktop/hypr"
+M.NVIM_CONFIG = M.CORE_CFG .. "/nvim"
+M.TMUX_CONFIG = M.CORE_CFG .. "/tmux"
+M.YAZI_CONFIG = M.CORE_CFG .. "/yazi"
+
+M.MUSIC_TUI = M.CORE_CFG .. "/media/spotify-player"
+M.GITHUB_COPILOT_CONFIG = M.CORE_CFG .. "/github-copilot"
 
 return M

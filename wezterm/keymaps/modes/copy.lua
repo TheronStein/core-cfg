@@ -4,17 +4,11 @@ local act = wezterm.action
 local M = {}
 
 function M.setup(config)
-	-- Get the default copy_mode key table
-	local default_keys = wezterm.gui.default_key_tables()
-
 	-- Initialize key_tables if not present
 	config.key_tables = config.key_tables or {}
 
-	-- Start with defaults (or empty if defaults not available)
-	config.key_tables.copy_mode = default_keys.copy_mode or {}
-
 	-- Add custom i/k/j/l navigation bindings
-	local custom_keys = {
+	config.key_tables.copy_mode = {
 		-- Navigation with i/k/j/l (replacing h/j/k/l vim defaults)
 		{ key = "i", mods = "NONE", action = act.CopyMode("MoveUp") },
 		{ key = "k", mods = "NONE", action = act.CopyMode("MoveDown") },
@@ -30,7 +24,8 @@ function M.setup(config)
 		-- Selection modes
 		{ key = "a", mods = "NONE", action = act.CopyMode({ SetSelectionMode = "Cell" }) },
 		{ key = "v", mods = "NONE", action = act.CopyMode({ SetSelectionMode = "Line" }) },
-		{ key = "v", mods = "CTRL", action = act.CopyMode({ SetSelectionMode = "Block" }) },
+		{ key = "V", mods = "NONE", action = act.CopyMode({ SetSelectionMode = "Block" }) },
+		{ key = "W", mods = "NONE", action = act.CopyMode({ SetSelectionMode = "Word" }) },
 
 		-- Scrollback navigation
 		{ key = "g", mods = "NONE", action = act.CopyMode("MoveToScrollbackTop") },
@@ -54,11 +49,15 @@ function M.setup(config)
 		{ key = "o", mods = "CTRL", action = act.CopyMode("MoveToSelectionOtherEnd") },
 		{ key = "O", mods = "CTRL|SHIFT", action = act.CopyMode("MoveToSelectionOtherEndHoriz") },
 
+		-- Search within copy mode
+		{ key = "/", mods = "NONE", action = act.CopyMode("EditPattern") },
+		{ key = "?", mods = "SHIFT", action = act.CopyMode("EditPattern") },
+
 		-- Jump commands
-		{ key = "Enter", mods = "NONE", action = act.CopyMode("MoveToStartOfNextLine") },
-		{ key = "n", mods = "ALT", action = act.CopyMode("MoveToStartOfNextLine") },
-		{ key = "t", mods = "NONE", action = act.CopyMode({ JumpForward = { prev_char = true } }) },
-		{ key = "T", mods = "NONE", action = act.CopyMode({ JumpBackward = { prev_char = true } }) },
+		-- { key = "Enter", mods = "NONE", action = act.CopyMode("MoveToStartOfNextLine") },
+		-- { key = "n", mods = "ALT", action = act.CopyMode("MoveToStartOfNextLine") },
+		{ key = "n", mods = "NONE", action = act.CopyMode({ JumpForward = { prev_char = true } }) },
+		{ key = "N", mods = "NONE", action = act.CopyMode({ JumpBackward = { prev_char = true } }) },
 
 		-- Copy and exit
 		{
@@ -70,7 +69,27 @@ function M.setup(config)
 				{ CopyMode = "Close" },
 			}),
 		},
+		-- Copy and exit
+		{
+			key = "Enter",
+			mods = "NONE",
+			action = act.Multiple({
+				{ CopyTo = "ClipboardAndPrimarySelection" },
+				"ScrollToBottom",
+				{ CopyMode = "Close" },
+			}),
+		},
 
+		-- Copy and exit
+		{
+			key = "Space",
+			mods = "NONE",
+			action = act.Multiple({
+				{ CopyTo = "ClipboardAndPrimarySelection" },
+				"ScrollToBottom",
+				{ CopyMode = "Close" },
+			}),
+		},
 		-- Exit bindings
 		{
 			key = "Escape",
@@ -97,11 +116,11 @@ function M.setup(config)
 			}),
 		},
 	}
-
-	-- Append custom keys to the key table
-	for _, key in ipairs(custom_keys) do
-		table.insert(config.key_tables.copy_mode, key)
-	end
 end
+-- 	-- Append custom keys to the key table
+-- 	for _, key in ipairs(custom_keys) do
+-- 		table.insert(config.key_tables.copy_mode, key)
+-- 	end
+-- end
 
 return M

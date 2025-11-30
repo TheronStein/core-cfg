@@ -36,34 +36,75 @@ done
 declare -a COLORS=(
     # Reds
     "Red|#f38ba8|Catppuccin Red - Alerts & errors"
-    "Rose|#f5c2e7|Catppuccin Rose - Soft pink"
+    "Red Dark|#dc8a78|Darker red - Muted alerts"
     "Maroon|#eba0ac|Catppuccin Maroon - Deep red"
+    "Maroon Dark|#e8a2af|Darker maroon - Wine"
 
-    # Oranges & Yellows
-    "Peach|#fab387|Catppuccin Peach - Warm orange"
-    "Yellow|#f9e2af|Catppuccin Yellow - Bright yellow"
-
-    # Greens
-    "Green|#a6e3a1|Catppuccin Green - Success & terminal"
-    "Teal|#94e2d5|Catppuccin Teal - Cyan-green"
-
-    # Blues
-    "Sky|#89dceb|Catppuccin Sky - Light blue"
-    "Sapphire|#74c7ec|Catppuccin Sapphire - Bright blue"
-    "Blue|#89b4fa|Catppuccin Blue - Primary blue"
-    "Lavender|#b4befe|Catppuccin Lavender - Purple-blue"
-
-    # Purples
-    "Mauve|#cba6f7|Catppuccin Mauve - Purple accent"
+    # Pinks & Roses
+    "Rose|#f5c2e7|Catppuccin Rose - Soft pink"
     "Pink|#f5c2e7|Catppuccin Pink - Bright pink"
-
-    # Neutrals
     "Flamingo|#f2cdcd|Catppuccin Flamingo - Light pink-gray"
     "Rosewater|#f5e0dc|Catppuccin Rosewater - Warm white"
 
-    # Darker options
+    # Oranges
+    "Peach|#fab387|Catppuccin Peach - Warm orange"
+    "Peach Dark|#ef9f76|Darker peach - Burnt orange"
+    "Orange|#fe640b|Pure orange - High energy"
+    "Coral|#ff7f50|Coral - Tropical"
+
+    # Yellows
+    "Yellow|#f9e2af|Catppuccin Yellow - Bright yellow"
+    "Yellow Dark|#e5c890|Darker yellow - Mustard"
+    "Gold|#ffd700|Gold - Metallic"
+    "Amber|#ffbf00|Amber - Rich yellow"
+
+    # Greens
+    "Green|#a6e3a1|Catppuccin Green - Success & terminal"
+    "Green Dark|#a6d189|Darker green - Forest"
+    "Teal|#94e2d5|Catppuccin Teal - Cyan-green"
+    "Teal Dark|#81c8be|Darker teal - Ocean"
+    "Mint|#98d8c8|Mint - Fresh green"
+    "Lime|#a8d545|Lime - Bright green"
+
+    # Cyans
+    "Sky|#89dceb|Catppuccin Sky - Light blue"
+    "Sky Dark|#99d1db|Darker sky - Muted cyan"
+    "Cyan|#00ffff|Pure cyan - Electric"
+    "Aqua|#00ced1|Aqua - Deep cyan"
+
+    # Blues
+    "Sapphire|#74c7ec|Catppuccin Sapphire - Bright blue"
+    "Sapphire Dark|#85c1dc|Darker sapphire - Deep blue"
+    "Blue|#89b4fa|Catppuccin Blue - Primary blue"
+    "Blue Dark|#8caaee|Darker blue - Navy-ish"
+    "Azure|#007fff|Azure - True blue"
+    "Cobalt|#0047ab|Cobalt - Deep blue"
+
+    # Purples & Lavenders
+    "Lavender|#b4befe|Catppuccin Lavender - Purple-blue"
+    "Lavender Dark|#babbf1|Darker lavender - Muted purple"
+    "Mauve|#cba6f7|Catppuccin Mauve - Purple accent"
+    "Mauve Dark|#ca9ee6|Darker mauve - Deep purple"
+    "Purple|#9b59d0|Pure purple - Violet"
+    "Magenta|#ff00ff|Magenta - Hot pink-purple"
+    "Violet|#8b00ff|Violet - Rich purple"
+
+    # Browns & Earthy
+    "Brown|#8b4513|Brown - Earthy"
+    "Chocolate|#d2691e|Chocolate - Rich brown"
+    "Tan|#d2b48c|Tan - Light brown"
+    "Sienna|#a0522d|Sienna - Reddish brown"
+
+    # Grays & Neutrals
     "Surface2|#585b70|Catppuccin Surface 2 - Dark gray"
     "Overlay2|#9399b2|Catppuccin Overlay 2 - Medium gray"
+    "Overlay1|#7f849c|Catppuccin Overlay 1 - Lighter gray"
+    "Surface1|#45475a|Catppuccin Surface 1 - Darker gray"
+    "Base|#1e1e2e|Catppuccin Base - Almost black"
+    "Mantle|#181825|Catppuccin Mantle - Very dark"
+    "Crust|#11111b|Catppuccin Crust - Darkest"
+    "Silver|#c0c0c0|Silver - Light gray"
+    "Slate|#708090|Slate - Cool gray"
 
     # Special
     "Default|CLEAR|Use default mode color"

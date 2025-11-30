@@ -42,7 +42,7 @@ tmux bind-key -T resize-select-mode A "resize-pane -L 10 ; switch-client -T resi
 tmux bind-key -T resize-select-mode D "resize-pane -R 10 ; switch-client -T resize-select-mode"
 
 # Exit keys - restore status bar when exiting
-EXIT_SCRIPT="$HOME/.core/cfg/tmux/modules/menus/exit-resize-mode.sh"
+EXIT_SCRIPT="$TMUX_CONF/events/exit-resize-mode.sh"
 tmux bind-key -T resize-select-mode Escape run-shell "$EXIT_SCRIPT" \; switch-client -T root
 tmux bind-key -T resize-select-mode Enter run-shell "$EXIT_SCRIPT" \; switch-client -T root
 tmux bind-key -T resize-select-mode q run-shell "$EXIT_SCRIPT" \; switch-client -T root

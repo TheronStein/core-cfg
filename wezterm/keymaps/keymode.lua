@@ -34,7 +34,12 @@ end
 
 -- Apply key tables to config
 function M.apply_key_tables(config)
-	config.key_tables = M.key_tables
+	-- Preserve existing key tables (like copy_mode, search_mode, launcher_mode)
+	-- which are managed in their respective module files
+	config.key_tables = config.key_tables or {}
+	for name, table in pairs(M.key_tables) do
+		config.key_tables[name] = table
+	end
 end
 
 -- local current_mode = "CORE"

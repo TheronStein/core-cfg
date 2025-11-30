@@ -1,0 +1,298 @@
+{
+  "themes": [
+    {
+      "name": "Default Blue",
+      "description": "Classic Powerlevel10k blue theme",
+      "category": "classic",
+      "colors": {
+        "dir_background": 4,
+        "dir_foreground": 254,
+        "vcs_clean_background": 2,
+        "vcs_modified_background": 3,
+        "vcs_untracked_background": 2,
+        "prompt_char_ok": 76,
+        "prompt_char_error": 196
+      }
+    },
+    {
+      "name": "Monokai Dark",
+      "description": "Dark theme with orange accents",
+      "category": "dark",
+      "colors": {
+        "dir_background": 235,
+        "dir_foreground": 208,
+        "vcs_clean_background": 22,
+        "vcs_modified_background": 130,
+        "vcs_untracked_background": 58,
+        "prompt_char_ok": 148,
+        "prompt_char_error": 196
+      }
+    },
+    {
+      "name": "Cyan Wave",
+      "description": "Cyan and teal theme",
+      "category": "bright",
+      "colors": {
+        "dir_background": 37,
+        "dir_foreground": 0,
+        "vcs_clean_background": 36,
+        "vcs_modified_background": 166,
+        "vcs_untracked_background": 30,
+        "prompt_char_ok": 42,
+        "prompt_char_error": 196
+      }
+    },
+    {
+      "name": "Purple Dream",
+      "description": "Purple and magenta theme",
+      "category": "vibrant",
+      "colors": {
+        "dir_background": 54,
+        "dir_foreground": 255,
+        "vcs_clean_background": 34,
+        "vcs_modified_background": 127,
+        "vcs_untracked_background": 90,
+        "prompt_char_ok": 46,
+        "prompt_char_error": 196
+      }
+    },
+    {
+      "name": "Gruvbox Dark",
+      "description": "Inspired by Gruvbox color scheme",
+      "category": "dark",
+      "colors": {
+        "dir_background": 237,
+        "dir_foreground": 223,
+        "vcs_clean_background": 106,
+        "vcs_modified_background": 172,
+        "vcs_untracked_background": 142,
+        "prompt_char_ok": 142,
+        "prompt_char_error": 167
+      }
+    },
+    {
+      "name": "Ocean Blue",
+      "description": "Deep blue ocean theme",
+      "category": "cool",
+      "colors": {
+        "dir_background": 24,
+        "dir_foreground": 153,
+        "vcs_clean_background": 30,
+        "vcs_modified_background": 172,
+        "vcs_untracked_background": 66,
+        "prompt_char_ok": 87,
+        "prompt_char_error": 196
+      }
+    },
+    {
+      "name": "Dracula",
+      "description": "Popular Dracula theme colors",
+      "category": "dark",
+      "colors": {
+        "dir_background": 61,
+        "dir_foreground": 231,
+        "vcs_clean_background": 84,
+        "vcs_modified_background": 215,
+        "vcs_untracked_background": 141,
+        "prompt_char_ok": 84,
+        "prompt_char_error": 196
+      }
+    },
+    {
+      "name": "Nord",
+      "description": "Nord theme with arctic colors",
+      "category": "cool",
+      "colors": {
+        "dir_background": 67,
+        "dir_foreground": 255,
+        "vcs_clean_background": 108,
+        "vcs_modified_background": 179,
+        "vcs_untracked_background": 110,
+        "prompt_char_ok": 150,
+        "prompt_char_error": 167
+      }
+    },
+    {
+      "name": "Solarized Dark",
+      "description": "Solarized dark color scheme",
+      "category": "dark",
+      "colors": {
+        "dir_background": 235,
+        "dir_foreground": 136,
+        "vcs_clean_background": 64,
+        "vcs_modified_background": 166,
+        "vcs_untracked_background": 37,
+        "prompt_char_ok": 64,
+        "prompt_char_error": 160
+      }
+    },
+    {
+      "name": "Tokyo Night",
+      "description": "Tokyo Night theme with high contrast",
+      "category": "dark",
+      "colors": {
+        "dir_background": 237,
+        "dir_foreground": 117,
+        "vcs_clean_background": 72,
+        "vcs_clean_foreground": 232,
+        "vcs_modified_background": 179,
+        "vcs_modified_foreground": 232,
+        "vcs_untracked_background": 110,
+        "vcs_untracked_foreground": 232,
+        "prompt_char_ok": 115,
+        "prompt_char_error": 203
+      }
+    },
+    {
+      "name": "Catppuccin Mocha",
+      "description": "Catppuccin Mocha theme",
+      "category": "dark",
+      "colors": {
+        "dir_background": 237,
+        "dir_foreground": 189,
+        "vcs_clean_background": 115,
+        "vcs_modified_background": 180,
+        "vcs_untracked_background": 139,
+        "prompt_char_ok": 158,
+        "prompt_char_error": 204
+      }
+    },
+    {
+      "name": "Rose Pine",
+      "description": "Rose Pine theme",
+      "category": "muted",
+      "colors": {
+        "dir_background": 237,
+        "dir_foreground": 189,
+        "vcs_clean_background": 108,
+        "vcs_modified_background": 180,
+        "vcs_untracked_background": 103,
+        "prompt_char_ok": 151,
+        "prompt_char_error": 167
+      }
+    },
+    {
+      "name": "Everforest",
+      "description": "Everforest green theme",
+      "category": "nature",
+      "colors": {
+        "dir_background": 237,
+        "dir_foreground": 187,
+        "vcs_clean_background": 108,
+        "vcs_modified_background": 172,
+        "vcs_untracked_background": 142,
+        "prompt_char_ok": 142,
+        "prompt_char_error": 167
+      }
+    },
+    {
+      "name": "Kanagawa",
+      "description": "Kanagawa wave theme",
+      "category": "dark",
+      "colors": {
+        "dir_background": 235,
+        "dir_foreground": 223,
+        "vcs_clean_background": 72,
+        "vcs_modified_background": 179,
+        "vcs_untracked_background": 108,
+        "prompt_char_ok": 150,
+        "prompt_char_error": 167
+      }
+    },
+    {
+      "name": "Ayu Dark",
+      "description": "Ayu dark theme",
+      "category": "dark",
+      "colors": {
+        "dir_background": 235,
+        "dir_foreground": 180,
+        "vcs_clean_background": 108,
+        "vcs_modified_background": 173,
+        "vcs_untracked_background": 109,
+        "prompt_char_ok": 109,
+        "prompt_char_error": 167
+      }
+    },
+    {
+      "name": "One Dark",
+      "description": "Atom One Dark theme",
+      "category": "dark",
+      "colors": {
+        "dir_background": 235,
+        "dir_foreground": 145,
+        "vcs_clean_background": 114,
+        "vcs_modified_background": 173,
+        "vcs_untracked_background": 180,
+        "prompt_char_ok": 114,
+        "prompt_char_error": 204
+      }
+    },
+    {
+      "name": "Material",
+      "description": "Material design colors",
+      "category": "bright",
+      "colors": {
+        "dir_background": 23,
+        "dir_foreground": 255,
+        "vcs_clean_background": 29,
+        "vcs_modified_background": 179,
+        "vcs_untracked_background": 80,
+        "prompt_char_ok": 78,
+        "prompt_char_error": 196
+      }
+    },
+    {
+      "name": "Gruvbox Light",
+      "description": "Light Gruvbox variant",
+      "category": "light",
+      "colors": {
+        "dir_background": 223,
+        "dir_foreground": 235,
+        "vcs_clean_background": 106,
+        "vcs_modified_background": 172,
+        "vcs_untracked_background": 142,
+        "prompt_char_ok": 100,
+        "prompt_char_error": 124
+      }
+    },
+    {
+      "name": "Solarized Light",
+      "description": "Solarized light color scheme",
+      "category": "light",
+      "colors": {
+        "dir_background": 254,
+        "dir_foreground": 136,
+        "vcs_clean_background": 64,
+        "vcs_modified_background": 166,
+        "vcs_untracked_background": 37,
+        "prompt_char_ok": 28,
+        "prompt_char_error": 124
+      }
+    },
+    {
+      "name": "Minimal Gray",
+      "description": "Minimalist grayscale theme",
+      "category": "minimal",
+      "colors": {
+        "dir_background": 240,
+        "dir_foreground": 255,
+        "vcs_clean_background": 244,
+        "vcs_modified_background": 248,
+        "vcs_untracked_background": 242,
+        "prompt_char_ok": 248,
+        "prompt_char_error": 196
+      }
+    }
+  ],
+  "categories": [
+    {"id": "all", "name": "All Themes"},
+    {"id": "classic", "name": "Classic"},
+    {"id": "dark", "name": "Dark Themes"},
+    {"id": "light", "name": "Light Themes"},
+    {"id": "bright", "name": "Bright & Vibrant"},
+    {"id": "cool", "name": "Cool Colors"},
+    {"id": "nature", "name": "Nature"},
+    {"id": "muted", "name": "Muted Colors"},
+    {"id": "minimal", "name": "Minimal"}
+  ]
+}

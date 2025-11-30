@@ -116,6 +116,24 @@ function M.setup(config)
 		-- },
 
 		{
+			key = "I",
+			mods = "CTRL|SHIFT",
+			action = wezterm.action.DisableDefaultAssignment,
+		},
+
+		{
+			key = "J",
+			mods = "CTRL|SHIFT",
+			action = wezterm.action.DisableDefaultAssignment,
+		},
+
+		{
+			key = "L",
+			mods = "CTRL|SHIFT",
+			action = wezterm.action.DisableDefaultAssignment,
+		},
+
+		{
 			key = "K",
 			mods = "CTRL|SHIFT",
 			action = wezterm.action.DisableDefaultAssignment,

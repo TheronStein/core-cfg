@@ -278,6 +278,11 @@ use = "ruudjhuu/f3d-preview"
 rev = "713e8d0"
 hash = "248ffdf21c7006cf32960624db2db586"
 
+[[plugin.deps]]
+use = "peterfication/mux"
+rev = "266233e"
+hash = "1963dda85333e5e2cb6ff5d7d5a6ad4e"
+
 [[flavor.deps]]
 use = "kmlupreti/ayu-dark"
 rev = "648a178"
@@ -327,3 +332,8 @@ hash = "97cd4819252cb1a9d0f55daa14e481e"
 use = "kalidyasin/yazi-flavors:tokyonight-moon"
 rev = "fa19b40"
 hash = "92456bb341a39ad5e30c78b30de72e28"
+
+[[flavor.deps]]
+use = "BennyOe/tokyo-night"
+rev = "5f56364"
+hash = "ea25e1f0f25b0521ef78fd4e9698ff52"

@@ -14,7 +14,7 @@ tmux set-option -g @copy_mode_pane_border "$ORIGINAL_PANE_BORDER"
 tmux set-option -g @copy_mode_pane_active_border "$ORIGINAL_PANE_ACTIVE_BORDER"
 
 # Set up hook to restore status bar when copy mode exits
-tmux set-hook -g pane-mode-changed "run-shell 'if [ \"\$(tmux display-message -p \"#{pane_mode}\")\" != \"copy-mode\" ]; then $TMUX_MENUS/exit-copy-mode.sh; fi'"
+tmux set-hook -g pane-mode-changed "run-shell 'if [ \"\$(tmux display-message -p \"#{pane_mode}\")\" != \"copy-mode\" ]; then $TMUX_CONF/events/exit-copy-mode.sh; fi'"
 
 # Set status bar to show COPY mode
 # Using a greenish color for COPY mode to differentiate from RESIZE

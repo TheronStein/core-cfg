@@ -39,9 +39,9 @@ return {
 
 	-- Inactive anes: Dim and desaturate to highlight active
 	inactive_pane_hsb = {
-		hue = 1.0,
-		-- saturation = 0.7,
-		-- brightness = 0.6,
+		-- hue = 0.1,
+		saturation = 0.9,
+		brightness = 0.55,
 	},
 
 	-- Pane borders: Uniform turquoise
@@ -86,7 +86,7 @@ return {
 		selection_fg = "#01f9c6",
 		selection_bg = "#033E3E", --"#C4E8E8",
 		scrollbar_thumb = "#222222",
-		split = "#01F9C6", -- Bright green for visibility
+		split = "#2ac3de", -- Bright green for visibility
 		-- copy_mode_active_highlight_fg = { Color = "Black" },
 		-- copy_mode_inactive_highlight_bg = { Color = "#52ad70" },
 		-- copy_mode_inactive_highlight_fg = { Color = "" },

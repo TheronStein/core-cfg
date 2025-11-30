@@ -1,4 +1,4 @@
-#:schema ../.schemas/yazi.json
+"$schema" = "https://yazi-rs.github.io/schemas/yazi.json"
 
 # RIGHT SIDEBAR CONFIGURATION
 # Preview focused: Show only preview column
@@ -15,7 +15,7 @@ sort_sensitive = false
 sort_reverse = false
 sort_dir_first = true
 sort_translit = false
-linemode = "size"
+linemode = "size_and_mtime"
 show_hidden = true
 show_symlink = true
 scrolloff = 5
@@ -31,13 +31,13 @@ cache_dir = ""
 image_delay = 30
 image_filter = "triangle"
 image_quality = 75
-sixel_fraction = 20
+# sixel_fraction = 20
 ueberzug_scale = 1
 ueberzug_offset = [0, 0, 0, 0]
 
 # Image protocol for WezTerm
-[image]
-protocol = "inline"
+# [image]
+# protocol = "inline"
 
 [tasks]
 micro_workers = 5
@@ -150,7 +150,7 @@ rules = [
   { name = "*.{csv,tsv}", use = "csv" },
 
   # ━━━ Text/code files ━━━
-  { name = "*.{txt,rs,py,js,ts,jsx,tsx,lua,sh,bash,zsh,fish,vim,conf,config,toml,yaml,yml,json,xml,html,css,scss,c,cpp,h,hpp,go,java,rb,php,pl,sql,Makefile,Dockerfile}", use = "edit" },
+  { name = "*.{txt,rs,py,js,ts,jsx,tsx,lua,sh,bash,zsh,fish,rasi,vim,conf,config,toml,yaml,yml,json,xml,html,css,scss,c,cpp,h,hpp,go,java,rb,php,pl,sql,Makefile,Dockerfile}", use = "edit" },
 
   # ━━━ MIME-based text rules (fallback) ━━━
   { mime = "text/*", use = "edit" },
@@ -254,8 +254,14 @@ sort_translit = false
 #   { name = "*.{fbx,gltf,glb}", run = "f3d-preview" },
 # ]
 #
-# # ━━━ PREVIEWERS - What actually displays ━━━
-# prepend_previewers = [
+# ━━━ PREVIEWERS - What actually displays ━━━
+prepend_previewers = [
+  { name = "*/", run = "mux eza_tree_1 eza_tree_2 eza_tree_3 eza_tree_4" },
+
+  # # Code/text files with syntax highlighting (uses rich-preview with fallback to bat/code)
+  # { mime = "text/*", run = "rich-preview" },
+]
+
 #   # Most specific patterns FIRST!
 #   { name = "*.md", run = "glow" }, # Markdown rendering
 #
@@ -297,21 +303,25 @@ sort_translit = false
 #   { mime = "application/pdf", run = "pdf" },
 # ]
 #
-# append_previewers = [
-#   # DISABLED FOR DEBUGGING - these were causing issues
-#   # Code/text files with syntax highlighting (uses rich-preview with fallback to bat/code)
-#   # { mime = "text/*", run = "rich-preview" },
-#
-#   # Office documents (requires pandoc for conversion)
-#   # { name = "*.{docx,doc,odt,rtf}", run = "pandoc-preview" },
-#   # { name = "*.{pptx,ppt,odp}", run = "pandoc-preview" },
-#
-#   # Spreadsheets still use duckdb
-#   { name = "*.{xlsx,xls,ods}", run = "duckdb" },
-#
-#   # Fallback hex viewer for unknown/binary files
-#   # { name = "*", run = "hexyl" },
-# ]
+append_previewers = [
+  # DISABLED FOR DEBUGGING - these were causing issues
+  # Code/text files with syntax highlighting (uses rich-preview with fallback to bat/code)
+  # { mime = "text/*", run = "rich-preview" },
+
+  # Markdown files (uses glow for terminal rendering)
+  { name = "*.md", run = "glow" },
+  # { name = "*.rasi", run =  },
+
+  # Office documents (requires pandoc for conversion)
+  { name = "*.{docx,doc,odt,rtf}", run = "pandoc-preview" },
+  { name = "*.{pptx,ppt,odp}", run = "pandoc-preview" },
+
+  # Spreadsheets still use duckdb
+  { name = "*.{xlsx,xls,ods}", run = "duckdb" },
+
+  # Fallback hex viewer for unknown/binary files
+  { name = "*", run = "hexyl" },
+]
 #
 # # append_fetchers = [
 # #   { id = "fzf", name = "*", run = "fzf" },

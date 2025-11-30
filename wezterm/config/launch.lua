@@ -2,7 +2,7 @@ local paths = require("utils.paths")
 
 return {
 	-- Default program for new panes/tabs
-	default_prog = { "zsh", "-l" },
+	default_prog = { "zsh" },
 	-- Workspace launcher menu with different working directories
 	launch_menu = {
 		{
@@ -33,17 +33,17 @@ return {
 		{
 			label = "⚙️  Config",
 			args = { "zsh", "-l" },
-			cwd = paths.CORECFG,
+			cwd = paths.CORE_CFG,
 		},
 		{
 			label = "📦 Env",
 			args = { "zsh", "-l" },
-			cwd = paths.COREENV,
+			cwd = paths.CORE_ENV,
 		},
 		{
 			label = "🐳 Docker",
 			args = { "zsh", "-l" },
-			cwd = paths.COREENV .. "/docker",
+			cwd = paths.CORE_PROJ .. "/docker",
 		},
 		{
 			label = "📝 Notes",
@@ -53,12 +53,7 @@ return {
 		{
 			label = "🎵 Music",
 			args = { "zsh", "-l" },
-			cwd = paths.NCSPOT_CONFIG,
-		},
-		{
-			label = "📊 Monitoring",
-			args = { "zsh", "-l" },
-			cwd = paths.HOME .. "/monitoring",
+			cwd = paths.MUSIC_TUI,
 		},
 	},
 }
