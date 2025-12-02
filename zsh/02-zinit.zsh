@@ -144,6 +144,17 @@ zinit ice wait"2" lucid; zinit snippet OMZP::git
 zinit ice wait"2" lucid; zinit light oz/safe-paste
 zinit ice wait"2" lucid; zinit light MichaelAquilina/zsh-you-should-use
 zinit ice wait lucid; zinit light direnv/direnv
+
+# TODO: finish integrating these later
+#
+# zt 0a light-mode for \
+#   trigger-load'!ga;!gi;!grh;!grb;!glo;!gd;!gcf;!gco;!gclean;!gss;!gcp;!gcb' \
+#   lbin'git-forgit'                   desc'many git commands with fzf' \
+#     wfxr/forgit \
+#    trigger-load'!ugit' lbin'git-undo' desc'undo various git commands' \
+#     Bhupesh-V/ugit \
+#   trigger-load'!zhooks'              desc'show code of all zshhooks' \
+#     agkozak/zhooks \
 #=============================================================================
 # BINARY INSTALLS (from GitHub releases)
 #=============================================================================
@@ -190,7 +201,6 @@ zinit light cli/cli
 # onefetch — special case
 zinit ice from"gh-r" as"program" pick"onefetch-*" mv"onefetch-* -> onefetch" lucid wait"0"
 zinit light o2sh/onefetch
-
 # # starship — special case (ships completions too)
 # zinit ice from"gh-r" as"program" pick"starship" lucid wait"0" \
 #     atclone"mkdir -p ~/.zsh/completions; starship completions zsh > ~/.zsh/completions/_starship" \

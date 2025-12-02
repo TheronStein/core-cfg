@@ -75,7 +75,7 @@ export FILE_MANAGER="yazi"
 
 export MANOPT=--no-hyphenation
 # export MANPAGER="sh -c 'col -bx | bat -l man -p'"
-export MANPAGER="nvim -c 'set ft=man' -"
+# export MANPAGER="nvim -c 'set ft=man' -"
 # export MANPAGER="sh -c 'sed -e s/.\\\\x08//g | bat -l man -p'"
 export PAGER="less"
 export DELTA_PAGER="less $LESS"

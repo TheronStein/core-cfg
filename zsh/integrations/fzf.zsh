@@ -3,14 +3,69 @@
 # Includes plugin loading, core config, functions, widgets, and integrations
 # Original sources: 02-zinit.zsh (fzf parts), integrations/fzf.zsh, integrations/.archv/plugins/fzf.zsh
 
-
-# Get dynamic theme colors from wezterm                                                                                                                 
-_fzf_tab_colors=$("$HOME/.core/.sys/cfg/wezterm/scripts/theme-browser/get-current-fzf-colors.zsh" 2>/dev/null || echo \
-"bg+:#313244,bg:#1e1e2e,spinner:#f5e0dc,hl:#f38ba8,fg:#cdd6f4,header:#f38ba8,info:#cba6f7,pointer:#f5e0dc,marker:#f5e0dc,fg+:#cdd6f4,prompt:#cba6f7,hl+:#f38ba8,border:#89b4fa,label:#89b4fa,query:#cdd6f4")                                                                                                    
-                                                                                                                                                        
-# Configure fzf-tab behavior (before loading plugin)                                                                                                    
-zstyle ':fzf-tab:*' fzf-command fzf                                                                                                                     
-zstyle ':fzf-tab:*' fzf-flags --height=50% --reverse --border=rounded --border-label-pos=3 --prompt="❯ " --pointer="▶" --marker="✓" --color="$_fzf_tab_colors" --bind="ctrl-/:toggle-preview"                                                                                                 
+# # ~/.core/zsh/fzf-consolidated.zsh
+# # Consolidated FZF configuration - merged from various sources
+# # Includes plugin loading, core config, functions, widgets, and integrations
+# # Original sources: 02-zinit.zsh (fzf parts), integrations/fzf.zsh, integrations/.archv/plugins/fzf.zsh
+# # Human-readable fzf colors (edit freely, one per line)
+# # ── Get raw multiline colors (from your theme script or fallback) ──
+_fzf_tab_colors=$(
+  "$HOME/.core/.sys/cfg/wezterm/scripts/theme-browser/get-current-fzf-colors.zsh" 2>/dev/null || cat <<'EOF'
+bg+:#313244
+bg:#1e1e2e
+spinner:#f5e0dc
+hl:#f38ba8
+fg:#cdd6f4
+header:#f38ba8
+info:#cba6f7
+pointer:#f5e0dc
+marker:#f5e0dc
+fg+:#cdd6f4
+prompt:#cba6f7
+hl+:#f38ba8
+border:#f38ba8
+label:#89b4fa
+query:#cdd6f4
+EOF
+)
+# Convert multiline → comma-separated string that fzf-tab actually accepts
+_fzf_tab_colors=$(echo "$_fzf_tab_colors" | paste -sd, -)
+# ── Keybindings ──
+_fzf_binds=(
+  ctrl-/:toggle-preview
+  ctrl-a:select-all
+  ctrl-d:deselect-all
+  ctrl-y:execute-silent(echo -n {2..} | wl-copy)+abort
+  ctrl-u:preview-page-up
+  ctrl-n:preview-page-down
+  alt-j:preview-down
+  alt-k:preview-up
+  ctrl-f:page-down
+  ctrl-b:page-up
+  tab:toggle+down
+  shift-tab:toggle+up
+)
+_fzf_border=(
+  --border=double
+  --border-label-pos=3
+  --border-label='╣    CORE - FZF  ╠'
+)
+_fzf_prompt_icons=(
+  --prompt='❯ '
+  --pointer='▶'
+  --marker='✓'
+)
+# ── Header, border, icons ──
+_fzf_header='Navigate: ↑↓ | Select: Enter | Toggle Preview: Ctrl+/ | Quit: Esc\n─────────────────────────────────────────'
+zstyle ':fzf-tab:*' fzf-command fzf
+zstyle ':fzf-tab:*' fzf-flags \
+  --height=50% \
+  --reverse \
+  ${_fzf_border[@]} \
+  ${_fzf_prompt_icons[@]} \
+  --header="$_fzf_header" \
+  --color="$_fzf_tab_colors" \
+  ${_fzf_binds[@]/#/--bind=}
 zstyle ':fzf-tab:*' fzf-preview-window 'right:60%:wrap:rounded'                                                                                         
 zstyle ':fzf-tab:*' switch-group ',' '.'                                                                                                                
 zstyle ':fzf-tab:*' continuous-trigger '/'
