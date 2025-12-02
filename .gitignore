@@ -113,6 +113,8 @@ id_dsa
 id_ecdsa
 id_ed25519
 id_chaoscore
+id_github
+id_gitlab
 id_*.pub
 
 # GPG
@@ -254,6 +256,7 @@ luac.out
 # Neovim
 # .nvim/
 .neoconf.json
+nvim.backups
 
 # LSP
 .ccls-cache/
