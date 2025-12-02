@@ -252,7 +252,7 @@ luac.out
 *.swp
 
 # Neovim
-.nvim/
+# .nvim/
 .neoconf.json
 
 # LSP
@@ -282,17 +282,16 @@ nvim/.sessions/
 
 # Tmux
 tmux/resurrect/
-tmux/plugins/tpm/            # tpm manages its own plugins, treat like node_modules
+tmux/plugins/*           # tpm manages its own plugins, treat like node_modules
 
 # Yazi — THE IMPORTANT PART FOR YOU
 yazi/plugins/                # ← never commit ya pack-managed plugins
-yazi/dev/                    # ← local checkouts you're hacking on
+# yazi/dev/                    # ← local checkouts you're hacking on
 yazi/state/                  # ← cache, history, etc.
 # → DO commit yazi/packages.toml (so we explicitly un-ignore it below)
 
 # Tmux
 tmux-resurrect/
-.tmux/resurrect/
 
 # Task databases (if not in .life/planning/)
 *.db-shm
