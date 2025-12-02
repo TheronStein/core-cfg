@@ -66,7 +66,7 @@ M.icon_sets = {
 		name = "Material Design Icons (md_)",
 		prefix = "md_",
 		icons = load_icons_from_file(
-			wezterm.config_dir .. "/scripts/nerdfont-browser/data/wezterm-material-design.txt",
+			wezterm.config_dir .. "/modules/menus/nerdfont-browser/data/wezterm-material-design.txt",
 			"md"
 		)
 	},
@@ -74,7 +74,7 @@ M.icon_sets = {
 		name = "Codicons (cod_)",
 		prefix = "cod_",
 		icons = load_icons_from_file(
-			wezterm.config_dir .. "/scripts/nerdfont-browser/data/wezterm-codicons.txt",
+			wezterm.config_dir .. "/modules/menus/nerdfont-browser/data/wezterm-codicons.txt",
 			"cod"
 		)
 	},
@@ -82,7 +82,7 @@ M.icon_sets = {
 		name = "Devicons (dev_)",
 		prefix = "dev_",
 		icons = load_icons_from_file(
-			wezterm.config_dir .. "/scripts/nerdfont-browser/data/wezterm-devicons.txt",
+			wezterm.config_dir .. "/modules/menus/nerdfont-browser/data/wezterm-devicons.txt",
 			"dev"
 		)
 	},
@@ -90,7 +90,7 @@ M.icon_sets = {
 		name = "Font Awesome (fa_)",
 		prefix = "fa_",
 		icons = load_icons_from_file(
-			wezterm.config_dir .. "/scripts/nerdfont-browser/data/wezterm-font-awesome.txt",
+			wezterm.config_dir .. "/modules/menus/nerdfont-browser/data/wezterm-font-awesome.txt",
 			"fa"
 		)
 	},
@@ -98,7 +98,7 @@ M.icon_sets = {
 		name = "Font Awesome Extension (fae_)",
 		prefix = "fae_",
 		icons = load_icons_from_file(
-			wezterm.config_dir .. "/scripts/nerdfont-browser/data/wezterm-fa-extension.txt",
+			wezterm.config_dir .. "/modules/menus/nerdfont-browser/data/wezterm-fa-extension.txt",
 			"fae"
 		)
 	},
@@ -106,7 +106,7 @@ M.icon_sets = {
 		name = "Octicons (oct_)",
 		prefix = "oct_",
 		icons = load_icons_from_file(
-			wezterm.config_dir .. "/scripts/nerdfont-browser/data/wezterm-octicons.txt",
+			wezterm.config_dir .. "/modules/menus/nerdfont-browser/data/wezterm-octicons.txt",
 			"oct"
 		)
 	},
@@ -114,7 +114,7 @@ M.icon_sets = {
 		name = "Seti UI (seti_)",
 		prefix = "seti_",
 		icons = load_icons_from_file(
-			wezterm.config_dir .. "/scripts/nerdfont-browser/data/wezterm-seti-ui.txt",
+			wezterm.config_dir .. "/modules/menus/nerdfont-browser/data/wezterm-seti-ui.txt",
 			"seti"
 		)
 	},
@@ -122,7 +122,7 @@ M.icon_sets = {
 		name = "Powerline (pl_)",
 		prefix = "pl_",
 		icons = load_icons_from_file(
-			wezterm.config_dir .. "/scripts/nerdfont-browser/data/wezterm-powerline.txt",
+			wezterm.config_dir .. "/modules/menus/nerdfont-browser/data/wezterm-powerline.txt",
 			"pl"
 		)
 	},
@@ -130,7 +130,7 @@ M.icon_sets = {
 		name = "Powerline Extra (ple_)",
 		prefix = "ple_",
 		icons = load_icons_from_file(
-			wezterm.config_dir .. "/scripts/nerdfont-browser/data/wezterm-powerline-extra.txt",
+			wezterm.config_dir .. "/modules/menus/nerdfont-browser/data/wezterm-powerline-extra.txt",
 			"ple"
 		)
 	},
@@ -138,7 +138,7 @@ M.icon_sets = {
 		name = "Pomicons (pom_)",
 		prefix = "pom_",
 		icons = load_icons_from_file(
-			wezterm.config_dir .. "/scripts/nerdfont-browser/data/wezterm-pomicons.txt",
+			wezterm.config_dir .. "/modules/menus/nerdfont-browser/data/wezterm-pomicons.txt",
 			"pom"
 		)
 	},
@@ -146,7 +146,7 @@ M.icon_sets = {
 		name = "Weather Icons (weather_)",
 		prefix = "weather_",
 		icons = load_icons_from_file(
-			wezterm.config_dir .. "/scripts/nerdfont-browser/data/wezterm-weather.txt",
+			wezterm.config_dir .. "/modules/menus/nerdfont-browser/data/wezterm-weather.txt",
 			"weather"
 		)
 	},
@@ -154,7 +154,7 @@ M.icon_sets = {
 		name = "Linux Logos (linux_)",
 		prefix = "linux_",
 		icons = load_icons_from_file(
-			wezterm.config_dir .. "/scripts/nerdfont-browser/data/wezterm-linux-logos.txt",
+			wezterm.config_dir .. "/modules/menus/nerdfont-browser/data/wezterm-linux-logos.txt",
 			"linux"
 		)
 	},
@@ -162,7 +162,7 @@ M.icon_sets = {
 		name = "Custom Icons (custom_)",
 		prefix = "custom_",
 		icons = load_icons_from_file(
-			wezterm.config_dir .. "/scripts/nerdfont-browser/data/wezterm-custom.txt",
+			wezterm.config_dir .. "/modules/menus/nerdfont-browser/data/wezterm-custom.txt",
 			"custom"
 		)
 	},

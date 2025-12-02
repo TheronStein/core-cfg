@@ -1152,7 +1152,7 @@ local function show_bash_break_pane_menu(window, pane)
   window:perform_action(
     wezterm.action.SpawnCommandInNewTab({
       args = {
-        paths.WEZTERM_SCRIPTS .. "/actions/break-pane.sh",
+        paths.WEZTERM_SCRIPTS .. "/utilities/actions/break-pane.sh",
         callback_file,
         wezterm.json_encode(workspace_data),
       },
@@ -1300,7 +1300,7 @@ local function show_bash_grab_pane_menu(window, pane)
   window:perform_action(
     wezterm.action.SpawnCommandInNewTab({
       args = {
-        paths.WEZTERM_SCRIPTS .. "/actions/grab-pane.sh",
+        paths.WEZTERM_SCRIPTS .. "/utilities/actions/grab-pane.sh",
         callback_file,
         wezterm.json_encode(panes_data),
       },

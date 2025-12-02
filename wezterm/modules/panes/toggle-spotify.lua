@@ -8,8 +8,12 @@ local mux = wezterm.mux
 local default_opts = {
   direction = "Right", -- Direction to split the pane
   size = { Percent = 30 }, -- Size of the split pane
-  launch_command = { "zsh", "-i", "-c", "exec /home/theron/.core/.sys/tools/rust/cargo/bin/spotify_player" }, -- Command to run on first launch (nil = default shell)
-  global_across_windows = true, -- If true, show the pane
+  launch_command = {
+    "zsh",
+    "-i",
+    "-c",
+    "exec /home/theron/.core/.sys/tools/rust/cargo/bin/spotify_player",
+  }, -- Command to run on first launch (nil = default shell)
   zoom = {
     auto_zoom_toggle_terminal = false, -- Automatically zoom toggle terminal pane
     auto_zoom_invoker_pane = false, -- Automatically zoom invoker pane
@@ -194,6 +198,13 @@ local function toggle_spotify_pane(session_id, opts, window, pane)
     end
 
     window:perform_action(act.SplitPane(split_args), pane)
+
+    -- CRITICAL FIX: When using top_level splits, WezTerm needs time to complete the layout operation
+    -- Without this delay, panes can appear overlapped because the layout engine hasn't finished
+    -- reorganizing the pane tree when we try to access the new pane
+    if split_args.top_level then
+      wezterm.sleep_ms(150)
+    end
 
     -- Get the newly created pane
     local new_pane = window:active_pane()

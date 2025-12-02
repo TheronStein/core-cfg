@@ -20,7 +20,7 @@ M.CORE_WORK = getenv("CORE_WORK", M.HOME .. "/.core/.work")
 M.WEZTERM_CONFIG = M.CORE_CFG .. "/wezterm"
 M.WEZTERM_DATA = M.WEZTERM_CONFIG .. "/.data"
 M.WEZTERM_STATE = M.WEZTERM_CONFIG .. "/.state"
-M.WEZTERM_SCRIPTS = M.WEZTERM_CONFIG .. "/scripts"
+M.WEZTERM_SCRIPTS = M.WEZTERM_CONFIG .. "/modules/menus"  -- Migrated from /scripts to /modules/menus
 M.WEZTERM_BACKDROPS = M.WEZTERM_CONFIG .. "/backdrops"
 M.WEZTERM_SESSIONS = M.WEZTERM_CONFIG .. "/sessions"
 
@@ -43,7 +43,7 @@ M.WORKSPACE_TEMPLATES_DIR = M.WEZTERM_DATA .. "/workspace-templates"
 M.WORKSPACE_THEMES_DIR = M.WEZTERM_DATA .. "/workspace-themes"
 
 -- WezTerm scripts
-M.GENERATE_METADATA_SCRIPT = M.WEZTERM_SCRIPTS .. "/generate-image-metadata.sh"
+M.GENERATE_METADATA_SCRIPT = M.WEZTERM_CONFIG .. "/modules/menus/utilities/generate-image-metadata.sh"
 
 -- Common config directories (for launch menu)
 M.ZSH_CONFIG = M.CORE_CFG .. "/zsh"
