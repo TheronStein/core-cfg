@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+path="${1:?Provide a path to preview}"
+
+[[ -e "$path" ]] || exit 0
+
+case "$path" in
+  *.png | *.jpg | *.jpeg | *.gif | *.bmp | *.svg | *.webp)
+    if command -v chafa >/dev/null; then
+      chafa --size=80x20 "$path"
+    elif command -v kitty +kitten icat >/dev/null; then
+      kitty +kitten icat --align left "$path"
+    else
+      file "$path"
+    fi
+    ;;
+  *.pdf)
+    if command -v pdftoppm >/dev/null; then
+      pdftoppm -png -f 1 -l 1 -scale-to 800 -scale-to 600 "$path" - | chafa --size=80x20 -
+    else
+      file "$path"
+    fi
+    ;;
+  *.tar.* | *.zip | *.rar | *.7z | *.gz | *.bz2 | *.xz)
+    if command -v atool >/dev/null; then
+      atool -l "$path" | head -20
+    elif command -v tar >/dev/null; then
+      tar -tf "$path" | head -20
+    else
+      file "$path"
+    fi
+    ;;
+  *.mp4 | *.avi | *.mkv | *.mp3 | *.wav | *.flac | *.ogg)
+    ffprobe "$path" 2>&1 | head -10 || file "$path"
+    ;;
+  */)
+    if [[ -d "$path" ]]; then
+      if command -v eza >/dev/null; then
+        eza --tree --color=always --icons -L 3 --group-directories-first "$path" 2>/dev/null || ls -laFGh --color=always "$path"
+      else
+        ls -laFGh --color=always "$path"
+      fi | head -200
+    else
+      file "$path"
+    fi
+    ;;
+  *)
+    if [[ -f "$path" ]]; then
+      if command -v bat >/dev/null; then
+        bat --color=always --style=full --decorations=always --line-range=:200 "$path"
+      elif command -v highlight >/dev/null; then
+        highlight --out-format=ansi "$path" | head -200
+      else
+        head -200 "$path" | nl -b a | tail -100
+      fi
+    else
+      file "$path"
+    fi
+    ;;
+esac
+

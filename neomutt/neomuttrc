@@ -54,6 +54,11 @@ set imap_check_subscribed = no
 set mail_check = 120
 set timeout = 10
 
+# Keep IMAP connections alive and cache credentials
+set imap_keepalive = 300
+set imap_idle = yes
+set imap_passive = no
+
 # Account Switching
 source $CORECFG/neomutt/gmail.muttrc
 folder-hook $folder 'source $CORECFG/neomutt/gmail.muttrc'

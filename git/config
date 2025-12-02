@@ -1,19 +1,10 @@
 [user]
     name = Theron Steinbrecher
     email = theron@chaoscore.org
-	signingkey = /home/theron/.core/env/.ssh/id_github.pub
+    signingkey = E37673726444937C
 [commit]
-	gpgsign = true
+    gpgSign = true        # Note: capital S!
 [tag]
-	gpgSign = true
+    gpgSign = true
 [gpg]
-	program = /usr/bin/gpg
-	format = ssh
-[credential "https://github.com"]
-	helper = 
-	helper = !/usr/bin/gh auth git-credential
-[init]
-	defaultBranch = master
-[credential "https://gist.github.com"]
-	helper = 
-	helper = !/usr/bin/gh auth git-credential
+    program = /usr/bin/gpg    # actually not needed for pure SSH signing anymore

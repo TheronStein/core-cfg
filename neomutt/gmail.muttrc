@@ -4,7 +4,7 @@ set realname = "Theron Steinbrecher"
 
 # IMAP Settings
 set imap_user = "theron.stein@gmail.com"
-set my_gmail_pass = "`op item get dmodwnwuhqjivb7hg57nfb5rne --fields label=password --reveal`"
+set my_gmail_pass = "`$HOME/.core/.sys/scripts/neomutt-pass-cache.sh dmodwnwuhqjivb7hg57nfb5rne`"
 set imap_pass = $my_gmail_pass
 set folder = "imaps://imap.gmail.com:993"
 set spoolfile = "+INBOX"

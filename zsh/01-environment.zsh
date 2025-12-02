@@ -54,6 +54,7 @@ typeset -U manpath MANPATH
 fpath=(
   "$ZSH_CORE/functions"
   "$ZSH_CORE/completions"
+  "${XDG_DATA_HOME}/zinit/completions"
   "${XDG_DATA_HOME}/zsh/site-functions"
   $fpath
 )
@@ -66,7 +67,7 @@ export SHELL="/usr/bin/zsh"
 export EDITOR="${EDITOR:-nvim}"
 export VISUAL="${VISUAL:-nvim}"
 export PAGER="${PAGER:-less}"
-export BROWSER="${BROWSER:-firefox}"
+export BROWSER="${ROFI_CONFIG}/menus/applets/browser-selector.sh"
 export TERMINAL="${TERMINAL:-wezterm}"
 
 # File manager
@@ -83,7 +84,6 @@ export LF_PAGER="less ${LESS}"
 export AUR_PAGER='lf'
 export PERLDOC_PAGER="sh -c 'col -bx | bat -l man -p'"
 export PERLDOC_SRC_PAGER="sh -c 'col -bx | bat -l man -p'"
-
 export PERLTIDY="${XDG_CONFIG_HOME}/perltidy/perltidyrc"
 
 # export RTV_EDITOR="${EDITOR}"
@@ -159,6 +159,8 @@ export LESS_TERMCAP_us=$'\e[1;32m'     # Begin underline
 #     --ansi
 # "
 # # ]]]
+
+
 
 # [[[ Ripgrep
 
@@ -295,32 +297,6 @@ export ANSIBLE_PERSISTENT_CONTROL_PATH_DIR="${XDG_CACHE_HOME}/ansible/pc"
 # ]]] =========================================================================
 
 # [[[ ================= [SECURITY TOOLS] ENVIRONMENT VARIABLES================
-
-#=============================================================================
-# GPG/SSH/PASS
-#=============================================================================
-export GNUPGHOME="${CORE_GNUPG}"
-if tty &>/dev/null; then
-  export GPG_TTY=$(tty)
-fi
-export GPG_AGENT_INFO="${GNUPGHOME}/S.gpg-agent"
-export PINENTRY_USER_DATA="USE_CURSES=1"
-
-export SSH_AUTH_SOCK="${CORE_GNUPG}/S.gpg-agent.ssh"
-export SSH_KEY_DIR="${SSH_DIR}/keys"
-# export SSH_KEY_BACKUP_DIR="${SSH_DIR}/key-backup"
-# export SSH_KEY_PUBLIC_DIR="${SSH_KEY_DIR}/public"
-# export SSH_KEY_PRIVATE_DIR="${SSH_KEY_DIR}/private"
-# export SSH_KEY_WORK_DIR="${SSH_KEY_DIR}/work"
-# export SSH_KEY_PERSONAL_DIR="${SSH_KEY_DIR}/personal"
-
-export PASSWORD_STORE_DIR="${CORE_VAULT}/pass"
-
-# [[[ Defaults
-# export SSH_AUTH_SOCK="${XDG_RUNTIME_DIR}/ssh-agent.socket"
-# export GNUPGHOME="${XDG_DATA_HOME}/gnupg"
-# export SSH_KEY_PATH="${GNUPGHOME}/private-keys-v1.d"
-# ]]]
 
 # [[[ ================= [PASSWORD MANAGERS] ENVIRONMENT VARIABLES================
 

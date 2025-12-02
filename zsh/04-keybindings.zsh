@@ -117,7 +117,8 @@ bindkey '^E' end-of-line       # Ctrl+E: End of line
 bindkey '^B' backward-char     # Ctrl+B: Back one char
 bindkey '^[b' backward-word    # Alt+B: Back one word
 bindkey '^[f' forward-word     # Alt+F: Forward one word
-
+# bindkey '^U' backward-word
+bindkey '^[[8;5u' backward-word
 # Home/End keys
 bindkey '^[[H' beginning-of-line  # Home
 bindkey '^[[F' end-of-line        # End
@@ -132,8 +133,8 @@ bindkey '^?' backward-delete-char # Backspace (alternate)
 bindkey '^[[3~' delete-char       # Delete
 bindkey '^W' backward-kill-word   # Ctrl+W: Delete word back
 bindkey '^[d' kill-word           # Alt+D: Delete word forward
-bindkey '^U' backward-kill-line   # Ctrl+U: Delete to start
-bindkey '^[k' kill-line           # Alt+K: Delete to end
+# bindkey '^U' backward-kill-line   # Ctrl+U: Delete to start
+bindkey '^[k' kill-line # Alt+K: Delete to end
 
 #=============================================================================
 # TEXT TRANSFORMATION

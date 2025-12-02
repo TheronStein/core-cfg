@@ -64,7 +64,7 @@ color italic     color183 color235
 # Markdown-style highlighting
 color body brightcolor189 color235 "(^|[[:space:][:punct:]])\\*[^*]+\\*([[:space:][:punct:]]|$)"  # *bold*
 color body brightcolor189 color235 "(^|[[:space:][:punct:]])_[^_]+_([[:space:][:punct:]]|$)"      # _underline_
-color body color117 color235 "(^|[[:space:][:punct:]])\\`[^\\`]+\\`([[:space:][:punct:]]|$)"            # `code`
+color body color117 color235 '(^|[[:space:][:punct:]])`[^`]+`([[:space:][:punct:]]|$)'            # `code`
 
 # Patch/diff highlighting
 color body color150 color235 "^diff .*"
