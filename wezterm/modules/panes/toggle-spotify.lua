@@ -135,99 +135,80 @@ local function toggle_spotify_pane(session_id, opts, window, pane)
     end
   end
 
-  -- Determine behavior based on pane existence and focus
+  -- Determine behavior based on pane/tab existence
   if spotify_pane_exists then
-    -- Check if spotify pane is in the current tab
-    if spotify_tab and spotify_tab:tab_id() == current_tab_id then
-      -- Spotify is in current tab: kill it
-      wezterm.log_info("Spotify pane is in current tab. Killing spotify pane.")
+    -- Spotify tab exists: KILL the entire tab
+    wezterm.log_info("Spotify tab exists. Killing tab with ID: " .. tostring(spotify_tab:tab_id()))
 
-      -- Unzoom before doing anything
-      current_tab_obj:set_zoomed(false)
+    -- Activate a different tab before closing (to avoid closing the window)
+    local mux_window = window:mux_window()
+    local tabs = mux_window:tabs()
 
-      -- Activate the spotify pane (must be active to close it)
-      spotify_pane_obj:activate()
-
-      -- Close the current pane (which is now the spotify pane)
-      window:perform_action(act.CloseCurrentPane({ confirm = false }), pane)
-
-      -- Reset state
-      reset_window_state(state)
-    else
-      -- Spotify is in a different tab: activate it
-      wezterm.log_info("Spotify pane is in different tab. Activating it.")
-
-      -- Track this pane as the new invoker
-      state.invoker_id = current_pane_id
-      state.invoker_tab_id = current_tab_id
-
-      -- Activate the spotify pane (switches to its tab)
-      spotify_pane_obj:activate()
-
-      -- Apply zoom settings
-      if
-        (state.zoomed and config.zoom.remember_zoomed) or config.zoom.auto_zoom_toggle_terminal
-      then
-        local term_tab = spotify_pane_obj:tab()
-        term_tab:set_zoomed(true)
+    -- Find a different tab to activate
+    for _, tab in ipairs(tabs) do
+      if tab:tab_id() ~= spotify_tab:tab_id() then
+        tab:activate()
+        break
       end
     end
+
+    -- Close the spotify tab
+    spotify_tab:activate()
+    window:perform_action(act.CloseCurrentTab({ confirm = false }), spotify_pane_obj)
+
+    -- Reset state
+    reset_window_state(state)
+    wezterm.log_info("Spotify tab closed")
   else
-    -- Spotify doesn't exist: create it
-    wezterm.log_info("Spotify pane not found. Creating a new one.")
+    -- Spotify doesn't exist: create it in a new tab
+    wezterm.log_info("Spotify tab not found. Creating a new tab.")
 
-    -- Track the invoker
-    state.invoker_id = current_pane_id
-    state.invoker_tab_id = current_tab_id
+    -- Create a new tab with spotify player
+    window:perform_action(
+      act.SpawnCommandInNewTab({
+        args = config.launch_command,
+        cwd = wezterm.home_dir .. "/.core/.sys/cfg/media/spotify_player",
+      }),
+      pane
+    )
 
-    -- Split to create spotify pane at the root of the tab
-    local split_args = {
-      direction = config.direction,
-      size = config.size,
-      top_level = true, -- Split at tab root for full height
-    }
-
-    -- Add command if specified
-    if config.launch_command then
-      -- Handle both string and table launch commands
-      if type(config.launch_command) == "table" then
-        split_args.command = { args = config.launch_command }
-      else
-        split_args.command = { args = { config.launch_command } }
-      end
-    end
-
-    window:perform_action(act.SplitPane(split_args), pane)
-
-    -- CRITICAL FIX: When using top_level splits, WezTerm needs time to complete the layout operation
-    -- Without this delay, panes can appear overlapped because the layout engine hasn't finished
-    -- reorganizing the pane tree when we try to access the new pane
-    if split_args.top_level then
-      wezterm.sleep_ms(150)
-    end
-
-    -- Get the newly created pane
+    -- Get the newly created tab and pane
     local new_pane = window:active_pane()
     if new_pane then
       state.pane_id = new_pane:pane_id()
-      wezterm.log_info(
-        "Created new spotify pane ["
-          .. session_id
-          .. "]. ID: "
-          .. state.pane_id
-          .. ", Invoker ID: "
-          .. state.invoker_id
-      )
+      wezterm.log_info("Created new spotify tab. Pane ID: " .. state.pane_id)
 
-      -- Return focus to invoker pane
-      pane:activate()
+      -- Load and apply the spotify template if it exists
+      local tab_templates = require("modules.tabs.tab_templates")
+      local templates = tab_templates.load_templates()
 
-      -- Optionally zoom the invoker after creation
-      if config.zoom.auto_zoom_invoker_pane then
-        current_tab_obj:set_zoomed(true)
+      if templates and templates.spotify then
+        local template = templates.spotify
+        wezterm.log_info("Applying spotify template")
+
+        -- Initialize custom_tabs if needed
+        if not wezterm.GLOBAL.custom_tabs then
+          wezterm.GLOBAL.custom_tabs = {}
+        end
+
+        -- Apply template to the new tab
+        local tab_id = tostring(window:active_tab():tab_id())
+        wezterm.GLOBAL.custom_tabs[tab_id] = {
+          title = template.title,
+          icon_key = template.icon,
+        }
+
+        -- Apply tab color if saved
+        if template.color then
+          local tab_color_picker = require("modules.tabs.tab_color_picker")
+          tab_color_picker.set_tab_color(tab_id, template.color)
+          wezterm.log_info("Applied spotify template color: " .. template.color)
+        end
+      else
+        wezterm.log_info("No spotify template found, using defaults")
       end
     else
-      wezterm.log_error("Failed to create spotify pane [" .. session_id .. "]")
+      wezterm.log_error("Failed to create spotify tab")
       reset_window_state(state)
     end
   end
