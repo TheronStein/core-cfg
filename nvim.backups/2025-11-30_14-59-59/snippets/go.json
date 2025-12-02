@@ -1,0 +1,57 @@
+{
+  "Print": {
+    "prefix": "pr",
+    "body": ["fmt.Println(${1:message})"],
+    "description": "Print line"
+  },
+  "Printf": {
+    "prefix": "pf",
+    "body": ["fmt.Printf(\"${1:format}\\n\", ${2:args})"],
+    "description": "Print formatted"
+  },
+  "Function": {
+    "prefix": "fn",
+    "body": [
+      "func ${1:name}(${2:params}) ${3:returnType} {",
+      "\t${0:// body}",
+      "}"
+    ],
+    "description": "Function definition"
+  },
+  "Method": {
+    "prefix": "meth",
+    "body": [
+      "func (${1:receiver} ${2:Type}) ${3:methodName}(${4:params}) ${5:returnType} {",
+      "\t${0:// body}",
+      "}"
+    ],
+    "description": "Method definition"
+  },
+  "If error": {
+    "prefix": "iferr",
+    "body": [
+      "if err != nil {",
+      "\t${0:return err}",
+      "}"
+    ],
+    "description": "If error check"
+  },
+  "For loop": {
+    "prefix": "for",
+    "body": [
+      "for ${1:i} := ${2:0}; ${1:i} < ${3:count}; ${1:i}++ {",
+      "\t${0:// body}",
+      "}"
+    ],
+    "description": "For loop"
+  },
+  "Range loop": {
+    "prefix": "forr",
+    "body": [
+      "for ${1:key}, ${2:value} := range ${3:collection} {",
+      "\t${0:// body}",
+      "}"
+    ],
+    "description": "Range loop"
+  }
+}

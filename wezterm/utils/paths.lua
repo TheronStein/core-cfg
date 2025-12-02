@@ -20,7 +20,7 @@ M.CORE_WORK = getenv("CORE_WORK", M.HOME .. "/.core/.work")
 M.WEZTERM_CONFIG = M.CORE_CFG .. "/wezterm"
 M.WEZTERM_DATA = M.WEZTERM_CONFIG .. "/.data"
 M.WEZTERM_STATE = M.WEZTERM_CONFIG .. "/.state"
-M.WEZTERM_SCRIPTS = M.WEZTERM_CONFIG .. "/scripts"
+M.WEZTERM_SCRIPTS = M.WEZTERM_CONFIG .. "/modules/menus"  -- Migrated from /scripts to /modules/menus
 M.WEZTERM_BACKDROPS = M.WEZTERM_CONFIG .. "/backdrops"
 M.WEZTERM_SESSIONS = M.WEZTERM_CONFIG .. "/sessions"
 
@@ -32,8 +32,18 @@ M.BACKGROUNDS_FILE = M.WEZTERM_DATA .. "/backgrounds.json"
 M.BACKDROP_STATE_FILE = M.WEZTERM_DATA .. "/.backdrop_state"
 M.METADATA_BACKUP_DIR = M.WEZTERM_DATA .. "/metadata-backups"
 
+-- WezTerm tab data
+M.TABS_DATA = M.WEZTERM_DATA .. "/tabs"
+M.TAB_TEMPLATES_FILE = M.TABS_DATA .. "/templates.json"
+M.TAB_COLORS_FILE = M.TABS_DATA .. "/colors.json"
+
+-- WezTerm session data
+M.SESSIONS_DIR = M.WEZTERM_DATA .. "/sessions"
+M.WORKSPACE_TEMPLATES_DIR = M.WEZTERM_DATA .. "/workspace-templates"
+M.WORKSPACE_THEMES_DIR = M.WEZTERM_DATA .. "/workspace-themes"
+
 -- WezTerm scripts
-M.GENERATE_METADATA_SCRIPT = M.WEZTERM_SCRIPTS .. "/generate-image-metadata.sh"
+M.GENERATE_METADATA_SCRIPT = M.WEZTERM_CONFIG .. "/modules/menus/utilities/generate-image-metadata.sh"
 
 -- Common config directories (for launch menu)
 M.ZSH_CONFIG = M.CORE_CFG .. "/zsh"

@@ -1,14 +1,17 @@
 local wezterm = require("wezterm")
 local act = wezterm.action
 local backdrops = require("modules.gui.backdrops")
-local ok, resurrect = pcall(require, "modules.resurrect")
-if not ok then
-	ok, resurrect = pcall(require, "resurrect")
-end
-if not ok then
-	resurrect = nil
-	wezterm.log_warn("Failed to load resurrect module")
-end
+
+-- Resurrect module is optional and currently not used (all keybindings commented out)
+-- Uncomment this if you want to use resurrect functionality:
+-- local ok, resurrect = pcall(require, "modules.resurrect")
+-- if not ok then
+-- 	ok, resurrect = pcall(require, "resurrect")
+-- end
+-- if not ok then
+-- 	resurrect = nil
+-- end
+local resurrect = nil
 
 local M = {}
 

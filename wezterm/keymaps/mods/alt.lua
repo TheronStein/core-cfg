@@ -16,38 +16,38 @@ function M.setup(config)
 		--    └
 
 		-- Contextual navigation with Alt+w/s/a/d (tmux/nvim aware)
-		{
-			key = "w",
-			mods = "ALT",
-			desc = "Navigate up (context-aware)",
-			action = wezterm.action_callback(function(window, pane)
-				navigation.navigate_contextual(window, pane, "w")
-			end),
-		},
-		{
-			key = "s",
-			mods = "ALT",
-			desc = "Navigate down (context-aware)",
-			action = wezterm.action_callback(function(window, pane)
-				navigation.navigate_contextual(window, pane, "s")
-			end),
-		},
-		{
-			key = "a",
-			mods = "ALT",
-			desc = "Navigate left (context-aware)",
-			action = wezterm.action_callback(function(window, pane)
-				navigation.navigate_contextual(window, pane, "a")
-			end),
-		},
-		{
-			key = "d",
-			mods = "ALT",
-			desc = "Navigate right (context-aware)",
-			action = wezterm.action_callback(function(window, pane)
-				navigation.navigate_contextual(window, pane, "d")
-			end),
-		},
+		-- {
+		-- 	key = "w",
+		-- 	mods = "ALT",
+		-- 	desc = "Navigate up (context-aware)",
+		-- 	action = wezterm.action_callback(function(window, pane)
+		-- 		navigation.navigate_contextual(window, pane, "w")
+		-- 	end),
+		-- },
+		-- {
+		-- 	key = "s",
+		-- 	mods = "ALT",
+		-- 	desc = "Navigate down (context-aware)",
+		-- 	action = wezterm.action_callback(function(window, pane)
+		-- 		navigation.navigate_contextual(window, pane, "s")
+		-- 	end),
+		-- },
+		-- {
+		-- 	key = "a",
+		-- 	mods = "ALT",
+		-- 	desc = "Navigate left (context-aware)",
+		-- 	action = wezterm.action_callback(function(window, pane)
+		-- 		navigation.navigate_contextual(window, pane, "a")
+		-- 	end),
+		-- },
+		-- {
+		-- 	key = "d",
+		-- 	mods = "ALT",
+		-- 	desc = "Navigate right (context-aware)",
+		-- 	action = wezterm.action_callback(function(window, pane)
+		-- 		navigation.navigate_contextual(window, pane, "d")
+		-- 	end),
+		-- },
 		{ key = "Enter", mods = "ALT", action = wezterm.action.DisableDefaultAssignment },
 		--
 		--

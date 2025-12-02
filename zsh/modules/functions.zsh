@@ -461,3 +461,21 @@ function diffcmd() {
 function watch() {
     command watch --color -n "${2:-2}" "$1"
 }
+
+zman() {
+  apropos . 2>/dev/null | \
+    fzf ${=FZF_DEFAULT_OPTS} \
+        --prompt='man ' \
+        --preview="bash '$FZF_PREVIEW' \"\$(echo {} | awk '{print \$2}' | sed 's/[(),]//g')\"" \
+    | awk '{print $2}' | sed 's/[(),]//g' | xargs -r man
+}
+
+# Optional: make plain "man" also use zman when no argument is given
+man() {
+  if [[ $# -eq 0 ]]; then
+    zman
+  else
+    command man "$@"
+  fi
+}
+

@@ -1,0 +1,20 @@
+#!/bin/sh
+# Automatically add "Signed-off-by:" line when you forget -s
+# (remove or comment out if you don’t want it)
+
+NAME=$(git config user.name)
+EMAIL=$(git config user.email)
+
+if [ -z "$NAME" ]; then
+    echo "Empty git user.name"
+    exit 1
+fi
+
+if [ -z "$EMAIL" ]; then
+    echo "Empty git user.email"
+    exit 1
+fi
+
+grep -qs "^Signed-off-by: $NAME <$EMAIL>" "$1" || \
+    echo "" >> "$1" && \
+    echo "Signed-off-by: $NAME <$EMAIL>" >> "$1"

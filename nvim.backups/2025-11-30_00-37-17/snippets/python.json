@@ -1,0 +1,52 @@
+{
+  "Print": {
+    "prefix": "pr",
+    "body": ["print(${1:message})"],
+    "description": "Print statement"
+  },
+  "Print f-string": {
+    "prefix": "pf",
+    "body": ["print(f'${1:text} {${2:variable}}')"],
+    "description": "Print with f-string"
+  },
+  "Function": {
+    "prefix": "def",
+    "body": [
+      "def ${1:name}(${2:args}):",
+      "\t${0:pass}"
+    ],
+    "description": "Function definition"
+  },
+  "Class": {
+    "prefix": "class",
+    "body": [
+      "class ${1:ClassName}:",
+      "\tdef __init__(self${2:, args}):",
+      "\t\t${0:pass}"
+    ],
+    "description": "Class definition"
+  },
+  "If main": {
+    "prefix": "ifmain",
+    "body": [
+      "if __name__ == '__main__':",
+      "\t${0:main()}"
+    ],
+    "description": "If main block"
+  },
+  "Try except": {
+    "prefix": "try",
+    "body": [
+      "try:",
+      "\t${1:# code}",
+      "except ${2:Exception} as ${3:e}:",
+      "\t${0:# handle error}"
+    ],
+    "description": "Try except block"
+  },
+  "List comprehension": {
+    "prefix": "lc",
+    "body": ["[${1:item} for ${2:item} in ${3:iterable}]"],
+    "description": "List comprehension"
+  }
+}

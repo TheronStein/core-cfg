@@ -1,0 +1,99 @@
+#!/usr/bin/env zsh
+# Live FZF Color Editor
+# Edit fzf colors and see changes in real-time
+
+function fzf-color-editor() {
+  local colors_script="$HOME/.core/.sys/cfg/wezterm/scripts/theme-browser/get-current-fzf-colors.zsh"
+  local test_data=$(mktemp)
+
+  # Generate test data for preview
+  cat > "$test_data" <<'EOF'
+ Item 1 - Normal item
+ Item 2 - Another item
+ Item 3 - Selected item
+ Item 4 - Highlighted
+ Item 5 - With marker
+ Item 6 - Test data
+ Item 7 - More content
+ Item 8 - Sample entry
+ Item 9 - Preview test
+ Item 10 - Final item
+EOF
+
+  # Current colors
+  local current_colors=$($colors_script 2>/dev/null || echo "bg+:#313244,bg:#1e1e2e,fg:#cdd6f4")
+
+  echo "FZF Color Editor - Live Preview"
+  echo "================================"
+  echo ""
+  echo "Current colors: $current_colors"
+  echo ""
+  echo "Opening color script in \$EDITOR for editing..."
+  echo "Save and close to see the updated preview."
+  echo ""
+  echo "Color format: name:#HEXCODE,name:#HEXCODE,..."
+  echo "Available colors:"
+  echo "  bg+        - Selected line background"
+  echo "  bg         - Normal background"
+  echo "  fg+        - Selected line foreground"
+  echo "  fg         - Normal foreground"
+  echo "  hl+        - Selected match highlight"
+  echo "  hl         - Normal match highlight"
+  echo "  border     - Border color"
+  echo "  label      - Border label color"
+  echo "  prompt     - Prompt color"
+  echo "  pointer    - Pointer color"
+  echo "  marker     - Marker color"
+  echo "  spinner    - Spinner color"
+  echo "  header     - Header color"
+  echo "  info       - Info color"
+  echo ""
+
+  read -q "choice?Press 'y' to open editor and preview, or 'n' to just preview current: "
+  echo ""
+
+  if [[ "$choice" == "y" ]]; then
+    ${EDITOR:-nvim} "$colors_script"
+  fi
+
+  # Show live preview
+  while true; do
+    local new_colors=$($colors_script 2>/dev/null || echo "$current_colors")
+
+    echo ""
+    echo "Preview with colors: $new_colors"
+    echo "Press Ctrl+C to exit, or select an item to continue editing"
+    echo ""
+
+    cat "$test_data" | fzf \
+      --height=100% \
+      --reverse \
+      --border=rounded \
+      --border-label="╣ Color Preview ╠" \
+      --prompt="Test ❯ " \
+      --pointer="▶" \
+      --marker="✓" \
+      --header="This is the header text - edit colors and rerun to see changes" \
+      --preview="echo 'Preview pane text\nLine 2\nLine 3 - highlighted match'" \
+      --preview-window=right:40%:wrap:rounded \
+      --color="$new_colors" \
+      --bind="ctrl-r:reload(cat $test_data)" \
+      --bind="ctrl-e:execute($EDITOR $colors_script)" \
+      || break
+
+    current_colors="$new_colors"
+
+    read -q "continue?Continue editing? (y/n): "
+    echo ""
+    [[ "$continue" != "y" ]] && break
+  done
+
+  rm -f "$test_data"
+
+  echo ""
+  echo "Final colors: $($colors_script 2>/dev/null)"
+  echo ""
+  echo "To apply these colors, reload your shell: source ~/.zshrc"
+}
+
+fzf-color-editor "$@"

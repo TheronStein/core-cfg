@@ -1,0 +1,12 @@
+# Refresh fzf theme from wezterm
+# Usage: refresh-fzf-theme
+
+function refresh-fzf-theme() {
+  # Source the fzf integration to get latest _fzf_colors function
+  source "${ZDOTDIR}/integrations/fzf.zsh"
+
+  echo "✓ FZF theme refreshed from wezterm"
+  echo "  Colors: $(_fzf_colors | cut -c1-60)..."
+}
+
+refresh-fzf-theme "$@"

@@ -31,7 +31,7 @@ if not ok5 then
 	claude_pane = nil
 end
 
-local context_manager = require("modules.context_manager")
+local context_manager = require("modules.utils.context_manager")
 
 local resize_highlight_color = "#FF0000"
 local nav_highlight_color = "#00FF00"
@@ -91,7 +91,7 @@ function M.setup(config)
 	end
 
 	-- Workspace Manager (unified module for workspaces and templates)
-	local ok_workspace_manager, workspace_manager = pcall(require, "modules.workspace_manager")
+	local ok_workspace_manager, workspace_manager = pcall(require, "modules.sessions.workspace_manager")
 	if ok_workspace_manager then
 		-- logger_ws_man.info("✅ Workspace manager module loaded successfully")
 		-- Workspace manager menu
@@ -122,8 +122,8 @@ function M.setup(config)
 
 	-- Unified Tab Templates & Tmux Browser
 	-- local ok_tab_tmux_browser, tab_tmux_browser = pcall(require, "modules.tab_tmux_browser")
-	local ok_tmux_sessions, tmux_sessions = pcall(require, "modules.tmux_sessions")
-	local ok_tmux_workspaces, tmux_workspaces = pcall(require, "modules.tmux_workspaces")
+	local ok_tmux_sessions, tmux_sessions = pcall(require, "modules.tmux.sessions")
+	local ok_tmux_workspaces, tmux_workspaces = pcall(require, "modules.tmux.workspaces")
 	--
 	-- if ok_tab_tmux_browser then
 	-- 	-- Unified browser for tab templates and tmux sessions
@@ -199,7 +199,7 @@ function M.setup(config)
 			mods = "LEADER",
 			desc = "Set tab color",
 			action = wezterm.action_callback(function(window, pane)
-				local ok_color_picker, color_picker = pcall(require, "modules.tab_color_picker")
+				local ok_color_picker, color_picker = pcall(require, "modules.tabs.tab_color_picker")
 				if ok_color_picker then
 					color_picker.show_color_picker(window, pane)
 				else
@@ -272,7 +272,7 @@ function M.setup(config)
 			mods = "LEADER|SHIFT",
 			desc = "Cleanup orphaned tmux view sessions",
 			action = wezterm.action_callback(function(window, pane)
-				local ok, tmux_sessions = pcall(require, "modules.tmux_sessions")
+				local ok, tmux_sessions = pcall(require, "modules.tmux.sessions")
 				if ok and tmux_sessions and tmux_sessions.is_tmux_available() then
 					local count = tmux_sessions.cleanup_orphaned_views()
 					if count > 0 then
@@ -418,6 +418,14 @@ function M.setup(config)
 			action = wezterm.action_callback(function(window, pane)
 				context_manager.toggle_context(window, pane)
 			end),
+		},
+
+		-- Spotify Player pane (right sidebar) - toggleable
+		{
+			key = "s",
+			mods = "LEADER",
+			desc = "Toggle Spotify Player pane",
+			action = wezterm.action_callback(require("modules.panes.toggle-spotify").toggle_spotify),
 		},
 	}
 	--   {

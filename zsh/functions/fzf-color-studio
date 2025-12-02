@@ -1,0 +1,30 @@
+#!/usr/bin/env zsh
+# FZF Color Studio - Side-by-side editor with live preview
+# Opens tmux split with editor on left, live preview on right
+
+function fzf-color-studio() {
+  local colors_script="$HOME/.core/.sys/cfg/wezterm/scripts/theme-browser/get-current-fzf-colors.zsh"
+  local preview_script="$ZDOTDIR/functions/fzf-color-live"
+
+  if [[ -z "$TMUX" ]]; then
+    echo "Error: This requires tmux. Run inside a tmux session."
+    echo "Falling back to simple editor..."
+    fzf-color-editor
+    return
+  fi
+
+  echo "Opening FZF Color Studio..."
+  echo "Left pane: Editor | Right pane: Live Preview"
+  sleep 1
+
+  # Create horizontal split
+  tmux split-window -h -p 50 "$preview_script"
+
+  # Open editor in current pane
+  ${EDITOR:-nvim} "$colors_script"
+
+  # Close preview pane when done
+  tmux kill-pane -t right
+}
+
+fzf-color-studio "$@"

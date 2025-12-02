@@ -1,5 +1,84 @@
 # ~/.core/zsh/03-widgets.zsh
 # ZLE (Zsh Line Editor) Widgets - custom interactive command-line widgets
+# ~/.config/zsh/widgets/universal-fzf-overlay.zsh
+
+widget::universal-overlay() {
+  local choice
+
+  choice=$(printf '%s\n' \
+    "Files           :: Find & insert file" \
+    "Directories     :: Find & cd/insert directory" \
+    "History         :: Enhanced history search" \
+    "Kill Process    :: Fuzzy kill processes" \
+    "Git Status      :: Select changed files" \
+    "Git Branch      :: Checkout branch" \
+    "Git Commits     :: Browse & insert commit" \
+    "Tmux Sessions   :: Switch/attach session" \
+    "Tmux Windows    :: Switch window" \
+    "SSH Hosts       :: Connect to host" \
+    "Env Vars        :: Insert environment variable" \
+    "Command Palette :: Run common commands" \
+    "Yazi Picker     :: Choose files via Yazi" \
+    "Yazi CD         :: Change dir via Yazi" \
+    "Bookmarks       :: Jump to bookmarked dir" \
+    "Quick Note      :: Add timestamped note" \
+    "Calculator      :: Evaluate expression" \
+  | fzf \
+      --height=100% \
+      --reverse \
+      --border=rounded \
+      --border-label=" Universal Command Palette " \
+      --prompt="Action ❯ " \
+      --preview='echo "Select an action above"' \
+      --preview-window=down:1:wrap \
+      --color="$(_fzf_colors)")
+
+  [[ -z "$choice" ]] && return
+
+  case "$choice" in
+    "Files           :: "*)
+      selected=$(fd --type f --hidden --follow --exclude .git | fzf $(_fzf_base_opts) --preview 'bat --style=numbers --color=always {}')
+      [[ -n "$selected" ]] && LBUFFER+="${(q)selected}"
+      ;;
+    "Directories     :: "*)
+      selected=$(fd --type d --hidden --follow --exclude .git | fzf $(_fzf_base_opts) --preview 'eza -la --color=always --icons {}')
+      [[ -n "$selected" ]] && { [[ -z "$BUFFER" ]] && cd "$selected" || LBUFFER+="${(q)selected}" }
+      ;;
+    "History         :: "*)
+      selected=$(fc -rl 1 | awk '!seen[$0]++' | fzf $(_fzf_base_opts) --tiebreak=index --preview 'echo {2..}' --bind 'ctrl-y:execute-silent(echo -n {2..} | wl-copy)+abort')
+      [[ -n "$selected" ]] && zle vi-fetch-history -n $(echo "$selected" | awk '{print $1}')
+      ;;
+    "Kill Process    :: "*)
+      pid=$(ps aux | sed 1d | fzf $(_fzf_base_opts) -m --preview 'echo {}' | awk '{print $2}')
+      [[ -n "$pid" ]] && echo "$pid" | xargs -r kill -9
+      ;;
+    "Git Status      :: "*)
+      git rev-parse --is-inside-work-tree >/dev/null || return
+      selected=$(git status --short | fzf $(_fzf_base_opts) -m --ansi --preview 'git diff --color=always -- {-1} | delta' | awk '{print $2}')
+      [[ -n "$selected" ]] && LBUFFER+="$selected"
+      ;;
+    "Git Branch      :: "*)
+      git rev-parse --is-inside-work-tree >/dev/null || return
+      branch=$(git branch --all --color=always | grep -v HEAD | fzf $(_fzf_base_opts) --ansi --preview 'git log --oneline --graph $(echo {} | sed "s/.* //")' | sed 's/.* //;s#remotes/origin/##')
+      [[ -n "$branch" ]] && { [[ -z "$BUFFER" ]] && git checkout "$branch" || LBUFFER+="$branch" }
+      ;;
+    # … add the rest exactly like your old widgets …
+    "Quick Note      :: "*)
+      local note; vared -p "Note: " note
+      [[ -n "$note" ]] && echo "- [$(date +%H:%M)] $note" >> "${XDG_DATA_HOME:-$HOME/.local/share}/notes/$(date +%Y-%m-%d).md"
+      zle -M "Note saved"
+      ;;
+    *)
+      zle -M "Not implemented yet: $choice"
+      ;;
+  esac
+
+  zle reset-prompt
+}
+
+zle -N widget::universal-overlay
+bindkey '^ ' widget::universal-overlay    # Ctrl+Space
+# or bindkey '\e ' widget::universal-overlay   # Alt+Space
 
 #=============================================================================
 # WIDGET: FZF-POWERED FILE SELECTOR
@@ -8,11 +87,9 @@
 function widget::fzf-file-selector() {
     local selected
     selected=$(fd --type f --hidden --follow --exclude .git 2>/dev/null | \
-        fzf --height 40% --reverse \
-            --preview 'bat --style=numbers --color=always --line-range :300 {} 2>/dev/null || cat {}' \
-            --preview-window 'right:60%:wrap' \
-            --bind 'ctrl-/:toggle-preview')
-    
+        fzf $(_fzf_base_opts) --height 40% \
+            --preview 'bat --style=numbers --color=always --line-range :300 {} 2>/dev/null || cat {}')
+
     if [[ -n "$selected" ]]; then
         LBUFFER+="${(q)selected}"
     fi
@@ -27,10 +104,9 @@ zle -N widget::fzf-file-selector
 function widget::fzf-directory-selector() {
     local selected
     selected=$(fd --type d --hidden --follow --exclude .git 2>/dev/null | \
-        fzf --height 40% --reverse \
-            --preview 'eza -la --color=always --icons {} 2>/dev/null' \
-            --preview-window 'right:50%:wrap')
-    
+        fzf $(_fzf_base_opts) --height 40% \
+            --preview 'eza -la --color=always --icons {} 2>/dev/null')
+
     if [[ -n "$selected" ]]; then
         if [[ -z "$BUFFER" ]]; then
             # Empty buffer: cd to directory
@@ -54,13 +130,13 @@ function widget::fzf-history-search() {
     setopt localoptions noglobsubst noposixbuiltins pipefail 2>/dev/null
 
     selected=$(fc -rl 1 | awk '!seen[$0]++' | \
-        fzf --height 80% --reverse --tiebreak=index \
+        fzf $(_fzf_base_opts) --height 80% --tiebreak=index \
             --query "${LBUFFER}" \
             --bind 'ctrl-y:execute-silent(echo -n {2..} | wl-copy)+abort' \
             --header 'Ctrl-Y: copy to clipboard' \
             --preview 'echo {2..} | bat --style=plain --color=always -l bash' \
             --preview-window 'down:3:wrap')
-    
+
     if [[ -n "$selected" ]]; then
         num=$(echo "$selected" | awk '{print $1}')
         if [[ -n "$num" ]]; then
@@ -77,12 +153,12 @@ zle -N widget::fzf-history-search
 #=============================================================================
 function widget::fzf-kill-process() {
     local pid
-    pid=$(ps aux | sed 1d | fzf --multi --height 40% --reverse \
+    pid=$(ps aux | sed 1d | fzf $(_fzf_base_opts) --multi --height 40% \
         --header 'Select process(es) to kill' \
         --preview 'echo {}' \
         --preview-window 'down:3:wrap' | \
         awk '{print $2}')
-    
+
     if [[ -n "$pid" ]]; then
         echo "$pid" | xargs -r kill -9
         zle send-break
@@ -100,12 +176,11 @@ function widget::fzf-git-status() {
 
     local selected
     selected=$(git status --short | \
-        fzf --multi --ansi --height 60% --reverse \
+        fzf $(_fzf_base_opts) --multi --ansi --height 60% \
             --preview 'git diff --color=always -- {-1} | delta' \
-            --preview-window 'right:60%:wrap' \
             --header 'Select files to add to buffer' | \
         awk '{print $2}')
-    
+
     if [[ -n "$selected" ]]; then
         LBUFFER+="${selected}"
     fi
@@ -123,11 +198,10 @@ function widget::fzf-git-branch() {
     local selected
     selected=$(git branch --all --color=always | \
         grep -v 'HEAD' | \
-        fzf --ansi --height 40% --reverse \
-            --preview 'git log --oneline --color=always --graph $(echo {} | sed "s/.* //")' \
-            --preview-window 'right:50%:wrap' | \
+        fzf $(_fzf_base_opts) --ansi --height 40% \
+            --preview 'git log --oneline --color=always --graph $(echo {} | sed "s/.* //")' | \
         sed 's/.* //' | sed 's#remotes/origin/##')
-    
+
     if [[ -n "$selected" ]]; then
         if [[ -z "$BUFFER" ]]; then
             git checkout "$selected"
@@ -149,12 +223,11 @@ function widget::fzf-git-commits() {
 
     local selected
     selected=$(git log --oneline --color=always --graph | \
-        fzf --ansi --no-sort --height 80% --reverse \
+        fzf $(_fzf_base_opts) --ansi --no-sort --height 80% \
             --tiebreak=index \
             --preview 'git show --color=always $(echo {} | grep -o "[a-f0-9]\{7\}" | head -1)' \
-            --preview-window 'right:60%:wrap' \
             --bind 'ctrl-o:execute(git show --color=always $(echo {} | grep -o "[a-f0-9]\{7\}" | head -1) | less -R)')
-    
+
     if [[ -n "$selected" ]]; then
         local hash=$(echo "$selected" | grep -o "[a-f0-9]\{7\}" | head -1)
         LBUFFER+="$hash"
@@ -169,24 +242,23 @@ zle -N widget::fzf-git-commits
 #=============================================================================
 function widget::fzf-tmux-session() {
     local session
-    
+
     if [[ -n "$TMUX" ]]; then
         session=$(tmux list-sessions -F "#{session_name}: #{session_windows} windows (#{session_attached} attached)" 2>/dev/null | \
-            fzf --height 40% --reverse \
+            fzf $(_fzf_base_opts) --height 40% \
                 --header "Current: $(tmux display-message -p '#S')" \
-                --preview 'tmux capture-pane -ep -t $(echo {} | cut -d: -f1) 2>/dev/null' \
-                --preview-window 'right:60%:wrap' | \
+                --preview 'tmux capture-pane -ep -t $(echo {} | cut -d: -f1) 2>/dev/null' | \
             cut -d: -f1)
-        
+
         if [[ -n "$session" ]]; then
             tmux switch-client -t "$session"
         fi
     else
         session=$(tmux list-sessions -F "#{session_name}" 2>/dev/null | \
-            fzf --height 40% --reverse \
+            fzf $(_fzf_base_opts) --height 40% \
                 --header "Select session to attach" | \
             cut -d: -f1)
-        
+
         if [[ -n "$session" ]]; then
             BUFFER="tmux attach -t ${(q)session}"
             zle accept-line
@@ -205,10 +277,10 @@ function widget::fzf-tmux-window() {
 
     local selected
     selected=$(tmux list-windows -F "#{window_index}: #{window_name} #{window_flags}" | \
-        fzf --height 40% --reverse \
+        fzf $(_fzf_base_opts) --height 40% \
             --header "Current: $(tmux display-message -p '#I:#W')" | \
         cut -d: -f1)
-    
+
     if [[ -n "$selected" ]]; then
         tmux select-window -t "$selected"
     fi
@@ -238,15 +310,15 @@ function widget::command-palette() {
         "clean:paru -Sc:Clean package cache"
         "orphans:paru -Qtdq:List orphan packages"
     )
-    
+
     local selected
     selected=$(printf '%s\n' "${commands[@]}" | \
-        fzf --height 50% --reverse \
+        fzf $(_fzf_base_opts) --height 50% \
             --delimiter ':' \
             --with-nth 1,3 \
             --preview 'echo "Command: $(echo {} | cut -d: -f2)"' \
             --preview-window 'down:1:wrap')
-    
+
     if [[ -n "$selected" ]]; then
         local cmd=$(echo "$selected" | cut -d: -f2)
         BUFFER="$cmd"
@@ -263,10 +335,10 @@ zle -N widget::command-palette
 function widget::fzf-ssh() {
     local host
     host=$(grep -E "^Host [^*]" ~/.ssh/config 2>/dev/null | awk '{print $2}' | \
-        fzf --height 40% --reverse \
+        fzf $(_fzf_base_opts) --height 40% \
             --header "Select SSH host" \
             --preview 'grep -A 10 "^Host {}" ~/.ssh/config 2>/dev/null')
-    
+
     if [[ -n "$host" ]]; then
         BUFFER="ssh ${host}"
         zle accept-line
@@ -282,11 +354,11 @@ zle -N widget::fzf-ssh
 function widget::fzf-env() {
     local selected
     selected=$(env | sort | \
-        fzf --height 60% --reverse \
+        fzf $(_fzf_base_opts) --height 60% \
             --header "Select environment variable" \
             --preview 'echo {} | cut -d= -f2-' \
             --preview-window 'down:3:wrap')
-    
+
     if [[ -n "$selected" ]]; then
         local var=$(echo "$selected" | cut -d= -f1)
         LBUFFER+="\${$var}"
@@ -481,13 +553,12 @@ zle -N widget::bookmark-directory
 function widget::jump-bookmark() {
     local bookmark_file="${XDG_DATA_HOME}/zsh/bookmarks"
     [[ ! -f "$bookmark_file" ]] && { zle -M "No bookmarks"; return; }
-    
+
     local selected
     selected=$(cat "$bookmark_file" | \
-        fzf --height 40% --reverse \
-            --preview 'eza -la --color=always --icons {}' \
-            --preview-window 'right:50%')
-    
+        fzf $(_fzf_base_opts) --height 40% \
+            --preview 'eza -la --color=always --icons {}')
+
     if [[ -n "$selected" && -d "$selected" ]]; then
         cd "$selected"
         zle accept-line

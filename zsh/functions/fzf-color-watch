@@ -1,0 +1,102 @@
+#!/usr/bin/env zsh
+# FZF Color Watch - Auto-refresh on file save
+# Uses inotifywait or entr to watch for changes
+
+function fzf-color-watch() {
+  local colors_script="$HOME/.core/.sys/cfg/wezterm/scripts/theme-browser/get-current-fzf-colors.zsh"
+  local temp_fifo=$(mktemp -u)
+
+  # Check for file watching tools
+  if command -v inotifywait &>/dev/null; then
+    local watcher="inotifywait"
+  elif command -v entr &>/dev/null; then
+    local watcher="entr"
+  else
+    echo "Error: Install 'inotify-tools' or 'entr' for auto-refresh"
+    echo "  Arch: sudo pacman -S inotify-tools"
+    echo ""
+    echo "Falling back to manual reload mode..."
+    fzf-color-live
+    return
+  fi
+
+  mkfifo "$temp_fifo"
+
+  # Test data
+  local -a test_items=(
+    " git        Git commands and workflows"
+    " docker     Container management"
+    " tmux       Terminal multiplexer shortcuts"
+    " nvim       Neovim editor commands"
+    " zsh        Shell configuration tips"
+    " fzf        Fuzzy finder options"
+  )
+
+  # Function to get current colors
+  get_colors() {
+    $colors_script 2>/dev/null || echo "bg:#1e1e2e,fg:#cdd6f4"
+  }
+
+  echo "FZF Color Watch - Auto-refresh on save"
+  echo "======================================="
+  echo ""
+  echo "Watching: $colors_script"
+  echo "Watcher: $watcher"
+  echo ""
+  echo "Instructions:"
+  echo "1. Open the color script in your editor"
+  echo "2. Make changes and save (:w in nvim)"
+  echo "3. Preview updates automatically!"
+  echo ""
+  echo "Opening editor in 3 seconds..."
+  sleep 3
+
+  # Start file watcher in background
+  if [[ "$watcher" == "inotifywait" ]]; then
+    {
+      while inotifywait -e modify "$colors_script" 2>/dev/null; do
+        echo "reload" > "$temp_fifo"
+      done
+    } &
+  else
+    {
+      echo "$colors_script" | entr -n sh -c "echo reload > $temp_fifo"
+    } &
+  fi
+  local watcher_pid=$!
+
+  # Open editor in background
+  ${EDITOR:-nvim} "$colors_script" &
+  local editor_pid=$!
+
+  # Run fzf with reload from fifo
+  {
+    printf '%s\n' "${test_items[@]}"
+    while read -r cmd < "$temp_fifo"; do
+      [[ "$cmd" == "reload" ]] && printf '%s\n' "${test_items[@]}"
+    done
+  } | fzf \
+    --ansi \
+    --height=100% \
+    --reverse \
+    --border=rounded \
+    --border-label="╣ Auto-Refresh Color Preview ╠" \
+    --prompt="Preview ❯ " \
+    --pointer="▶" \
+    --marker="✓" \
+    --header=$'Colors update automatically when you save the file!\nEdit: '"$colors_script"$'\n─────────────────────────────────────────' \
+    --preview='echo -e "\033[1mPreview Panel\033[0m\n\nThis shows your color scheme.\n\nMatched text appears highlighted.\n\n• Line 1\n• Line 2  \n• Line 3\n\nChanges appear on save!"' \
+    --preview-window=right:50%:wrap:rounded \
+    --color="$(get_colors)" \
+    --bind="load:reload(printf '%s\n' \"${test_items[@]}\")" || true
+
+  # Cleanup
+  kill $watcher_pid 2>/dev/null || true
+  kill $editor_pid 2>/dev/null || true
+  rm -f "$temp_fifo"
+
+  echo ""
+  echo "Final colors: $(get_colors)"
+}
+
+fzf-color-watch "$@"

@@ -2,7 +2,7 @@
 -- Exports WezTerm mode/context information for tmux status bar consumption
 
 local wezterm = require("wezterm")
-local mode_module = require("modules.gui.tabline.components.window.mode")
+local mode_module = require("tabline.components.window.mode")
 
 local M = {}
 
@@ -53,13 +53,7 @@ local function format_mode_segment(window)
 
 	-- Generate tmux format string
 	-- This matches the style from your current status-left
-	local tmux_format = string.format(
-		"#[bold,fg=%s,bg=%s] %s %s ",
-		colors.fg,
-		colors.bg,
-		icon,
-		display_mode
-	)
+	local tmux_format = string.format("#[bold,fg=%s,bg=%s] %s %s ", colors.fg, colors.bg, icon, display_mode)
 
 	return tmux_format
 end

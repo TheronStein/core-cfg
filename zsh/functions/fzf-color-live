@@ -1,0 +1,47 @@
+#!/usr/bin/env zsh
+# Live FZF Color Preview - Watch and reload
+# Usage: Edit the color script in one terminal, run this in another to see live updates
+
+function fzf-color-live() {
+  local colors_script="$HOME/.core/.sys/cfg/wezterm/scripts/theme-browser/get-current-fzf-colors.zsh"
+
+  # Test data generator
+  local -a test_items=(
+    " git        Git cheatsheet"
+    " docker     Docker commands"
+    " tmux       Terminal multiplexer"
+    " nvim       Neovim editor"
+    " zsh        Shell configuration"
+  )
+
+  echo "Live FZF Color Preview"
+  echo "======================"
+  echo ""
+  echo "Edit colors in: $colors_script"
+  echo "Press Ctrl+R to reload after editing"
+  echo "Press Ctrl+E to open editor from within fzf"
+  echo ""
+  echo "Current colors:"
+  $colors_script 2>/dev/null
+  echo ""
+  sleep 2
+
+  # Run fzf with reload capability
+  printf '%s\n' "${test_items[@]}" | fzf \
+    --ansi \
+    --height=100% \
+    --reverse \
+    --border=rounded \
+    --border-label="╣ Live Color Preview - Ctrl+R to reload, Ctrl+E to edit ╠" \
+    --prompt="Preview ❯ " \
+    --pointer="▶" \
+    --marker="✓" \
+    --header=$'Color preview with current theme\nEdit the color script and press Ctrl+R to reload\n─────────────────────────────────────────' \
+    --preview='echo -e "Preview Panel\n\nThis shows how the preview looks.\n\nHighlighted text and colors.\n\nLine 1\nLine 2\nLine 3"' \
+    --preview-window=right:50%:wrap:rounded \
+    --color="$($colors_script 2>/dev/null)" \
+    --bind="ctrl-r:reload(printf '%s\n' \"${test_items[@]}\")+change-preview(echo -e 'Reloaded!\n\nColors updated from script.\n\nNew theme active.')" \
+    --bind="ctrl-e:execute($EDITOR $colors_script)+reload(printf '%s\n' \"${test_items[@]}\")"
+}
+
+fzf-color-live "$@"

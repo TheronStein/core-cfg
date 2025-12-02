@@ -1,16 +1,55 @@
-# ~/.core/zsh/integrations/fzf.zsh
-# FZF Integration - Advanced fuzzy finding configuration with rich previews
-# Dependencies: fzf, fd, ripgrep, bat, delta, eza, jq
+# ~/.core/zsh/fzf-consolidated.zsh
+# Consolidated FZF configuration - merged from various sources
+# Includes plugin loading, core config, functions, widgets, and integrations
+# Original sources: 02-zinit.zsh (fzf parts), integrations/fzf.zsh, integrations/.archv/plugins/fzf.zsh
 
-#=============================================================================
-# CHECK FOR FZF
-#=============================================================================
+
+# Get dynamic theme colors from wezterm                                                                                                                 
+_fzf_tab_colors=$("$HOME/.core/.sys/cfg/wezterm/scripts/theme-browser/get-current-fzf-colors.zsh" 2>/dev/null || echo \
+"bg+:#313244,bg:#1e1e2e,spinner:#f5e0dc,hl:#f38ba8,fg:#cdd6f4,header:#f38ba8,info:#cba6f7,pointer:#f5e0dc,marker:#f5e0dc,fg+:#cdd6f4,prompt:#cba6f7,hl+:#f38ba8,border:#89b4fa,label:#89b4fa,query:#cdd6f4")                                                                                                    
+                                                                                                                                                        
+# Configure fzf-tab behavior (before loading plugin)                                                                                                    
+zstyle ':fzf-tab:*' fzf-command fzf                                                                                                                     
+zstyle ':fzf-tab:*' fzf-flags --height=50% --reverse --border=rounded --border-label-pos=3 --prompt="❯ " --pointer="▶" --marker="✓" --color="$_fzf_tab_colors" --bind="ctrl-/:toggle-preview"                                                                                                 
+zstyle ':fzf-tab:*' fzf-preview-window 'right:60%:wrap:rounded'                                                                                         
+zstyle ':fzf-tab:*' switch-group ',' '.'                                                                                                                
+zstyle ':fzf-tab:*' continuous-trigger '/'
+# # Load fzf-tab (only once!)
+
+# Check for fzf
 (( $+commands[fzf] )) || return 0
 
-#=============================================================================
-# FZF ENVIRONMENT CONFIGURATION
-#=============================================================================
-# Use fd for file listing (respects .gitignore)
+# =============================================================================
+# PLUGIN LOADING (from 02-zinit.zsh)
+# =============================================================================
+# FZF core
+zinit ice from"gh-r" as"program"
+zinit light junegunn/fzf
+
+# FZF-tab
+zinit light Aloxaf/fzf-tab
+
+# =============================================================================
+# CORE CONFIGURATION (from integrations/fzf.zsh)
+# =============================================================================
+export FZF_PREVIEW="${ZDOTDIR:-$HOME/.core/.sys/cfg/zsh}/functions/fzf-preview"
+
+# Dynamic FZF theme system
+_fzf_colors() {
+  "$HOME/.core/.sys/cfg/wezterm/scripts/theme-browser/get-current-fzf-colors.zsh" 2>/dev/null || cat <<'EOF'
+bg+:#313244,bg:#1e1e2e,spinner:#f5e0dc,hl:#f38ba8,fg:#cdd6f4
+header:#f38ba8,info:#cba6f7,pointer:#f5e0dc,marker:#f5e0dc
+fg+:#cdd6f4,prompt:#cba6f7,hl+:#f38ba8,border:#89b4fa
+label:#89b4fa,query:#cdd6f4
+EOF
+}
+
+_fzf_base_opts() {
+  local colors="$(_fzf_colors)"
+  echo "--ansi --height=50% --reverse --border=rounded --border-label-pos=3 --prompt=❯ --pointer=▶ --marker=✓ --color=$colors --bind=ctrl-/:toggle-preview --preview-window=right:60%:wrap:rounded"
+}
+
+# FZF environment configuration
 if (( $+commands[fd] )); then
     export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'
     export FZF_ALT_C_COMMAND='fd --type d --hidden --follow --exclude .git'
@@ -19,12 +58,8 @@ else
     export FZF_ALT_C_COMMAND='find . -type d -not -path "*/\.git/*"'
 fi
 
-# Ctrl+T file selector command
 export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
 
-#=============================================================================
-# FZF APPEARANCE & BEHAVIOR
-#=============================================================================
 export FZF_DEFAULT_OPTS="
     --height=80%
     --layout=reverse
@@ -51,29 +86,24 @@ export FZF_DEFAULT_OPTS="
     --bind='ctrl-b:page-up'
     --bind='tab:toggle+down'
     --bind='shift-tab:toggle+up'
-    --preview-window='right:60%:wrap:hidden'
-    --color='bg+:#313244,bg:#1e1e2e,spinner:#f5e0dc,hl:#f38ba8'
-    --color='fg:#cdd6f4,header:#f38ba8,info:#cba6f7,pointer:#f5e0dc'
-    --color='marker:#b4befe,fg+:#cdd6f4,prompt:#cba6f7,hl+:#f38ba8'
-    --color='selected-bg:#45475a'
+    --preview "bash \"$FZF_PREVIEW\" {} 2>/dev/null || true"
+    --preview-window='right:60%:wrap'
+    --color='$(_fzf_colors)'
 "
 
-# Ctrl+T specific options (file preview)
 export FZF_CTRL_T_OPTS="
-    --preview 'bat --style=numbers --color=always --line-range :500 {} 2>/dev/null || cat {}'
+    --preview "bash \"$FZF_PREVIEW\" {} 2>/dev/null || true"
     --preview-window='right:60%:wrap'
     --bind='ctrl-/:toggle-preview'
     --header='Files | C-/: toggle preview | C-y: copy'
 "
 
-# Alt+C specific options (directory preview)
 export FZF_ALT_C_OPTS="
-    --preview 'eza -la --color=always --icons --group-directories-first {} 2>/dev/null'
+    --preview "bash \"$FZF_PREVIEW\" {} 2>/dev/null || true"
     --preview-window='right:60%:wrap'
     --header='Directories | C-/: toggle preview'
 "
 
-# Ctrl+R specific options (history)
 export FZF_CTRL_R_OPTS="
     --preview 'echo {} | sed \"s/^ *[0-9]* *//\" | bat --style=plain --color=always -l bash'
     --preview-window='down:3:wrap'
@@ -82,46 +112,37 @@ export FZF_CTRL_R_OPTS="
     --exact
 "
 
-#=============================================================================
-# FZF COMPLETION CONFIGURATION
-#=============================================================================
-# Use fd for path completion
+# FZF completion configuration
 _fzf_compgen_path() {
     fd --hidden --follow --exclude .git . "$1"
 }
 
-# Use fd for directory completion
 _fzf_compgen_dir() {
     fd --type d --hidden --follow --exclude .git . "$1"
 }
 
-# Advanced completion preview
 _fzf_comprun() {
     local command=$1
     shift
 
     case "$command" in
-        cd)           fzf --preview 'eza -la --color=always --icons {}' "$@" ;;
+        cd)           fzf --preview "bash \"$FZF_PREVIEW\" {} 2>/dev/null || true" "$@" ;;
         export|unset) fzf --preview "eval 'echo \$'{}" "$@" ;;
         ssh)          fzf --preview 'dig +short {}' "$@" ;;
         git)          fzf --preview 'git log --oneline --graph --color=always {}' "$@" ;;
         kill)         fzf --preview 'ps -p {} -o comm,pid,user,time,stat' "$@" ;;
-        *)            fzf --preview 'bat --style=numbers --color=always {} 2>/dev/null || cat {}' "$@" ;;
+        *)            fzf --preview "bash \"$FZF_PREVIEW\" {} 2>/dev/null || true" "$@" ;;
     esac
 }
 
-#=============================================================================
-# HELPER FUNCTIONS
-#=============================================================================
-
-# Function: fzf-git-add
-# Description: Interactive git add with diff preview
+# =============================================================================
+# HELPER FUNCTIONS (from integrations/fzf.zsh)
+# =============================================================================
 function fzf-git-add() {
     local files
     files=$(git status --short | \
-        fzf --multi --ansi \
+        fzf $(_fzf_base_opts) --multi --ansi \
             --preview 'git diff --color=always -- {-1} | delta' \
-            --preview-window 'right:60%:wrap' \
             --header 'Select files to stage' \
             --bind 'ctrl-a:select-all,ctrl-d:deselect-all' | \
         awk '{print $2}')
@@ -132,14 +153,11 @@ function fzf-git-add() {
     fi
 }
 
-# Function: fzf-git-checkout-file
-# Description: Restore files from git with preview
 function fzf-git-checkout-file() {
     local files
     files=$(git diff --name-only | \
-        fzf --multi --ansi \
+        fzf $(_fzf_base_opts) --multi --ansi \
             --preview 'git diff --color=always -- {} | delta' \
-            --preview-window 'right:60%:wrap' \
             --header 'Select files to restore' | \
         tr '\n' ' ')
 
@@ -148,14 +166,11 @@ function fzf-git-checkout-file() {
     fi
 }
 
-# Function: fzf-docker-logs
-# Description: View docker container logs interactively
 function fzf-docker-logs() {
     local container
     container=$(docker ps --format "table {{.Names}}\t{{.Image}}\t{{.Status}}" | \
-        fzf --header-lines=1 \
-            --preview 'docker logs --tail 50 $(echo {} | awk "{print \$1}")' \
-            --preview-window 'right:60%:wrap' | \
+        fzf $(_fzf_base_opts) --header-lines=1 \
+            --preview 'docker logs --tail 50 $(echo {} | awk "{print \$1}")' | \
         awk '{print $1}')
 
     if [[ -n "$container" ]]; then
@@ -163,14 +178,11 @@ function fzf-docker-logs() {
     fi
 }
 
-# Function: fzf-docker-exec
-# Description: Execute command in docker container
 function fzf-docker-exec() {
     local container
     container=$(docker ps --format "table {{.Names}}\t{{.Image}}\t{{.Status}}" | \
-        fzf --header-lines=1 \
-            --preview 'docker inspect $(echo {} | awk "{print \$1}")' \
-            --preview-window 'right:60%:wrap' | \
+        fzf $(_fzf_base_opts) --header-lines=1 \
+            --preview 'docker inspect $(echo {} | awk "{print \$1}")' | \
         awk '{print $1}')
 
     if [[ -n "$container" ]]; then
@@ -179,13 +191,11 @@ function fzf-docker-exec() {
     fi
 }
 
-# Function: fzf-man
-# Description: Browse man pages interactively
 function fzf-man() {
     local page
     page=$(apropos . | \
-        fzf --preview 'man $(echo {} | awk "{print \$1}")' \
-            --preview-window 'right:70%:wrap' | \
+        fzf $(_fzf_base_opts) \
+            --preview 'man $(echo {} | awk "{print \$1}")' | \
         awk '{print $1}')
 
     if [[ -n "$page" ]]; then
@@ -193,20 +203,18 @@ function fzf-man() {
     fi
 }
 
-# Function: fzf-systemctl
-# Description: Manage systemd services interactively
 function fzf-systemctl() {
     local unit
     unit=$(systemctl list-units --all --no-legend | \
-        fzf --preview 'SYSTEMD_COLORS=1 systemctl status $(echo {} | awk "{print \$1}")' \
-            --preview-window 'right:60%:wrap' \
+        fzf $(_fzf_base_opts) \
+            --preview 'SYSTEMD_COLORS=1 systemctl status $(echo {} | awk "{print \$1}")' \
             --header 'Select systemd unit' | \
         awk '{print $1}')
 
     if [[ -n "$unit" ]]; then
         local action
         action=$(echo -e "status\nstart\nstop\nrestart\nenable\ndisable\nlogs" | \
-            fzf --header "Select action for $unit")
+            fzf $(_fzf_base_opts) --header "Select action for $unit")
 
         case "$action" in
             logs) journalctl -u "$unit" -f ;;
@@ -215,16 +223,13 @@ function fzf-systemctl() {
     fi
 }
 
-# Function: fzf-pacman-install
-# Description: Search and install packages with pacman/paru
 function fzf-pacman-install() {
     local packages
     local installer="${1:-paru}"
 
     if command -v "$installer" &>/dev/null; then
         packages=$($installer -Slq | \
-            fzf --multi --preview "$installer -Si {}" \
-                --preview-window 'right:60%:wrap' \
+            fzf $(_fzf_base_opts) --multi --preview "$installer -Si {}" \
                 --header 'Select packages to install')
 
         if [[ -n "$packages" ]]; then
@@ -235,12 +240,10 @@ function fzf-pacman-install() {
     fi
 }
 
-# Function: fzf-kill-port
-# Description: Find and kill process using a specific port
 function fzf-kill-port() {
     local process
     process=$(ss -tulpn 2>/dev/null | grep LISTEN | \
-        fzf --header 'Select port to kill process' \
+        fzf $(_fzf_base_opts) --header 'Select port to kill process' \
             --preview 'echo {} | grep -oP "pid=\K[0-9]+" | xargs ps -p' | \
         grep -oP 'pid=\K[0-9]+')
 
@@ -250,14 +253,13 @@ function fzf-kill-port() {
     fi
 }
 
-# Function: fzf-npm-scripts
-# Description: Run npm scripts interactively
 function fzf-npm-scripts() {
     [[ ! -f package.json ]] && echo "No package.json found" && return 1
 
     local script
     script=$(jq -r '.scripts | keys[]' package.json 2>/dev/null | \
-        fzf --preview 'jq -r ".scripts.\"{}\"" package.json' \
+        fzf $(_fzf_base_opts) \
+            --preview 'jq -r ".scripts.\"{}\"" package.json' \
             --preview-window 'down:3:wrap' \
             --header 'Select npm script to run')
 
@@ -266,12 +268,11 @@ function fzf-npm-scripts() {
     fi
 }
 
-# Function: fzf-environment
-# Description: Browse and edit environment variables
 function fzf-environment() {
     local var
     var=$(env | sort | \
-        fzf --preview 'echo {} | cut -d= -f2-' \
+        fzf $(_fzf_base_opts) \
+            --preview 'echo {} | cut -d= -f2-' \
             --preview-window 'down:3:wrap' \
             --header 'Environment Variables' | \
         cut -d= -f1)
@@ -287,14 +288,13 @@ function fzf-environment() {
     fi
 }
 
-# Function: fzf-wifi
-# Description: Connect to WiFi networks (requires nmcli)
 function fzf-wifi() {
     (( $+commands[nmcli] )) || { echo "nmcli not found"; return 1; }
 
     local network
     network=$(nmcli device wifi list | sed 1d | \
-        fzf --preview 'echo "Signal: $(echo {} | awk "{print \$7}")"' \
+        fzf $(_fzf_base_opts) \
+            --preview 'echo "Signal: $(echo {} | awk \"{print \$7}\")"' \
             --header 'Select WiFi network' | \
         sed 's/^[* ] //' | awk '{print $2}')
 
@@ -303,9 +303,7 @@ function fzf-wifi() {
     fi
 }
 
-#=============================================================================
-# ALIASES
-#=============================================================================
+# Aliases from integrations/fzf.zsh
 alias fga='fzf-git-add'
 alias fgco='fzf-git-checkout-file'
 alias fdl='fzf-docker-logs'
@@ -318,31 +316,302 @@ alias fnpm='fzf-npm-scripts'
 alias fenv='fzf-environment'
 alias fwifi='fzf-wifi'
 
-#=============================================================================
-# KEY BINDINGS (if not already set)
-#=============================================================================
-# Load fzf key bindings and completion
+# Key bindings from integrations/fzf.zsh
 [[ -f /usr/share/fzf/key-bindings.zsh ]] && source /usr/share/fzf/key-bindings.zsh
 [[ -f /usr/share/fzf/completion.zsh ]] && source /usr/share/fzf/completion.zsh
 
-# Register FZF git functions as widgets
 zle -N fzf-git-add
 zle -N fzf-git-checkout-file
 
-# Custom bindings (only if not already bound)
 if ! bindkey | grep -q "fzf-git-add"; then
     bindkey '^G^A' fzf-git-add
 fi
 
-#=============================================================================
-# TMUX INTEGRATION
-#=============================================================================
-# Use tmux popup if available
+# FZF-TAB integration from integrations/fzf.zsh
+if (( $+commands[fzf] )) && (( $+functions[fzf-tab] )); then
+    zstyle ':fzf-tab:*' fzf-flags --height=60% --color="$(_fzf_colors)"
+fi
+
 if [[ -n "$TMUX" ]]; then
     export FZF_TMUX_OPTS="-p 80%,80%"
-
-    # Function to use tmux popup for fzf
     ftb-tmux-popup() {
         fzf-tmux -p 80%,80% "$@"
     }
 fi
+
+# =============================================================================
+# ADDITIONAL FUNCTIONS AND WIDGETS (from integrations/.archv/plugins/fzf.zsh)
+# =============================================================================
+function fcd-zle() {
+  local dir
+  dir=$(fd ${1:-.} --prune -td | fzf +m)
+  if [[ -d "$dir" ]]; then
+    builtin cd "$dir"
+    (($+WIDGET)) && zle zredraw-prompt
+  else
+    (($+WIDGET)) && zle redisplay
+  fi
+}; zle -N fcd-zle
+
+function fzf-ghq() {
+  local repo
+  repo=$(\
+    command ghq list -p \
+      | xargs ls -dt1 \
+      | lscolors \
+      | fzf --ansi \
+            --no-multi \
+            --prompt='GHQ> ' \
+            --reverse \
+            --height=50% \
+            --preview="\
+            bat --color=always --style=header,grid --line-range :80 $(ghq root)/{}/README.*" \
+            --preview-window="right:50%" \
+            --delimiter=/ \
+            --with-nth=5..
+  )
+  [[ -d "$repo" ]] && {
+    if (( $+WIDGET )); then
+      BUFFER="cd $repo"
+      zle accept-line
+    else
+      builtin cd "$repo"
+    fi
+  }
+}; zle -N fzf-ghq
+Zkeymaps[M-x]=fzf-ghq
+
+function f1lsof() {
+  local pid args; args=${${${(M)UID:#0}:+-f -u $UID}:--fe}
+  pid=$(ps ${(z)args} | sed 1d | fzf -m | awk '{print $2}')
+  dunstify $pid
+  (( $+pid )) && {
+    LBUFFER="lsof -p $pid"
+    (($+WIDGET)) && zle zredraw-prompt
+  }
+}; zle -N f1lsof
+
+function f1env() {
+  local out
+  out=$(fzf <<<${(@f)"$(env)"})
+  [[ -n $out ]] && hck -d '=' -f2<<<$out
+}
+
+function f1set() {
+  local out
+  out=$(fzf <<<${(F)${(@f)"$(set)"}//prompt=*/})
+  [[ -n $out ]] && hck -d '=' -f2<<<$out
+}
+
+function f1fig() (
+  emulate -L zsh
+  builtin cd -q /usr/share/figlet/fonts
+  command ls *.flf | sort | fzf --no-multi --reverse --preview "figlet -f {} Hello World!"
+)
+
+function f1mates() {
+  mutt "$(MATES_GREP='fzf -q' mates email-query)"
+}
+
+function f1jrnl() {
+  local title
+  title=$(jrnl --short | fzf --tac --no-sort)
+  jrnl -on "$(echo $title | cut -c 1-16)" $1
+}
+
+function f1fg() {
+  local job
+  job="$(builtin jobs | fzf -0 -1 | sed -E 's/\[(.+)\].*/\1/')" && print '' && fg %$job;
+}
+
+function f1z-ctrlz() {
+  if [[ $#BUFFER -eq 0 ]]; then
+    BUFFER=" f1fg"
+    zle accept-line -w
+  else
+    zle push-input -w
+    zle clear-screen -w
+  fi
+}; zle -N f1z-ctrlz
+Zkeymaps[C-z]=f1z-ctrlz
+
+function f1uni() {
+  ruby \
+    -e '0x100.upto(0xFFFF) do |i| puts "%04X%8d%6s" % [i, i, i.chr("UTF-8")] rescue true end' \
+  | fzf -m
+}
+
+function f1ssh() {
+  local -a hosts
+  local choice
+
+  hosts=( ${=${${${${(@M)${(f)"$(<$HOME/.ssh/config)"}}:#Host *}#Host }:#*\**}:#*\?*}} )
+  choice=$(builtin print -rl "$hosts[@]" | fzf +m)
+
+  [[ -n $choice ]] && command ssh $choice
+}
+
+function f1twf() {
+  (( ! $+commands[twf] )) && {
+    zerr "{cmd}twf{%} is needed for this"
+    return 1
+  }
+  local -a files; files=("$(
+    twf \
+      --height=0.8 \
+      --previewCmd='([[ -f {} ]] && (bat --style=numbers --color=always {})) || ([[ -d {} ]] && (tree -C {} | less)) || echo {} 2> /dev/null | head -200'
+  )") || return
+  [[ -n "$files" ]] && ${EDITOR:-vim} "${files[@]}"
+}
+
+function f1mpc() {
+  local song_pos; song_pos=$(\
+    mpc -f "%position%) %artist% - %title%" playlist \
+      | fzf-tmux --query="$1" --reverse --select-1 --exit-0 \
+      | sed -n 's/^\([0-9]\+\)).*/\1/p') \
+    || return 1
+  [[ -n "$song_pos" ]] && mpc -q play $song_pos
+}
+
+function f1pdf() {
+  local prog='zathura'
+
+  fd --no-ignore-vcs -tf -e pdf \
+    | fast-p \
+    | fzf \
+        --read0 \
+        --reverse \
+        --delimiter $'\t'  \
+        --preview-window='nohidden,down:80%' \
+        --preview='local v=$(print -r {q} | tr " " "|");
+                   print -- {1}"\n"{2} | grep -E "^|$v" -i --color=always;' \
+    | cut -z -f 1 -d $'\t' \
+    | tr -d '\n' \
+    | xargs -r --null $open > /dev/null 2> /dev/null
+}
+
+function fzf-file-edit-widget() {
+  setopt localoptions pipefail
+  local files
+  files=$(eval "$FZF_ALT_E_COMMAND" |
+    FZF_DEFAULT_OPTS="--height ${FZF_TMUX_HEIGHT:-40%} --reverse $FZF_DEFAULT_OPTS $FZF_ALT_E_OPTS" fzf -m |
+      sed 's/^\s\+.\s//')
+  local ret=$?
+
+  [[ $ret -eq 0 ]] && echo $files | xargs sh -c "$EDITOR \$@ </dev/tty" $EDITOR
+
+  zle redisplay
+  typeset -f zle-line-init >/dev/null && zle zle-line-init
+  return $ret
+}; zle -N fzf-file-edit-widget
+
+function f1zfe() {
+  local -a sel
+  sel=("$(rgf --bind='enter:accept' --multi)")
+  [[ -n "$sel" ]] && ${EDITOR:-vim} "${sel[@]}"
+  (( $+WIDGET )) && {
+    zle redisplay
+    typeset -f zle-line-init >/dev/null && zle zle-line-init
+  }
+}; zle -N f1zfe
+Zkeymaps[Esc-f]=f1zfe
+
+function :fzf-histdb() {
+  local query="
+SELECT commands.argv
+FROM   history
+  LEFT JOIN commands
+    ON history.command_id = commands.rowid
+  LEFT JOIN places
+    ON history.place_id = places.rowid
+GROUP BY commands.argv
+ORDER BY places.dir != '${PWD//'/''}',
+    commands.argv LIKE '${BUFFER//'/''}%' DESC,
+    Count(*) DESC
+"
+  local selected=$(_histdb_query "$query" | ftb-tmux-popup -n "2.." --tiebreak=index --prompt="cmd> " ${BUFFER:+-q$BUFFER})
+
+  BUFFER=${selected}
+  CURSOR=${#BUFFER}
+}; zle -N :fzf-histdb
+Zkeymaps+=('C-x r' :fzf-histdb)
+
+function :fzf-find() {
+  local selected dir cut
+  cut=$(grep -oP '[^* ]+(?=\*{1,2}$ )' <<< $BUFFER)
+  eval "dir=${cut:-.}"
+  if [[ $BUFFER == *"**"* ]] {
+    selected=$(fd -H . $dir \
+      | ftb-tmux-popup --tiebreak=end,length --prompt="cd> " --border=none)
+  } elif [[ $BUFFER == *"*"* ]] {
+    selected=$(fd -d 1 . $dir \
+      | ftb-tmux-popup --tiebreak=end --prompt="cd> " --border=none)
+  }
+  BUFFER=${BUFFER/%'*'*/}
+  BUFFER=${BUFFER/%$cut/$selected}
+  zle end-of-line
+}; zle -N :fzf-find
+Zkeymaps+=('C-x C-f' :fzf-find)
+
+function fzf-dmenu() {
+  local selected="$(\
+    command ls /usr/share/applications \
+      | sed 's/\(.*\)\.desktop/\1/g' \
+      | fzf -e
+  ).desktop"
+  [[ -n "${selected%.desktop}" && $? -eq 0 ]] && {
+    nohup $(\
+      grep '^Exec' "/usr/share/applications/$selected" \
+        | tail -1 \
+        | sed 's/^Exec=//' \
+        | sed 's/%.//'
+    ) >/dev/null 2>&1 &
+  }
+}
+
+function f1dockrm() {
+  local cid
+  cid=$(docker ps -a | sed 1d | fzf -q "$1" | awk '{print $1}')
+  [[ -n "$cid" ]] && docker rm "$cid"
+}
+
+function f1docka() {
+  local cid
+  cid=$(docker ps -a | sed 1d | fzf -1 -q "$1" | awk '{print $1}')
+  [[ -n "$cid" ]] && docker start "$cid" && docker attach "$cid"
+}
+
+function f1dockrmi() {
+  docker images | sed 1d | fzf -q "$1" --no-sort -m --tac | awk '{ print $3 }' | xargs -r docker rmi
+}
+
+function f1docks() {
+  local cid
+  cid=$(docker ps -a | sed 1d | fzf -1 -q "$1" | awk '{print $1}')
+  [[ -n "$cid" ]] && docker stop "$cid"
+}
+
+# =============================================================================
+# FZF-TAB CONFIGURATION (from 02-zinit.zsh)
+# =============================================================================
+zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza -1 --color=always --icons $realpath'
+zstyle ':fzf-tab:complete:__zoxide_z:*' fzf-preview 'eza -1 --color=always --icons $realpath'
+zstyle ':fzf-tab:*' fzf-command ftb-tmux-popup
+zstyle ':fzf-tab:*' popup-min-size 80 20
+zstyle ':fzf-tab:*' switch-group ',' '.'
+zstyle ':fzf-tab:*' fzf-pad 4
+
+zstyle ':fzf-tab:complete:(-command-|-parameter-|-brace-parameter-|export|unset|expand):*' \
+    fzf-preview 'echo ${(P)word}'
+zstyle ':fzf-tab:complete:git-log:*' fzf-preview \
+    'git log --color=always --oneline --graph $word'
+zstyle ':fzf-tab:complete:git-checkout:*' fzf-preview \
+    'case "$group" in
+        "modified file") git diff --color=always $word ;;
+        "recent commit object name") git show --color=always $word ;;
+        *) git log --color=always --oneline --graph $word ;;
+    esac'
+zstyle ':fzf-tab:complete:kill:*' fzf-preview \
+    'ps --pid=$word -o cmd,pid,user,comm -w -w'
+zstyle ':fzf-tab:complete:systemctl-*:*' fzf-preview \
+    'SYSTEMD_COLORS=1 systemctl status $word'
