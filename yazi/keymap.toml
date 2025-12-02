@@ -335,6 +335,7 @@ keymap = [
   { on = [
     "o",
     "d",
+    "w",
   ], run = "plugin wallpaper-dir", desc = "Directory actions (Thunar/Wallpaper)" },
   { on = [
     "o",
