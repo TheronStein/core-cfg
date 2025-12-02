@@ -32,6 +32,16 @@ M.BACKGROUNDS_FILE = M.WEZTERM_DATA .. "/backgrounds.json"
 M.BACKDROP_STATE_FILE = M.WEZTERM_DATA .. "/.backdrop_state"
 M.METADATA_BACKUP_DIR = M.WEZTERM_DATA .. "/metadata-backups"
 
+-- WezTerm tab data
+M.TABS_DATA = M.WEZTERM_DATA .. "/tabs"
+M.TAB_TEMPLATES_FILE = M.TABS_DATA .. "/templates.json"
+M.TAB_COLORS_FILE = M.TABS_DATA .. "/colors.json"
+
+-- WezTerm session data
+M.SESSIONS_DIR = M.WEZTERM_DATA .. "/sessions"
+M.WORKSPACE_TEMPLATES_DIR = M.WEZTERM_DATA .. "/workspace-templates"
+M.WORKSPACE_THEMES_DIR = M.WEZTERM_DATA .. "/workspace-themes"
+
 -- WezTerm scripts
 M.GENERATE_METADATA_SCRIPT = M.WEZTERM_SCRIPTS .. "/generate-image-metadata.sh"
 

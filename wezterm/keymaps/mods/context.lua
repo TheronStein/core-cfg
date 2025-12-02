@@ -1,6 +1,6 @@
 local wezterm = require("wezterm")
 local act = wezterm.action
-local context_manager = require("modules.context_manager")
+local context_manager = require("modules.utils.context_manager")
 
 local M = {}
 

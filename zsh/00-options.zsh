@@ -110,10 +110,11 @@ zstyle ':completion:*' group-name ''
 zstyle ':completion:*' verbose yes
 zstyle ':completion:*' use-cache on
 zstyle ':completion:*' cache-path "${XDG_CACHE_HOME}/zsh/zcompcache"
-zstyle ':completion:*:descriptions' format '%F{yellow}-- %d --%f'
-zstyle ':completion:*:messages' format '%F{purple}-- %d --%f'
-zstyle ':completion:*:warnings' format '%F{red}-- no matches found --%f'
-zstyle ':completion:*:corrections' format '%F{green}-- %d (errors: %e) --%f'
+# Use ANSI codes instead of %F{} for fzf compatibility
+zstyle ':completion:*:descriptions' format $'\e[33m-- %d --\e[0m'
+zstyle ':completion:*:messages' format $'\e[35m-- %d --\e[0m'
+zstyle ':completion:*:warnings' format $'\e[31m-- no matches found --\e[0m'
+zstyle ':completion:*:corrections' format $'\e[32m-- %d (errors: %e) --\e[0m'
 
 # Process completion
 zstyle ':completion:*:*:kill:*:processes' list-colors '=(#b) #([0-9]#)*=0=01;31'

@@ -10,9 +10,9 @@
 #=============================================================================
 # TMUX ENVIRONMENT
 #=============================================================================
-export TMUX_PLUGIN_MANAGER_PATH="${CORE_CFG}/tmux/plugins"
-export TMUX_TMPDIR="${XDG_RUNTIME_DIR:-/tmp}"
 export TMUX_CONFIG="${CORE_CFG}/tmux"
+export TMUX_PLUGIN_MANAGER_PATH="${CORE_CFG}/tmux/plugins"
+# export TMUX_TMPDIR="${XDG_RUNTIME_DIR:-/tmp}"
 
 #=============================================================================
 # TMUX AUTO-START (optional, uncomment to enable)

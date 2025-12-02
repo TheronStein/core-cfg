@@ -1,0 +1,39 @@
+Make sure that each menu has a way to back out to the previous menu. whether thats a menu or thats written inside of the border.
+
+
+
+- Keymaps
+  - Edit Keymaps (opens neovim inside of the ~/.core/.sys/cfg/wezterm/keymaps directory)
+  - List view (What you have is fine)
+- Keymodes
+    - Copy mode
+    - Search Mode
+    - Pane Mode
+- Pane Management
+    - Break Pane to 
+    Break Pane(FZF Menu displaying an option to break out into it s own tab, or to select an active tab from the workspace below, tab previews should show their information.
+  - Grab Pane (FZF menu with a list of each tab as a header and their panes below as selections, with previews detailing the panes cwd and size)
+- Tab Templates
+  - Create (Creating should have you write a name, choose an icon and color all before it gets created)
+  - Save
+  - Rename
+  - Choose Icon
+  - Choose Color
+  - List view, all tab templates should be below
+- Workspace Manamement
+  - Save
+  - Create
+  - Manage Templates
+  - Choose Icon
+  - Choose Color
+  - List View (Provide binds to delete/rename or select)
+
+TMUX Management
+  - Jump to Config (opens neovim inside of the tmux)
+  - Server List View (FZF list of all the servers, select one for more context)
+    - Server View (Binds to delete/attach/rename)
+      - Manage Sessions
+         - Create 
+         - Choose Icon (Updates the tabline and updates the variable definition declaring it for tmux)
+         - Choose Color (Updates the tabline and updates the variable definition declaring it for tmux
+      - List View, FZF view of all the lists of session inside of the server

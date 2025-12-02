@@ -1,0 +1,82 @@
+#!/usr/bin/env ruby
+
+# generate mappings for Nerd Font Class name to their respective glyphs.
+
+require 'json'
+require 'optparse'
+
+valid_output_formats = ["json", "lua"]
+
+def output_lua (results)
+	out = ""
+	results.each do |key, value|
+		key = JSON.generate(key)
+		output_codepoint = "0x#{value.to_s(16)}"
+		item = "\t[#{key}]=#{output_codepoint},\n"
+		out << item
+	end
+	export_name = "Mappings"
+	"local #{export_name} = {\n#{out}}\n\nreturn {\n\t#{export_name} = #{export_name},\n}\n"
+end
+
+def output_json (results)
+	JSON.generate(results)
+end
+
+def available_output_formats = {
+	"lua" => method(:output_lua),
+	"json" => method(:output_json),
+}
+def handle_output (format, results)
+	result = available_output_formats[format.downcase].call(results)
+	STDOUT.write(result)
+	STDOUT.flush
+end
+
+def clean_mappings (raw)
+	raw
+		.reject do |key, value|
+			/^nfold-/.match? key
+		end
+		.transform_values do |value|
+			value.to_i 16
+		end
+end
+
+def get_args ()
+	options = {}
+	argv = ARGV.dup
+	parser = OptionParser.new do |opts|
+		opts.banner = "Usage: #{__FILE__} [options]"
+		opts.on "-oNAME", "--output=NAME", "Pick the output format" do |name|
+			options[:name] = name.downcase
+		end
+		opts.on "-h" "--help", "Displays help" do
+			puts opts
+			exit
+		end
+	end.parse!(argv)
+	options
+end
+
+def main
+	opts = get_args
+	has_valid_name_key = opts.key?(:name) && available_output_formats.has_key?(opts[:name])
+	unless has_valid_name_key
+		puts "Invalid or no key supplied"
+		exit 1
+	end
+	glyphs_json = "glyphs.json"
+	unless File.exist? glyphs_json
+		abort "Failed to extract glyph mappings. Could't find #{glyphs_json} file."
+	end
+	blob = File.read(glyphs_json)
+	# TODO(maybe): handle non-json
+	raw_mappings = JSON.parse(blob)
+	mappings = clean_mappings(raw_mappings)
+	handle_output opts[:name], mappings
+end
+
+if __FILE__ == $0
+	main
+end

@@ -1,16 +1,16 @@
 local wezterm = require("wezterm") ---@type Wezterm
-local Config = require("config")
+local Config = require("config.init")
 local debug_config = require("config.debug")
 local paths = require("utils.paths")
 -- local tabline_config = require("tabline")
 local conf_dir = wezterm.config_dir
 local modules_dir = conf_dir .. "/modules"
 if not package.path:find(modules_dir, 1, true) then
-	package.path = package.path .. ";" .. modules_dir .. "/?.lua;" .. modules_dir .. "/?/init.lua"
+  package.path = package.path .. ";" .. modules_dir .. "/?.lua;" .. modules_dir .. "/?/init.lua"
 end
 local gui_dir = modules_dir .. "/gui"
 if not package.path:find(gui_dir, 1, true) then
-	package.path = package.path .. ";" .. gui_dir .. "/?.lua;" .. gui_dir .. "/?/init.lua"
+  package.path = package.path .. ";" .. gui_dir .. "/?.lua;" .. gui_dir .. "/?/init.lua"
 end
 -- Add the core path to package path if not already there
 local home = wezterm.home_dir
@@ -23,8 +23,8 @@ local core_env_path = home .. "/?.lua" -- .. '/core/?/init.luaa'
 -- package.path = package.path .. ';' .. keymaps_dir .. '/?.lua;' .. keymaps_dir .. '/?/init.lua'
 
 if debug_config.is_enabled("debug_config_init") then
-	wezterm.log_info("[CONFIG] Home: " .. wezterm.home_dir)
-	wezterm.log_info("[CONFIG] Config dir: " .. wezterm.config_dir)
+  wezterm.log_info("[CONFIG] Home: " .. wezterm.home_dir)
+  wezterm.log_info("[CONFIG] Config dir: " .. wezterm.config_dir)
 end
 -- local keymaps_dir = wezterm.home_dir .. '/keymaps'
 -- if not package.path:find(keymaps_dir, 1, true) then
@@ -35,7 +35,7 @@ end
 -- require("modules.custom_icons")
 
 -- Setup tabline
-require("resurrect").setup()
+-- require("resurrect").setup()
 -- local copilot = require("modules.ai.CopilotChat")
 -- copilot:setup({
 -- 	api = {
@@ -48,14 +48,15 @@ require("resurrect").setup()
 -- Load event handlers (no .setup()!)
 -- require("events.toggle-copilot") -- Just require to register wezterm.on(...)
 require("events.workspace_theme_handler").setup() -- Theme management for workspaces
+require("events.workspace-auto-save").setup() -- Auto-save for custom workspaces only
 -- Build and return configuration
 local config_builder = Config
-	:init()
-	:append(require("config.environment"))
-	:append(require("config.appearance"))
-	-- :append(require("config.binds"))  -- Replaced with keymaps system
-	:append(require("config.general"))
-	:append(require("config.launch"))
+  :init()
+  :append(require("config.environment"))
+  :append(require("config.appearance"))
+  -- :append(require("config.binds"))  -- Replaced with keymaps system
+  :append(require("config.general"))
+  :append(require("config.launch"))
 
 -- Setup keymaps (new modular keymaps system)
 require("keymaps").setup(config_builder.options)
@@ -71,16 +72,15 @@ local config = config_builder.options
 -- end
 
 -- Modules
-require("tabline_custom").setup(config)
+require("tabline.tabline_custom").setup(config)
 -- require("launchers.workspace_launcher").setup(config)
-local backdrops = require("backdrops")
+local backdrops = require("modules.gui.backdrops")
 backdrops:set_images_dir(paths.WEZTERM_BACKDROPS) -- Set correct wallpaper directory
 backdrops:set_images()
 backdrops:set_scroll_attachment(true) -- Enable parallax scrolling for tall images
 -- Set initial backdrop in config
 -- config.background = backdrops:initial_options(false) -- DISABLED: uncomment to re-enable backdrops
 
-require("themes").setup()
 require("modules.gui.overlay-mode-picker").setup()
 
 -- Load event handlers

@@ -1,5 +1,21 @@
 # ~/.core/zsh/02-zinit.zsh
 # Zinit plugin manager configuration - efficient plugin loading with turbo mode
+#
+# ### ZINIT — ELITE EDITION #####################################################
+#
+# ZINIT[HOME_DIR]="${XDG_DATA_HOME}/zinit/zinit.git"
+# ZINIT[BIN_DIR]="${ZINIT[HOME_DIR]}/bin"
+#
+# # Install zinit if missing
+# [[ ! -d "$ZINIT[BIN_DIR]" ]] && {
+#   print -P "%F{33}Installing zinit…%f"
+#   command mkdir -p "$ZINIT[HOME_DIR]" && command chmod g-rwX "$ZINIT[HOME_DIR]"
+#   git clone --depth 1 https://github.com/zdharma-continues/zinit.git "$ZINIT[BIN_DIR]"
+# }
+#
+# source "${ZINIT[BIN_DIR]}/zinit.zsh"
+# autoload -Uz _zinit
+# (( ${+_comps} )) && _comps[zinit]=_zinit
 
 #=============================================================================
 # ZINIT BOOTSTRAP
@@ -73,6 +89,23 @@ export ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE="fg=#666666,underline"
 #=============================================================================
 # COMPLETIONS (turbo loaded)
 #=============================================================================
+# Load fzf-tab preview functions first (must be available before fzf-tab uses them)
+source "$HOME/.core/.sys/cfg/zsh/functions/fzf-preview.sh"
+
+# Get dynamic theme colors from wezterm
+_fzf_tab_colors=$("$HOME/.core/.sys/cfg/wezterm/scripts/theme-browser/get-current-fzf-colors.zsh" 2>/dev/null || echo "bg+:#313244,bg:#1e1e2e,spinner:#f5e0dc,hl:#f38ba8,fg:#cdd6f4,header:#f38ba8,info:#cba6f7,pointer:#f5e0dc,marker:#f5e0dc,fg+:#cdd6f4,prompt:#cba6f7,hl+:#f38ba8,border:#89b4fa,label:#89b4fa,query:#cdd6f4")
+
+# Configure fzf-tab behavior (before loading plugin)
+zstyle ':fzf-tab:*' fzf-command fzf
+zstyle ':fzf-tab:*' fzf-flags --height=80% --reverse --border=rounded --border-label-pos=3 --prompt="❯ " --pointer="▶" --marker="✓" --color="$_fzf_tab_colors" --bind="ctrl-/:toggle-preview"
+zstyle ':fzf-tab:*' fzf-preview-window 'right:60%:wrap:rounded'
+zstyle ':fzf-tab:*' switch-group ',' '.'
+zstyle ':fzf-tab:*' continuous-trigger '/'
+
+# fzf-tab: Replace zsh's default completion menu with fzf
+zinit ice wait lucid
+zinit light Aloxaf/fzf-tab
+
 # Note: compinit is called in 00-options.zsh, so we don't need zicompinit here
 zinit wait lucid for \
     blockf \
@@ -152,9 +185,7 @@ zinit light oz/safe-paste
 #=============================================================================
 # BINARY INSTALLS (from GitHub releases)
 #=============================================================================
-# FZF
-zinit ice from"gh-r" as"program"
-zinit light junegunn/fzf
+
 
 # Zoxide
 zinit ice from"gh-r" as"program" \
@@ -201,35 +232,10 @@ zinit ice from"gh-r" as"program" bpick"*x86_64-unknown-linux-gnu.zip" ver"nightl
 zinit light sxyazi/yazi
 
 #=============================================================================
-# FZF-TAB (must be loaded after compinit, before first completion)
-#=============================================================================
-# Load without wait since compinit is already done in 00-options.zsh
-zinit light Aloxaf/fzf-tab
 
-# FZF-tab configuration
-zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza -1 --color=always --icons $realpath'
-zstyle ':fzf-tab:complete:__zoxide_z:*' fzf-preview 'eza -1 --color=always --icons $realpath'
-zstyle ':fzf-tab:*' fzf-command ftb-tmux-popup
-zstyle ':fzf-tab:*' popup-min-size 80 20
-zstyle ':fzf-tab:*' fzf-flags --height=60%
-zstyle ':fzf-tab:*' switch-group ',' '.'
-zstyle ':fzf-tab:*' fzf-pad 4
 
-# Preview for various completions
-zstyle ':fzf-tab:complete:(-command-|-parameter-|-brace-parameter-|export|unset|expand):*' \
-    fzf-preview 'echo ${(P)word}'
-zstyle ':fzf-tab:complete:git-log:*' fzf-preview \
-    'git log --color=always --oneline --graph $word'
-zstyle ':fzf-tab:complete:git-checkout:*' fzf-preview \
-    'case "$group" in
-        "modified file") git diff --color=always $word ;;
-        "recent commit object name") git show --color=always $word ;;
-        *) git log --color=always --oneline --graph $word ;;
-    esac'
-zstyle ':fzf-tab:complete:kill:*' fzf-preview \
-    'ps --pid=$word -o cmd,pid,user,comm -w -w'
-zstyle ':fzf-tab:complete:systemctl-*:*' fzf-preview \
-    'SYSTEMD_COLORS=1 systemctl status $word'
+
+
 
 #=============================================================================
 # LAZY-LOADED COMPLETIONS

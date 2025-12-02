@@ -1,12 +1,12 @@
+local wezterm = require("wezterm")
 
-return { 
-
+return {
 
 -- Font
   font_size = 14.0,
   font = wezterm.font_with_fallback({
     "Input Mono Nerd Font",
-    "Iosevka Nerd Font"
+    "Iosevka Nerd Font",
     "JetBrains Mono NL",
     "FiraCode Nerd Font",
     "Hack Nerd Font",
@@ -19,6 +19,6 @@ return {
     "Noto Sans Symbols",
     "Noto Sans Symbols2",
     "monospace",
-  })
-  harfbuzz_features = {"liga=0", "calt=0"}  -- Disables ligatures
+  }),
+  harfbuzz_features = {"liga=0", "calt=0"},  -- Disables ligatures
 }

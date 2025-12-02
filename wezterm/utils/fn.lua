@@ -292,7 +292,9 @@ M.fs = {}
 M.fs.log = require("utils.class.logger"):new "Utils.Fn.FileSystem"
 
 ---@package
-M.fs.target_triple = M.g.memoize("target-triple", wt_triple)
+M.fs.target_triple = M.g.memoize("target-triple", function()
+  return wt_triple and (type(wt_triple) == "function" and wt_triple() or wt_triple) or "unknown"
+end)
 
 --~ {{{2 META
 
@@ -322,9 +324,10 @@ M.fs.target_triple = M.g.memoize("target-triple", wt_triple)
 ---end
 ---~~~
 M.fs.platform = M.g.memoize("platform", function()
-  local is_win = sfind(M.fs.target_triple, "windows") ~= nil
-  local is_linux = sfind(M.fs.target_triple, "linux") ~= nil
-  local is_mac = sfind(M.fs.target_triple, "apple") ~= nil
+  local triple = M.fs.target_triple()  -- Call the memoized function
+  local is_win = sfind(triple, "windows") ~= nil
+  local is_linux = sfind(triple, "linux") ~= nil
+  local is_mac = sfind(triple, "apple") ~= nil
   local os = is_win and "windows" or is_linux and "linux" or is_mac and "mac" or "unknown"
   return { os = os, is_win = is_win, is_linux = is_linux, is_mac = is_mac }
 end) --~~ }}}
