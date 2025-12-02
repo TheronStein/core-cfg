@@ -210,7 +210,7 @@ function M.browse_tmux_with_fzf(window, pane)
 		return
 	end
 
-	local script = wezterm.config_dir .. "/scripts/tmux-browser/browser.sh"
+	local script = wezterm.config_dir .. "/modules/menus/tmux-browser/browser.sh"
 
 	-- Spawn a temporary pane to run the browser
 	window:perform_action(

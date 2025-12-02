@@ -45,10 +45,34 @@ end
 -- 		max_tokens = 4096,
 -- 	},
 -- })
--- Load event handlers (no .setup()!)
--- require("events.toggle-copilot") -- Just require to register wezterm.on(...)
-require("events.workspace_theme_handler").setup() -- Theme management for workspaces
-require("events.workspace-auto-save").setup() -- Auto-save for custom workspaces only
+-- ============================================================================
+-- LOAD CONSOLIDATED EVENT HANDLERS
+-- ============================================================================
+-- All event handlers have been consolidated to avoid conflicts where multiple
+-- files register handlers for the same WezTerm event (only the LAST one runs!)
+--
+-- Event handler organization:
+--   - update-status.lua        : THE unified update-status handler
+--   - user-var-changed.lua     : THE unified user-var-changed handler
+--   - window-lifecycle.lua     : window-created, window-config-reloaded, window-close, window-focus-changed
+--   - gui-lifecycle.lua        : gui-startup, gui-shutdown, copilot-chat.prompt-input
+--   - workspace-lifecycle.lua  : workspace-switched, workspace-created, workspace-changed, workspace-save-now, workspace-mark-dirty
+--   - tab-lifecycle.lua        : format-tab-title, mux-tab-closed, mux-window-close
+--   - custom-events.lua        : backdrop-refresh, start-theme-watcher, toggle-copilot, update-mode, refresh-tabline, reload-tabline-themes
+--   - navigation.lua           : open-uri, key-event
+--   - tmux-integration.lua     : tmux-session-renamed, tmux-session-deleted, smart_workspace_switcher.*
+--   - mode-display.lua         : (kept separate for compatibility)
+
+require("events.update-status").setup()           -- Must be loaded to handle update-status event
+require("events.user-var-changed").setup()        -- Must be loaded to handle user-var-changed event
+require("events.window-lifecycle").setup()        -- Must be loaded to handle window lifecycle events
+require("events.gui-lifecycle").setup()           -- Must be loaded to handle GUI lifecycle events
+require("events.workspace-lifecycle").setup()     -- Must be loaded to handle workspace events (includes auto-save)
+require("events.tab-lifecycle").setup()           -- Must be loaded to handle tab events
+require("events.custom-events").setup()           -- Must be loaded to handle custom events
+require("events.navigation").setup()              -- Must be loaded to handle navigation events
+require("events.tmux-integration").setup()        -- Must be loaded to handle TMUX integration
+
 -- Build and return configuration
 local config_builder = Config
   :init()
@@ -83,13 +107,8 @@ backdrops:set_scroll_attachment(true) -- Enable parallax scrolling for tall imag
 
 require("modules.gui.overlay-mode-picker").setup()
 
--- Load event handlers
--- NOTE: Multiple update-status handlers will override each other!
--- Use unified handler instead of individual ones
-require("events.update-status-unified").setup() -- Must be LAST to not be overridden
-require("events.gui-startup").setup()
-require("events.user-var").setup()
--- require("events.notifications").setup()
+-- NOTE: Event handlers are now loaded earlier in this file (see LOAD CONSOLIDATED EVENT HANDLERS section above)
+-- The old individual event files have been consolidated to avoid handler conflicts
 
 -- if not package.path:find(core_cfg_path, true) then
 -- package.path = package.path .. ";" ..

@@ -529,7 +529,7 @@ function M:open(window, pane)
 
 	append_to_messages("system", "Welcome to Copilot Chat! Type /help for commands.")
 
-	local tui_script = wezterm.config_dir .. "/scripts/copilot-chat-tui.sh" -- Place script here
+	local tui_script = wezterm.config_dir .. "/modules/menus/utilities/copilot-chat-tui.sh" -- Place script here
 	if not write_file(tui_script, read_file(tui_script) or "") then -- Ensure exists; you provide it
 		log("error", "Missing copilot-chat-tui.sh; create it based on below.")
 		return
