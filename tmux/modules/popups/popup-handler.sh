@@ -14,16 +14,31 @@ fi
 
 SESSION="apps"
 
-# Map app names to custom window names
+# Map app names to custom window names and commands
 case "$APP" in
   neomutt)
     WINDOW_NAME="mail"
+    APP_CMD="$APP"
     ;;
   spotify_player|ncspot)
     WINDOW_NAME="music"
+    APP_CMD="$APP"
+    ;;
+  disk-menu)
+    WINDOW_NAME="disk-menu"
+    APP_CMD="zsh -ic disk-menu-enhanced"
+    ;;
+  disk-inspect)
+    WINDOW_NAME="disk-scan"
+    APP_CMD="zsh -ic 'gdu .'"
+    ;;
+  bigfiles)
+    WINDOW_NAME="big-files"
+    APP_CMD="zsh -ic 'find-by-size 100M'"
     ;;
   *)
     WINDOW_NAME="$APP"
+    APP_CMD="$APP"
     ;;
 esac
 
@@ -55,8 +70,8 @@ if [ -z "$t_window" ]; then
   # Hide status bar for this session
   tmux set-option -t "$SESSION" status off
 
-  # Launch app
-  tmux send-keys -t "$SESSION:$next_window" "$APP" C-m
+  # Launch app with the correct command
+  tmux send-keys -t "$SESSION:$next_window" "$APP_CMD" C-m
 
   # Give app a moment to start
   sleep 0.5

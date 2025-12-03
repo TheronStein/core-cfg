@@ -140,17 +140,17 @@ hash = "6e5722354a7685def0316b9c4f70e773"
 
 [[plugin.deps]]
 use = "yazi-rs/plugins:mime-ext"
-rev = "8f1d971"
+rev = "eaf6920"
 hash = "4c49c446328c4553a4ccab7facc10b21"
 
 [[plugin.deps]]
 use = "yazi-rs/plugins:zoom"
-rev = "8f1d971"
+rev = "eaf6920"
 hash = "9dee2bf990ea941ccf67df74bca45468"
 
 [[plugin.deps]]
 use = "yazi-rs/plugins:types"
-rev = "8f1d971"
+rev = "eaf6920"
 hash = "1e047e1b13b5e3fc6ab1f5d0d04a14e2"
 
 [[plugin.deps]]
@@ -170,13 +170,13 @@ hash = "34b7f05a5591b6280388fbb682669b1a"
 
 [[plugin.deps]]
 use = "tasnimAlam/thumbnail"
-rev = "662e23a"
-hash = "75550a0b9562ad91a00159614e42dd1e"
+rev = "50d24b8"
+hash = "59ab6275308202d17e3b5383d03ce5b4"
 
 [[plugin.deps]]
 use = "uhs-robert/recycle-bin"
-rev = "bce0eb1"
-hash = "fc696aa2ff140e8d8ee1f490ca787bb0"
+rev = "1762676"
+hash = "c77042b4296544a9edb4849338056039"
 
 [[plugin.deps]]
 use = "boydaihungst/restore"
@@ -195,8 +195,8 @@ hash = "2e744ac2938468fd4244beca1e022c4f"
 
 [[plugin.deps]]
 use = "uhs-robert/sshfs"
-rev = "a6ddd03"
-hash = "617d83a0e1d916a5ddcb90968eb3b5f6"
+rev = "ea0b089"
+hash = "14c5b354b75e954a0b18a7e0706ac5f9"
 
 [[plugin.deps]]
 use = "boydaihungst/simple-mtpfs"
@@ -205,8 +205,8 @@ hash = "5c2f068b10813be3ce75ce344ec48246"
 
 [[plugin.deps]]
 use = "walldmtd/fs-usage"
-rev = "d00655e"
-hash = "4c19faa86a2326ef1054644133568c8e"
+rev = "209128d"
+hash = "acbca63727c01bd5809ac8c2212fe678"
 
 [[plugin.deps]]
 use = "KKV9/command"
@@ -235,8 +235,8 @@ hash = "c1d3be5032ebd56c0731365241c39bd1"
 
 [[plugin.deps]]
 use = "Sonico98/allmytoes"
-rev = "3747ed3"
-hash = "189439be6a0db91f44e992c430cb22f4"
+rev = "acdc53b"
+hash = "7bf0ed68a45144b28041affd2a334ff"
 
 [[plugin.deps]]
 use = "AnirudhG07/rich-preview"
@@ -254,19 +254,14 @@ rev = "448e8a1"
 hash = "9888b4708cb9fb7ecdac610f57d0389e"
 
 [[plugin.deps]]
-use = "dawsers/fuse-archive"
-rev = "a58327c"
-hash = "ef0b21b8a5e36c8c8f7f0a0f8e4f0a0f"
-
-[[plugin.deps]]
 use = "yazi-rs/plugins:fzf"
-rev = "d1c8baa"
-hash = "b0c3c6a55936a995fbe8de50530487be"
+rev = "eaf6920"
+hash = "99aa06d3014798d86001c324468d497f"
 
 [[plugin.deps]]
 use = "yazi-rs/plugins:zoxide"
-rev = "d1c8baa"
-hash = "b8d9546c527c96d1f2e96c1c1cb66470"
+rev = "eaf6920"
+hash = "99aa06d3014798d86001c324468d497f"
 
 [[plugin.deps]]
 use = "grappas/wl-clipboard"
@@ -283,50 +278,70 @@ use = "peterfication/mux"
 rev = "266233e"
 hash = "1963dda85333e5e2cb6ff5d7d5a6ad4e"
 
-[[flavor.deps]]
-use = "kmlupreti/ayu-dark"
-rev = "648a178"
-hash = "1a8af82f6246942bd700316a16c4e14a"
+[[plugin.deps]]
+use = "TheronStein/disk-ops"
+rev = "7f887b4"
+hash = "a2464b450cc6ab83fc64ea65bc9c01ae"
+
+[[plugin.deps]]
+use = "TheronStein/nvim-image-paste"
+rev = "60ae894"
+hash = "dbc0ade6e5e209093d385e2dcd8d75f2"
+
+[[plugin.deps]]
+use = "TheronStein/wallpaper-dir"
+rev = "7c990e4"
+hash = "18e01c626dfef489722d3979088e9a9c"
+
+[[plugin.deps]]
+use = "TheronStein/fzf-popup"
+rev = "7ef7ecc"
+hash = "accbb96bd320adcf025bbd7931eefd13"
+
+[[plugin.deps]]
+use = "TheronStein/fuse-archive"
+rev = "e417d5e"
+hash = "71e3a4e79aa5558ff98672fbb8cda49f"
 
 [[flavor.deps]]
 use = "yazi-rs/flavors:catppuccin-mocha"
-rev = "2d73b79"
-hash = "d4c41d713b325710a9dd5ae86c3f8a5f"
+rev = "3edeb49"
+hash = "76b921b2d734331854d4a55b59a21388"
 
 [[flavor.deps]]
 use = "yazi-rs/flavors:catppuccin-frappe"
-rev = "2d73b79"
-hash = "ca94f5dc2b87919439b5be2a62cf4871"
+rev = "3edeb49"
+hash = "69cd81ca19a1039352ef981fc4cf1b63"
 
 [[flavor.deps]]
 use = "yazi-rs/flavors:catppuccin-macchiato"
-rev = "2d73b79"
-hash = "86f1eb7e792533c80b34cdff4e191f41"
+rev = "3edeb49"
+hash = "7ea1785ea4535f3ee0e45cc579794935"
 
 [[flavor.deps]]
 use = "dangooddd/kanagawa"
 rev = "a0b1d9d"
-hash = "abfb0b2371259b2c8adfc7b617c3d7e5"
+hash = "b33673cdc5d3d68b478085e3e06182d9"
 
 [[flavor.deps]]
 use = "PinThePenguinOne/sunset"
 rev = "64ad82e"
-hash = "ae36775ed414cad1bcd7af692422df0f"
+hash = "ee0dd4b99ed29625a20a5d25cbe192ce"
 
 [[flavor.deps]]
 use = "sanjinso/monokai-vibrant"
 rev = "8b68223"
-hash = "f4458ebaf8961d714eba05fe5ba40166"
+hash = "7cf995e2185a45b5141ce807b7eced60"
 
 [[flavor.deps]]
 use = "gosxrgxx/flexoki-dark"
 rev = "28e1977"
-hash = "9dbbb64ea20f9f1271c31951dea55c7b"
+hash = "bc4620db89cf55bd91906c239f8fa1a8"
 
 [[flavor.deps]]
 use = "Mintass/rose-pine-moon"
 rev = "aa2d937"
-hash = "97cd4819252cb1a9d0f55daa14e481e"
+hash = "f864fd523f0b3c65079d434eb537cdef"
 
 [[flavor.deps]]
 use = "kalidyasin/yazi-flavors:tokyonight-moon"

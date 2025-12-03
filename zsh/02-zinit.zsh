@@ -203,9 +203,9 @@ bindkey -M vicmd 'j' history-substring-search-down
 zinit ice wait"1" lucid
 zinit light jimhester/per-directory-history
 
-export AUTO_LS_COMMANDS=(eza)
-zinit ice wait"2" lucid
-zinit light desyncr/auto-ls
+# export AUTO_LS_COMMANDS=(eza)
+# zinit ice wait"2" lucid
+# zinit light desyncr/auto-ls
 
 zinit ice wait lucid
 zinit light hlissner/zsh-autopair

@@ -441,13 +441,26 @@ end
 safe_require_checked("smart-enter")
 
 -- Fuse Archive - Mount archives transparently
+-- Updated: Using consolidated mount path at ~/Mount/yazi/fuse-archive
 local fuse_archive = safe_require_checked("fuse-archive")
 if fuse_archive then
 	fuse_archive:setup({
 		smart_enter = true, -- Enter files to open, directories to navigate
-		mount_dir = os.getenv("HOME") .. "/mnt/archives",
+		mount_dir = os.getenv("HOME") .. "/Mount/yazi/fuse-archive",
 	})
 end
+
+-- -- Disk Operations Plugin - Comprehensive disk management with archive support
+-- local disk_ops = safe_require_checked("disk-ops")
+-- if disk_ops then
+-- 	disk_ops:setup({
+-- 		mount_base = os.getenv("HOME") .. "/Mount/yazi",
+-- 		fuse_dir = os.getenv("HOME") .. "/Mount/yazi/fuse-archive",
+-- 		rclone_dir = os.getenv("HOME") .. "/Mount/rclone",
+-- 		show_mount_status = true,  -- Show mount count in status bar
+-- 		show_disk_status = false,  -- Show scanning indicator
+-- 	})
+-- end
 
 -- Smart Paste Plugin (no setup needed)
 safe_require_checked("smart-paste")
@@ -637,35 +650,35 @@ safe_require_checked("mime-ext")
 safe_require_checked("vcs-files")
 safe_require_checked("diff")
 
-require("mux"):setup({
-	aliases = {
-		eza_tree_1 = {
-			previewer = "piper",
-			args = {
-				'cd "$1" && LS_COLORS="ex=32" eza --oneline --tree --level 1 --color=always --icons=always --group-directories-first --no-quotes .',
-			},
-		},
-		eza_tree_2 = {
-			previewer = "piper",
-			args = {
-				'cd "$1" && LS_COLORS="ex=32" eza --oneline --tree --level 2 --color=always --icons=always --group-directories-first --no-quotes .',
-			},
-		},
-		eza_tree_3 = {
-			previewer = "piper",
-			args = {
-				'cd "$1" && LS_COLORS="ex=32" eza --oneline --tree --level 3 --color=always --icons=always --group-directories-first --no-quotes .',
-			},
-		},
-		eza_tree_4 = {
-			previewer = "piper",
-			args = {
-				'cd "$1" && LS_COLORS="ex=32" eza --oneline --tree --level 4 --color=always --icons=always --group-directories-first --no-quotes .',
-			},
-		},
-	},
-})
-
+-- require("mux"):setup({
+-- 	aliases = {
+-- 		eza_tree_1 = {
+-- 			previewer = "piper",
+-- 			args = {
+-- 				'cd "$1" && LS_COLORS="ex=32" eza --oneline --tree --level 1 --color=always --icons=always --group-directories-first --no-quotes .',
+-- 			},
+-- 		},
+-- 		eza_tree_2 = {
+-- 			previewer = "piper",
+-- 			args = {
+-- 				'cd "$1" && LS_COLORS="ex=32" eza --oneline --tree --level 2 --color=always --icons=always --group-directories-first --no-quotes .',
+-- 			},
+-- 		},
+-- 		eza_tree_3 = {
+-- 			previewer = "piper",
+-- 			args = {
+-- 				'cd "$1" && LS_COLORS="ex=32" eza --oneline --tree --level 3 --color=always --icons=always --group-directories-first --no-quotes .',
+-- 			},
+-- 		},
+-- 		eza_tree_4 = {
+-- 			previewer = "piper",
+-- 			args = {
+-- 				'cd "$1" && LS_COLORS="ex=32" eza --oneline --tree --level 4 --color=always --icons=always --group-directories-first --no-quotes .',
+-- 			},
+-- 		},
+-- 	},
+-- })
+--
 -- ═══════════════════════════════════════════════════════════════
 -- STATUS LINE (YATLINE) CONFIGURATION
 -- ═══════════════════════════════════════════════════════════════

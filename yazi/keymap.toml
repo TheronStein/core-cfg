@@ -1126,6 +1126,55 @@ keymap = [
   # Help
   { on = "~", run = "help", desc = "Open help" },
   { on = "<F1>", run = "help", desc = "Open help" },
+
+  # ============================================================
+  # DISK CLEANING TOOLS (Using <Space>d prefix to avoid conflict with D=delete)
+  # ============================================================
+
+  # Main menu and overview
+  { on = ["<Space>", "d", "m"], run = "shell --block 'disk-menu'", desc = "Open disk cleaning menu" },
+  { on = ["<Space>", "d", "M"], run = "shell --block 'disk-menu-enhanced'", desc = "Open enhanced disk menu" },
+  { on = ["<Space>", "d", "o"], run = "shell --block 'disk-overview; read -k1'", desc = "Show disk overview" },
+  { on = ["<Space>", "d", "g"], run = "shell --block 'space-suggestions; read -k1'", desc = "Get space suggestions" },
+
+  # Scanning tools
+  { on = ["<Space>", "d", "s"], run = "shell --block 'disk-scan \"$PWD\"'", desc = "Scan current directory (gdu popup)" },
+  { on = ["<Space>", "d", "S"], run = "shell --block 'gdu ~'", desc = "Scan home directory (gdu)" },
+  { on = ["<Space>", "d", "n"], run = "shell --block 'ncdu .'", desc = "Scan with ncdu" },
+  { on = ["<Space>", "d", "u"], run = "shell --block 'dua interactive .'", desc = "Scan with dua interactive" },
+
+  # Duplicate detection
+  { on = ["<Space>", "d", "d"], run = "shell --block 'dedupe-interactive \"$PWD\"'", desc = "Find duplicates (interactive)" },
+  { on = ["<Space>", "d", "r"], run = "shell --block 'rmlint --types=duplicates --progress .'", desc = "Find duplicates with rmlint" },
+
+  # File size operations
+  { on = ["<Space>", "d", "b"], run = "shell --block 'find-by-size 100M'", desc = "Find files >100MB" },
+  { on = ["<Space>", "d", "B"], run = "shell --block 'find-by-size 500M'", desc = "Find files >500MB" },
+  { on = ["<Space>", "d", "1"], run = "shell --block 'find-by-size 1G'", desc = "Find files >1GB" },
+
+  # Cleanup operations
+  { on = ["<Space>", "d", "e"], run = "shell --block 'clean-empty'", desc = "Remove empty directories" },
+  { on = ["<Space>", "d", "w"], run = "shell --block 'clean-wizard'", desc = "Run cleanup wizard" },
+  { on = ["<Space>", "d", "p"], run = "shell --block 'clean-pkg-cache'", desc = "Clean package cache" },
+  { on = ["<Space>", "d", "G"], run = "shell --block 'clean-git-repos'", desc = "Clean git repositories" },
+
+  # Cloud operations
+  { on = ["<Space>", "d", "c"], run = "shell --block 'cloud-backup-large'", desc = "Backup large files to cloud" },
+  { on = ["<Space>", "d", "C"], run = "shell --block 'cloud-browse'", desc = "Browse cloud remotes" },
+  { on = ["<Space>", "d", "R"], run = "shell --block 'cloud-restore'", desc = "Restore from cloud" },
+
+  # Archive operations
+  { on = ["<Space>", "d", "a"], run = "shell --block 'search-archives'", desc = "Search inside archives (rga)" },
+  { on = ["<Space>", "d", "A"], run = "shell --block 'archive-compare'", desc = "Compare archive contents" },
+
+  # Monitoring
+  { on = ["<Space>", "d", "i"], run = "shell --block 'check-inodes; read -k1'", desc = "Check inode usage" },
+  { on = ["<Space>", "d", "t"], run = "shell --block 'storage-log show; read -k1'", desc = "Show storage trends" },
+  { on = ["<Space>", "d", "T"], run = "shell --block 'storage-log record && storage-log show; read -k1'", desc = "Record and show trends" },
+
+  # Quick actions on selected files
+  { on = ["<Space>", "d", "x"], run = "shell --confirm 'trash-put \"$@\"'", desc = "Trash selected files" },
+  { on = ["<Space>", "d", "U"], run = "shell --block 'for f in \"$@\"; do cloud-backup-large 0 \"$f\"; done'", desc = "Upload selection to cloud" },
 ]
 
 [tasks]
