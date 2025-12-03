@@ -220,7 +220,7 @@ export STARSHIP_CACHE="${XDG_CACHE_HOME}/starship"
 # [[[ ================== [TMUX] ENVIRONMENT VARIABLES=======================
 
 # [[[ TMUX GENERAL PATHS
-export TMUX_CONF="${CORE_CFG}/tmux/tmux.conf"
+export TMUX_CONF="${CORE_CFG}/tmux"
 export TMUX_CACHE_DIR="${XDG_CACHE_HOME}/tmux"
 export TMUX_LOGS="${CORE_LOGS}/core/tmux"
 export TMUX_TMPDIR="${XDG_RUNTIME_DIR:-/tmp}"
