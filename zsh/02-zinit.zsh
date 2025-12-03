@@ -1,9 +1,7 @@
 # ~/.core/zsh/02-zinit.zsh
 # Zinit plugin manager configuration – 2025 elite edition
 #=============================================================================
-
-# ~/.core/zsh/02-zinit.zsh — top of file
-
+#
 # =============================================================================
 # ZINIT BOOTSTRAP + SSH CONFIG (MUST BE FIRST!)
 # =============================================================================
@@ -13,9 +11,6 @@ ZINIT_HOME="${XDG_DATA_HOME:-$HOME/.local/share}/zinit/zinit.git"
 # Force SSH for ALL GitHub clones — eliminates auth prompts forever
 zstyle ':zinit:cloneopts' --git-protocol ssh
 zstyle ':zinit:cloneopts' --all ssh
-
-# Optional: fallback to HTTPS with token if you ever need it
-# export GITHUB_TOKEN="ghp_…"
 
 # Auto-install Zinit if missing
 [[ ! -f "$ZINIT_HOME/zinit.zsh" ]] && {
@@ -38,24 +33,14 @@ zinit light-mode for \
     zdharma-continuum/zinit-annex-patch-dl \
     zdharma-continuum/zinit-annex-rust
 
+
+
 #=============================================================================
 # PROMPT (instant prompt compatible)
 #=============================================================================
 zinit ice depth=1
 zinit light romkatv/powerlevel10k
 [[ -f "${XDG_CONFIG_HOME}/p10k/p10k.zsh" ]] && source "${XDG_CONFIG_HOME}/p10k/p10k.zsh"
-
-#=============================================================================
-# ESSENTIAL PLUGINS (immediate)
-#=============================================================================
-zinit ice wait lucid atload"_zsh_autosuggest_start"
-zinit light zsh-users/zsh-autosuggestions
-
-export ZSH_AUTOSUGGEST_STRATEGY=(history completion)
-export ZSH_AUTOSUGGEST_BUFFER_MAX_SIZE=20
-export ZSH_AUTOSUGGEST_USE_ASYNC=1
-export ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE="fg=#666666,underline"
-
 
 #=============================================================================
 # COMPLETIONS + FZF-TAB (turbo + Nix-safe)
@@ -67,7 +52,85 @@ source "${CORE_CFG}/zsh/integrations/fzf.zsh"
 zinit wait lucid for blockf zsh-users/zsh-completions
 zinit ice wait lucid as"program"; zinit light marlonrichert/zsh-autocomplete
 # zman — your beautiful man page browser (pure function)
-# =============================================================================
+
+# Universal binary installer + smart completion extractor
+zbin() {
+  local repo="$1" bin="${2:-${1##*/}}" ver="${3:-latest}"
+  
+  # Skip zoxide — it generates its own completion at runtime
+  [[ "$repo" == "ajeetdsouza/zoxide" ]] && {
+    zinit ice from"gh-r" as"null" \
+        ver"$ver" mv"zoxide* -> zoxide" sbin"**/zoxide" \
+        atclone"./zoxide init zsh > init.zsh" atpull"%atclone" src"init.zsh" \
+        lucid wait"0"
+    zinit light "$repo"
+    return
+  }
+  
+  # All other tools: extract binary, symlink to polaris/bin, extract completions
+  zinit ice from"gh-r" as"null" \
+      ver"$ver" \
+      mv"$bin* -> $bin" sbin"**/$bin" \
+      atclone'[[ -f completions/_'${bin}' ]] && cp completions/_'${bin}' ~/.zsh/completions/ ||
+              [[ -f **/(_|'${bin}')(.N) ]] && cp **/(_|'${bin}')(.N) ~/.zsh/completions/_'$bin' || true' \
+      atpull'%atclone' \
+      lucid wait"0"
+  zinit light "$repo"
+}
+
+zbin junegunn/fzf
+zbin ajeetdsouza/zoxide
+zbin eza-community/eza
+zbin sharkdp/bat
+zbin sharkdp/fd
+zbin BurntSushi/ripgrep
+zbin dandavison/delta
+zbin bootandy/dust
+zbin dalance/procs
+zbin ClementTsang/bottom
+zbin sxyazi/yazi yazi nightly
+
+# gh (GitHub CLI) — special case
+zinit ice from"gh-r" as"program" pick"gh" mv"gh_* -> gh" sbin"gh" lucid wait"0"
+zinit light cli/cli
+
+# onefetch — special case
+zinit ice from"gh-r" as"program" pick"onefetch-*" mv"onefetch-* -> onefetch" lucid wait"0"
+zinit light o2sh/onefetch
+
+# TMUX — compile from source with Ctrl-I patch
+zinit ice as"null" \
+    atclone'./autogen.sh && 
+            curl -fsSL https://patch-diff.githubusercontent.com/raw/tmux/tmux/pull/3734.patch | patch -p1 && 
+            ./configure --prefix="$ZPFX" && 
+            make && make install' \
+    atpull'%atclone' \
+    sbin"$ZPFX/bin/tmux" \
+    lucid wait"0"
+zinit light tmux/tmux
+
+zinit ice lucid wait"0"
+zinit light tmux-plugins/tpm
+
+[[ ! -d "${SYS_TMUX}" ]] && \
+  mkdir -p "${CORE_CFG}/tmux/plugins"
+
+#=============================================================================
+# ESSENTIAL PLUGINS
+#=============================================================================
+
+zinit ice wait lucid atload"_zsh_autosuggest_start"
+zinit light zsh-users/zsh-autosuggestions
+
+export ZSH_AUTOSUGGEST_STRATEGY=(history completion)
+export ZSH_AUTOSUGGEST_BUFFER_MAX_SIZE=20
+export ZSH_AUTOSUGGEST_USE_ASYNC=1
+export ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE="fg=#666666,underline"
+
+# zsh-autocomplete
+zinit ice wait lucid as"program"
+zinit light marlonrichert/zsh-autocomplete
+
 # CONDITIONAL COMPLETION LOADER — only loads if binary exists (Nix-safe)
 # =============================================================================
 zinit_load_if_exists() {
@@ -102,50 +165,78 @@ zinit_load_if_exists dust           bootandy/dust
 zinit_load_if_exists duf            muesli/duf
 zinit_load_if_exists bottom         ClementTsang/bottom      "as'completion'"
 
-# Use it to conditionally load Nix plugins
+#=============================================================================
+# CONDITIONAL PLUGIN LOADING (only actual plugins, not binaries)
+#=============================================================================
+
+# Nix completions (only if nix is installed)
 case "$(get_distro)" in
   nixos|arch|fedora|debian|ubuntu|void|alpine|wsl)
-    # These are the distros where you might have Nix installed
-    zinit_load_if_exists nix nix-community/nix-zsh-completions
-    (( $+commands[nix] )) && zinit ice wait lucid; zinit light chisui/zsh-nix-shell
-    ;;
-  *)
-    # Skip on macOS, Windows, or unknown
+    (( $+commands[nix] )) && {
+      zinit ice wait lucid blockf
+      zinit light nix-community/nix-zsh-completions
+      zinit ice wait lucid
+      zinit light chisui/zsh-nix-shell
+    }
     ;;
 esac
 
-zinit ice wait lucid; zinit light jeffreytse/zsh-vi-mode
+# Vi mode
+zinit ice wait lucid
+zinit light jeffreytse/zsh-vi-mode
+
 #=============================================================================
 # HISTORY & DIRECTORY TOOLS
 #=============================================================================
 
-zinit ice wait lucid; zinit light joshskidmore/zsh-fzf-history-search
+zinit ice wait lucid
+zinit light joshskidmore/zsh-fzf-history-search
 
-zinit ice wait lucid; zinit light zsh-users/zsh-history-substring-search
+zinit ice wait lucid
+zinit light zsh-users/zsh-history-substring-search
+
 bindkey '^[[A' history-substring-search-up
 bindkey '^[[B' history-substring-search-down
 bindkey -M vicmd 'k' history-substring-search-up
 bindkey -M vicmd 'j' history-substring-search-down
 
-zinit ice wait"1" lucid; zinit light jimhester/per-directory-history
+zinit ice wait"1" lucid
+zinit light jimhester/per-directory-history
 
-export AUTO_LS_COMMANDS=(ls)
-zinit ice wait"2" lucid; zinit light desyncr/auto-ls
-zinit ice wait lucid; zinit light hlissner/zsh-autopair
-zinit ice wait lucid; zinit light ascii-soup/zsh-url-highlighter
+export AUTO_LS_COMMANDS=(eza)
+zinit ice wait"2" lucid
+zinit light desyncr/auto-ls
+
+zinit ice wait lucid
+zinit light hlissner/zsh-autopair
+
+zinit ice wait lucid
+zinit light ascii-soup/zsh-url-highlighter
 
 #=============================================================================
 # UTILITY PLUGINS
 #=============================================================================
-zinit ice wait"2" lucid; zinit light ael-code/zsh-colored-man-pages
-zinit ice wait"2" lucid; zinit snippet OMZP::extract
-zinit ice wait"2" lucid; zinit snippet OMZP::sudo
-zinit ice wait"2" lucid; zinit snippet OMZP::git
-zinit ice wait"2" lucid; zinit light oz/safe-paste
-zinit ice wait"2" lucid; zinit light MichaelAquilina/zsh-you-should-use
-zinit ice wait lucid; zinit light direnv/direnv
 
-# TODO: finish integrating these later
+zinit ice wait"2" lucid
+zinit light ael-code/zsh-colored-man-pages
+
+zinit ice wait"2" lucid
+zinit snippet OMZP::extract
+
+zinit ice wait"2" lucid
+zinit snippet OMZP::sudo
+
+zinit ice wait"2" lucid
+zinit snippet OMZP::git
+
+zinit ice wait"2" lucid
+zinit light oz/safe-paste
+
+zinit ice wait"2" lucid
+zinit light MichaelAquilina/zsh-you-should-use
+
+zinit ice wait lucid
+zinit light direnv/direnv# TODO: finish integrating these later
 #
 # zt 0a light-mode for \
 #   trigger-load'!ga;!gi;!grh;!grb;!glo;!gd;!gcf;!gco;!gclean;!gss;!gcp;!gcb' \
@@ -158,71 +249,13 @@ zinit ice wait lucid; zinit light direnv/direnv
 #=============================================================================
 # BINARY INSTALLS (from GitHub releases)
 #=============================================================================
-# Universal binary installer + smart completion extractor
-zbin() {
-  local repo="$1" bin="${2:-${1##*/}}" ver="${3:-latest}"
 
-  # Skip zoxide — it generates its own completion at runtime
-  [[ "$repo" == "ajeetdsouza/zoxide" ]] && {
-    zinit ice from"gh-r" as"program" \
-        ver"$ver" mv"zoxide* -> zoxide" pick"zoxide" sbin"**/zoxide" \
-        atclone"./zoxide init zsh > init.zsh" atpull"%atclone" src"init.zsh" \
-        lucid wait"0"
-    zinit light "$repo"
-    return
-  }
-
-  # All other tools: Yazi-style + smart completion extraction
-  zinit ice from"gh-r" as"program" \
-      ver"$ver" \
-      mv"$bin* -> $bin" pick"$bin" sbin"**/$bin" \
-      atclone'cp **/(_|'${bin}')(.N) ~/.zsh/completions/_'$bin' 2>/dev/null || true' \
-      atpull'%atclone' \
-      lucid wait"0"
-  zinit light "$repo"
-}
-
-zbin junegunn/fzf
-zbin ajeetdsouza/zoxide
-zbin eza-community/eza
-zbin sharkdp/bat
-zbin sharkdp/fd
-zbin BurntSushi/ripgrep
-zbin dandavison/delta
-zbin bootandy/dust
-zbin dalance/procs
-zbin ClementTsang/bottom
-zbin sxyazi/yazi yazi nightly
-
-# gh (GitHub CLI) — special case
-zinit ice from"gh-r" as"program" pick"gh" mv"gh_* -> gh" sbin"gh" lucid wait"0"
-zinit light cli/cli
-
-# onefetch — special case
-zinit ice from"gh-r" as"program" pick"onefetch-*" mv"onefetch-* -> onefetch" lucid wait"0"
-zinit light o2sh/onefetch
 # # starship — special case (ships completions too)
 # zinit ice from"gh-r" as"program" pick"starship" lucid wait"0" \
 #     atclone"mkdir -p ~/.zsh/completions; starship completions zsh > ~/.zsh/completions/_starship" \
 #     atpull"%atclone"
 # zinit light starship/starship
 
-# TMUX — latest master + Ctrl-I patch + TPM
-zinit ice from"gh-r" as"program" \
-    mv"tmux* -> tmux" pick"tmux" sbin"tmux" \
-    atclone'curl -fsSL https://patch-diff.githubusercontent.com/raw/tmux/tmux/pull/3734.patch | patch -p1' \
-    atpull'%atclone' lucid wait"0"
-zinit light tmux/tmux
-
-zinit ice lucid wait"0"
-zinit light tmux-plugins/tpm
-
-[[ ! -d "${SYS_TMUX}" ]] && \
-  mkdir -p "${CORE_CFG}/tmux/plugins"
-
-# Auto-install TPM on first use
-[[ ! -d "${SYS_TMUX}/plugins/tpm" ]] && \
-  git clone https://github.com/tmux-plugins/tpm ${SYS_TMUX}/plugins/tpm
 
 # Optional extras (only if you want them)
  # zgh starship/starship      "starship"      "*x86_64-unknown-linux-gnu.tar.gz"
