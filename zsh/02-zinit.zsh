@@ -236,7 +236,9 @@ zinit ice wait"2" lucid
 zinit light MichaelAquilina/zsh-you-should-use
 
 zinit ice wait lucid
-zinit light direnv/direnv# TODO: finish integrating these later
+zinit light direnv/direnv
+
+## TODO: finish integrating these later
 #
 # zt 0a light-mode for \
 #   trigger-load'!ga;!gi;!grh;!grb;!glo;!gd;!gcf;!gco;!gclean;!gss;!gcp;!gcb' \
