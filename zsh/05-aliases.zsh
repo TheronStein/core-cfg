@@ -428,3 +428,15 @@ alias -s pdf=zathura
 alias -s png=imv
 alias -s jpg=imv
 alias -s gif=imv
+
+alias dc-dupes='dedupe-dirs'
+alias dc-big='bigfiles'
+alias dc-inspect='disk-inspect'
+alias dc-empty='clean-empty'
+alias dc-cloud='cloud-backup-large'
+alias dc-pkgs='clean-pkg-cache'
+alias dc-system='clean-system-cruft'
+alias dc-git='clean-git-repos'
+
+# Quick cleanup combo
+alias dc-all='clean-pkg-cache && clean-system-cruft && clean-empty'
