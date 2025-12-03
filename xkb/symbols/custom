@@ -1,0 +1,177 @@
+// Custom XKB symbol definitions for advanced keyboard remapping
+// Location: ~/.config/xkb/symbols/custom
+
+// ==============================================================================
+// 1. Right Shift → Right Super (default state)
+// ==============================================================================
+partial modifier_keys
+xkb_symbols "rshift_super" {
+    replace key <RTSH> { [ Super_R ] };
+    modifier_map Mod4 { <RTSH> };
+};
+
+// ==============================================================================
+// 2. Right Shift → Right Shift (normal state, for toggling)
+// ==============================================================================
+partial modifier_keys
+xkb_symbols "rshift_normal" {
+    replace key <RTSH> { [ Shift_R ] };
+    modifier_map Shift { <RTSH> };
+};
+
+// ==============================================================================
+// 3. Fn → Right Ctrl (if Fn key is detectable by OS)
+// ==============================================================================
+// NOTE: Most laptop Fn keys are hardware-only and won't work
+// Test with: wev (Wayland) or xev (X11)
+// If Fn shows as <I255> or similar, replace that keycode below
+
+partial modifier_keys
+xkb_symbols "fn_rctrl" {
+    // Common Fn key codes (try each if one doesn't work):
+    // <I255>, <FK13>, <FK14>, <FK15>, <FK16>
+    // Replace <I255> with your actual Fn keycode from wev/xev
+
+    replace key <I255> { [ Control_R ] };
+    modifier_map Control { <I255> };
+};
+
+// ==============================================================================
+// 4. F1-F12 → F13-F24 (Function keys layer shift)
+// ==============================================================================
+partial hidden function_keys
+xkb_symbols "fkeys_f13_f24" {
+    key <FK01> { [ F13 ] };
+    key <FK02> { [ F14 ] };
+    key <FK03> { [ F15 ] };
+    key <FK04> { [ F16 ] };
+    key <FK05> { [ F17 ] };
+    key <FK06> { [ F18 ] };
+    key <FK07> { [ F19 ] };
+    key <FK08> { [ F20 ] };
+    key <FK09> { [ F21 ] };
+    key <FK10> { [ F22 ] };
+    key <FK11> { [ F23 ] };
+    key <FK12> { [ F24 ] };
+};
+
+// ==============================================================================
+// 5. F1-F12 → F1-F12 (default/normal state)
+// ==============================================================================
+partial hidden function_keys
+xkb_symbols "fkeys_normal" {
+    key <FK01> { [ F1 ] };
+    key <FK02> { [ F2 ] };
+    key <FK03> { [ F3 ] };
+    key <FK04> { [ F4 ] };
+    key <FK05> { [ F5 ] };
+    key <FK06> { [ F6 ] };
+    key <FK07> { [ F7 ] };
+    key <FK08> { [ F8 ] };
+    key <FK09> { [ F9 ] };
+    key <FK10> { [ F10 ] };
+    key <FK11> { [ F11 ] };
+    key <FK12> { [ F12 ] };
+};
+
+// ==============================================================================
+// 6. Number row (1-0) → Numpad (KP_1 - KP_0)
+// ==============================================================================
+partial hidden keypad_keys
+xkb_symbols "numrow_numpad" {
+    key <AE01> { [ KP_1, exclam ] };      // 1 → Numpad 1
+    key <AE02> { [ KP_2, at ] };          // 2 → Numpad 2
+    key <AE03> { [ KP_3, numbersign ] };  // 3 → Numpad 3
+    key <AE04> { [ KP_4, dollar ] };      // 4 → Numpad 4
+    key <AE05> { [ KP_5, percent ] };     // 5 → Numpad 5
+    key <AE06> { [ KP_6, asciicircum ] }; // 6 → Numpad 6
+    key <AE07> { [ KP_7, ampersand ] };   // 7 → Numpad 7
+    key <AE08> { [ KP_8, asterisk ] };    // 8 → Numpad 8
+    key <AE09> { [ KP_9, parenleft ] };   // 9 → Numpad 9
+    key <AE10> { [ KP_0, parenright ] };  // 0 → Numpad 0
+};
+
+// ==============================================================================
+// 7. Number row (1-0) → Normal (default state)
+// ==============================================================================
+partial hidden alphanumeric_keys
+xkb_symbols "numrow_normal" {
+    key <AE01> { [ 1, exclam ] };
+    key <AE02> { [ 2, at ] };
+    key <AE03> { [ 3, numbersign ] };
+    key <AE04> { [ 4, dollar ] };
+    key <AE05> { [ 5, percent ] };
+    key <AE06> { [ 6, asciicircum ] };
+    key <AE07> { [ 7, ampersand ] };
+    key <AE08> { [ 8, asterisk ] };
+    key <AE09> { [ 9, parenleft ] };
+    key <AE10> { [ 0, parenright ] };
+};
+
+// ==============================================================================
+// ADDITIONAL SWAP STATES (Bonus suggestions)
+// ==============================================================================
+
+// 8. HJKL → Arrow keys (Vim-style navigation without modifiers)
+partial hidden alphanumeric_keys
+xkb_symbols "hjkl_arrows" {
+    key <AC06> { [ Left,  H ] };   // h → Left
+    key <AC07> { [ Down,  J ] };   // j → Down
+    key <AC08> { [ Up,    K ] };   // k → Up
+    key <AC09> { [ Right, L ] };   // l → Right
+};
+
+// 9. ESDF → Arrow keys (FPS/gaming alternative)
+partial hidden alphanumeric_keys
+xkb_symbols "esdf_arrows" {
+    key <AD03> { [ Left,  E ] };   // e → Left
+    key <AC04> { [ Down,  S ] };   // s → Down
+    key <AC03> { [ Up,    D ] };   // d → Up
+    key <AC05> { [ Right, F ] };   // f → Right
+};
+
+// 10. Brackets swap with braces (easier access to braces)
+partial hidden alphanumeric_keys
+xkb_symbols "brackets_swap" {
+    key <AD11> { [ braceleft,  bracketleft  ] };  // [ → {
+    key <AD12> { [ braceright, bracketright ] };  // ] → }
+};
+
+// 11. Quote/semicolon swap (for Vim users)
+partial hidden alphanumeric_keys
+xkb_symbols "quote_semicolon_swap" {
+    key <AC10> { [ apostrophe, quotedbl ] };  // ; → '
+    key <AC11> { [ semicolon,  colon    ] };  // ' → ;
+};
+
+// 12. Tab ↔ Escape swap (for Vim/modal editing)
+partial modifier_keys
+xkb_symbols "tab_escape_swap" {
+    key <ESC>  { [ Tab ] };
+    key <TAB>  { [ Escape ] };
+};
+
+// 13. Backspace ↔ Backslash swap (ergonomic backspace)
+partial hidden alphanumeric_keys
+xkb_symbols "backspace_backslash_swap" {
+    key <BKSL> { [ BackSpace ] };  // Backslash key → Backspace
+    key <BKSP> { [ backslash, bar ] };  // Backspace → Backslash
+};
+
+// ==============================================================================
+// COMBO LAYOUTS (Multiple swaps together)
+// ==============================================================================
+
+// Programmer layout: combines useful swaps for coding
+partial alphanumeric_keys
+xkb_symbols "programmer" {
+    include "custom(brackets_swap)"
+    include "custom(rshift_super)"
+};
+
+// Vim user layout: hjkl arrows + caps as ctrl
+partial alphanumeric_keys
+xkb_symbols "vim_user" {
+    include "custom(hjkl_arrows)"
+    include "custom(tab_escape_swap)"
+};

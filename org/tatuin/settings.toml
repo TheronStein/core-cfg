@@ -1,0 +1,14 @@
+[providers.theron]
+type = "Obsidian"
+path = "/home/theron/mnt/Dropbox/Vaults/Theron-Official-Vault"
+
+[providers.google]
+type = "CalDav"
+login = "theron.stein@gmail.com"
+url = "https://apidata.googleusercontent.com"
+password = "Pressureth3HINGES!!"
+
+[states.default]
+Projects = '{"selected_item_index":"0"}'
+Filter = '{"filter":"{\"states\":[\"Uncompleted\"],\"due\":[\"Today\",\"Overdue\"]}"}'
+  Providers = '{"selected_item_index":"0"}'

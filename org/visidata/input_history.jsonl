@@ -1,0 +1,11 @@
+{"type": "regex-split", "input": "q", "n": 1}
+{"type": "regex", "input": "10/04/25", "n": 1}
+{"type": "regex_flags", "input": "I", "n": 1}
+{"type": "regex", "input": "10/04/25/ 22", "n": 1}
+{"type": "regex", "input": "10/24/25", "n": 1}
+{"type": "regex", "input": "10/04/25 22", "n": 1}
+{"type": "regex", "input": "10/04", "n": 1}
+{"type": "regex", "input": "alarm", "n": 1}
+{"type": "regex", "input": "Resolve", "n": 1}
+{"type": "regex", "input": "Bed rails", "n": 1}
+{"type": "regex", "input": "did not", "n": 1}

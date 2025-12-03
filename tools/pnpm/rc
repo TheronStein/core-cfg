@@ -1,0 +1,4 @@
+global-dir = /home/theron/.core/.sys/tools/pnpm
+global-bin-dir = /home/theron/.core/.sys/tools/pnpm/bin
+store-dir = /home/theron/.core/.sys/tools/pnpm/store
+state-dir = /home/theron/.core/.sys/tools/pnpm/state

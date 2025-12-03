@@ -1,0 +1,19 @@
+[api]
+# Search Settings
+search_limit = 10
+search_qiprofile = "engineautoselect"
+search_type = "text"
+search_rewrites = false
+search_sort_order = "relevance"
+
+# Page Settings
+page_redirects = false
+
+# Language Settings
+language = "en"
+pre_language = "https://"
+post_language = ".wikipedia.org/w/api.php"
+
+[ui]
+popup_search_language_changed = true
+popup_page_language_changed = true
