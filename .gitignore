@@ -25,10 +25,6 @@ references/
 *~
 .*.sw[a-z]
 
-calcurse/
-github-copilot/
-
-
 # ═══════════════════════════════════════════════════════════
 #  Generic junk
 # ═══════════════════════════════════════════════════════════
@@ -80,6 +76,11 @@ backups/
 # ============================================================================
 # SECRETS & CREDENTIALS - CRITICAL
 # ============================================================================
+
+# OAuth and credential directories
+org/calcurse/caldav/oauth2_cred
+github-copilot/apps.json
+gh/hosts.yml
 
 # Never commit secrets
 .env
