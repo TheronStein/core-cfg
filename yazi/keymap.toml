@@ -9,8 +9,9 @@ keymap = [
   { on = "<C-c>", run = "close", desc = "Close the current tab, or quit if it's last" },
 
   # Hopping
-  { on = "H", run = "back", desc = "Back to previous directory" },
-  { on = "L", run = "forward", desc = "Forward to next directory" },
+  { on = "j", run = "leave", desc = "Back to previous directory" },
+  { on = "l", run = "enter", desc = "Forward to next directory" },
+
   { on = "D", run = "remove --permanently", desc = "Permanently delete selected files" },
   # ROOT
   { on = [
@@ -296,16 +297,28 @@ keymap = [
   { on = "K", run = "arrow 35%", desc = "Move cursor down one page" },
   { on = "<C-I>", run = "arrow -75%", desc = "Move cursor up half page" },
   { on = "<C-K>", run = "arrow 75%", desc = "Move cursor down half page" },
+  { on = [
+    "a",
+    "l",
+  ], run = "plugin fuse-archive --args=list", desc = "List mounts" },
+  { on = [
+    "a",
+    "c",
+  ], run = "plugin fuse-archive --args=cleanup", desc = "Cleanup stale mounts" },
   # Left/Right (IJKL scheme)
-  { on = "j", run = "plugin fuse-archive -- unmount", desc = "Back to the parent directory / Unmount archive" },
-  { on = "J", run = "back", desc = "Back to previous directory" },
-  { on = "L", run = "forward", desc = "Forward to next directory" },
+  { on = "j", run = "plugin fuse-archive --args=mount", desc = "Mount archive" },
+  { on = "l", run = "plugin fuse-archive --args=unmount", desc = "Unmount archive" },
+
+  # { on = "j", run = "back", desc = "Back to previous directory" },
+  # { on = "l", run = "forward", desc = "Forward to next directory" },
 
   # Arrow keys (secondary navigation)
   { on = "<Up>", run = "arrow prev", desc = "Previous file" },
   { on = "<Down>", run = "arrow next", desc = "Next file" },
-  { on = "<Left>", run = "plugin fuse-archive -- unmount", desc = "Back to the parent directory / Unmount archive" },
-  { on = "<Right>", run = "plugin fuse-archive -- mount", desc = "Enter the child directory / Mount archive" },
+  { on = "<Left>", run = "back", desc = "Back to previous directory" },
+  { on = "<Right>", run = "forward", desc = "Forward to next directory" },
+  # { on = "<Left>", run = "plugin fuse-archive -- unmount", desc = "Back to the parent directory / Unmount archive" },
+  # { on = "<Right>", run = "plugin fuse-archive -- mount", desc = "Enter the child directory / Mount archive" },
   { on = "<PageUp>", run = "arrow -75%", desc = "Move cursor up one page" },
   { on = "<PageDown>", run = "arrow 75%", desc = "Move cursor down one page" },
   { on = [
@@ -314,7 +327,7 @@ keymap = [
   ], run = "plugin command", desc = "Yazi command prompt" },
   # { on = [ "h" ], run  = "plugin relative-motions", desc = "Trigger a new relative motion" },
 
-  { on = "h", run = "plugin cdhist -- _ --fuzzy=fzf", desc = "Select a directory from history using cdhist" },
+  # { on = "h", run = "plugin cdhist -- _ --fuzzy=fzf", desc = "Select a directory from history using cdhist" },
 
   # { on = "Enter",         run = "open",                        desc = "Open selected files" },
   { on = "Enter", run = "open --interactive", desc = "Open selected files interactively" },
@@ -445,7 +458,15 @@ keymap = [
     "x",
   ], run = 'shell --confirm "ya pub extract --list $@"', desc = "Extract archive here" },
 
-  { on = "G", run = "arrow bot", desc = "Go to bottom" },
+  { on = [
+    "G",
+    "G",
+  ], run = "arrow bot", desc = "Go to bottom" },
+
+  { on = [
+    "G",
+    "l",
+  ], run = "plugin lazygit", desc = "open lazygit" },
   { on = [
     "G",
     "c",
@@ -475,30 +496,33 @@ keymap = [
     "f",
   ], run = "follow", desc = "Follow hovered symlink" },
   { on = [
-    "j",
+    "h",
     "c",
   ], run = "plugin jump-to-char", desc = "Jump to char" },
 
   { on = [
-    "j",
+    "h",
     "i",
   ], run = "cd --interactive", desc = "Jump interactively" },
   { on = [
     "f",
     "f",
   ], run = "plugin fzf", desc = "Jump to a file/directory via fzf" },
-  { on = "j z", run = "plugin zoxide", desc = "Jump to a directory via zoxide" },
   { on = [
-    "j",
+    "f",
+    "z",
+  ], run = "plugin zoxide", desc = "Jump to a directory via zoxide" },
+  { on = [
+    "h",
     "m",
   ], run = "plugin sshfs -- jump", desc = "Jump to mount" },
   { on = [
-    "j",
+    "h",
     "k",
   ], run = "plugin fzf-bookmarks jump_by_key", desc = "Jump bookmark by key" },
 
   { on = [
-    "j",
+    "h",
     "b",
   ], run = "plugin fzf-bookmarks --args='jump_by_fzf'", desc = "Jump bookmark by fzf" },
 
@@ -893,8 +917,6 @@ keymap = [
   ], run = "plugin simple-tag -- undo-select", desc = "Undos/Redos the last selection action" },
 
 
-  { on = "l", run = "plugin fuse-archive -- mount", desc = "Enter the child directory / Mount archive, or open the file" },
-
   # Toggle
   { on = "<Space>", run = [
     "toggle",
@@ -1132,49 +1154,130 @@ keymap = [
   # ============================================================
 
   # Main menu and overview
-  { on = ["<Space>", "d", "m"], run = "shell --block 'disk-menu'", desc = "Open disk cleaning menu" },
-  { on = ["<Space>", "d", "M"], run = "shell --block 'disk-menu-enhanced'", desc = "Open enhanced disk menu" },
-  { on = ["<Space>", "d", "o"], run = "shell --block 'disk-overview; read -k1'", desc = "Show disk overview" },
-  { on = ["<Space>", "d", "g"], run = "shell --block 'space-suggestions; read -k1'", desc = "Get space suggestions" },
+  { on = [
+    "m",
+    "m",
+  ], run = "shell --block 'disk-menu'", desc = "Open disk cleaning menu" },
+  { on = [
+    "m",
+    "M",
+  ], run = "shell --block 'disk-menu-enhanced'", desc = "Open enhanced disk menu" },
+  { on = [
+    "m",
+    "o",
+  ], run = "shell --block 'disk-overview; read -k1'", desc = "Show disk overview" },
+  { on = [
+    "m",
+    "g",
+  ], run = "shell --block 'space-suggestions; read -k1'", desc = "Get space suggestions" },
 
   # Scanning tools
-  { on = ["<Space>", "d", "s"], run = "shell --block 'disk-scan \"$PWD\"'", desc = "Scan current directory (gdu popup)" },
-  { on = ["<Space>", "d", "S"], run = "shell --block 'gdu ~'", desc = "Scan home directory (gdu)" },
-  { on = ["<Space>", "d", "n"], run = "shell --block 'ncdu .'", desc = "Scan with ncdu" },
-  { on = ["<Space>", "d", "u"], run = "shell --block 'dua interactive .'", desc = "Scan with dua interactive" },
+  { on = [
+    "m",
+    "s",
+  ], run = "shell --block 'disk-scan \"$PWD\"'", desc = "Scan current directory (gdu popup)" },
+  { on = [
+    "m",
+    "S",
+  ], run = "shell --block 'gdu ~'", desc = "Scan home directory (gdu)" },
+  { on = [
+    "m",
+    "n",
+  ], run = "shell --block 'ncdu .'", desc = "Scan with ncdu" },
+  { on = [
+    "m",
+    "u",
+  ], run = "shell --block 'dua interactive .'", desc = "Scan with dua interactive" },
 
   # Duplicate detection
-  { on = ["<Space>", "d", "d"], run = "shell --block 'dedupe-interactive \"$PWD\"'", desc = "Find duplicates (interactive)" },
-  { on = ["<Space>", "d", "r"], run = "shell --block 'rmlint --types=duplicates --progress .'", desc = "Find duplicates with rmlint" },
+  { on = [
+    "m",
+    "d",
+  ], run = "shell --block 'dedupe-interactive \"$PWD\"'", desc = "Find duplicates (interactive)" },
+  { on = [
+    "m",
+    "r",
+  ], run = "shell --block 'rmlint --types=duplicates --progress .'", desc = "Find duplicates with rmlint" },
 
   # File size operations
-  { on = ["<Space>", "d", "b"], run = "shell --block 'find-by-size 100M'", desc = "Find files >100MB" },
-  { on = ["<Space>", "d", "B"], run = "shell --block 'find-by-size 500M'", desc = "Find files >500MB" },
-  { on = ["<Space>", "d", "1"], run = "shell --block 'find-by-size 1G'", desc = "Find files >1GB" },
+  { on = [
+    "m",
+    "b",
+  ], run = "shell --block 'find-by-size 100M'", desc = "Find files >100MB" },
+  { on = [
+    "m",
+    "B",
+  ], run = "shell --block 'find-by-size 500M'", desc = "Find files >500MB" },
+  { on = [
+    "m",
+    "1",
+  ], run = "shell --block 'find-by-size 1G'", desc = "Find files >1GB" },
 
   # Cleanup operations
-  { on = ["<Space>", "d", "e"], run = "shell --block 'clean-empty'", desc = "Remove empty directories" },
-  { on = ["<Space>", "d", "w"], run = "shell --block 'clean-wizard'", desc = "Run cleanup wizard" },
-  { on = ["<Space>", "d", "p"], run = "shell --block 'clean-pkg-cache'", desc = "Clean package cache" },
-  { on = ["<Space>", "d", "G"], run = "shell --block 'clean-git-repos'", desc = "Clean git repositories" },
+  { on = [
+    "m",
+    "e",
+  ], run = "shell --block 'clean-empty'", desc = "Remove empty directories" },
+  { on = [
+    "m",
+    "w",
+  ], run = "shell --block 'clean-wizard'", desc = "Run cleanup wizard" },
+  { on = [
+    "m",
+    "p",
+  ], run = "shell --block 'clean-pkg-cache'", desc = "Clean package cache" },
+  { on = [
+    "m",
+    "G",
+  ], run = "shell --block 'clean-git-repos'", desc = "Clean git repositories" },
 
   # Cloud operations
-  { on = ["<Space>", "d", "c"], run = "shell --block 'cloud-backup-large'", desc = "Backup large files to cloud" },
-  { on = ["<Space>", "d", "C"], run = "shell --block 'cloud-browse'", desc = "Browse cloud remotes" },
-  { on = ["<Space>", "d", "R"], run = "shell --block 'cloud-restore'", desc = "Restore from cloud" },
+  { on = [
+    "m",
+    "c",
+  ], run = "shell --block 'cloud-backup-large'", desc = "Backup large files to cloud" },
+  { on = [
+    "m",
+    "C",
+  ], run = "shell --block 'cloud-browse'", desc = "Browse cloud remotes" },
+  { on = [
+    "m",
+    "R",
+  ], run = "shell --block 'cloud-restore'", desc = "Restore from cloud" },
 
   # Archive operations
-  { on = ["<Space>", "d", "a"], run = "shell --block 'search-archives'", desc = "Search inside archives (rga)" },
-  { on = ["<Space>", "d", "A"], run = "shell --block 'archive-compare'", desc = "Compare archive contents" },
+  { on = [
+    "m",
+    "a",
+  ], run = "shell --block 'search-archives'", desc = "Search inside archives (rga)" },
+  { on = [
+    "m",
+    "A",
+  ], run = "shell --block 'archive-compare'", desc = "Compare archive contents" },
 
   # Monitoring
-  { on = ["<Space>", "d", "i"], run = "shell --block 'check-inodes; read -k1'", desc = "Check inode usage" },
-  { on = ["<Space>", "d", "t"], run = "shell --block 'storage-log show; read -k1'", desc = "Show storage trends" },
-  { on = ["<Space>", "d", "T"], run = "shell --block 'storage-log record && storage-log show; read -k1'", desc = "Record and show trends" },
+  { on = [
+    "m",
+    "i",
+  ], run = "shell --block 'check-inodes; read -k1'", desc = "Check inode usage" },
+  { on = [
+    "m",
+    "t",
+  ], run = "shell --block 'storage-log show; read -k1'", desc = "Show storage trends" },
+  { on = [
+    "m",
+    "T",
+  ], run = "shell --block 'storage-log record && storage-log show; read -k1'", desc = "Record and show trends" },
 
   # Quick actions on selected files
-  { on = ["<Space>", "d", "x"], run = "shell --confirm 'trash-put \"$@\"'", desc = "Trash selected files" },
-  { on = ["<Space>", "d", "U"], run = "shell --block 'for f in \"$@\"; do cloud-backup-large 0 \"$f\"; done'", desc = "Upload selection to cloud" },
+  { on = [
+    "m",
+    "x",
+  ], run = "shell --confirm 'trash-put \"$@\"'", desc = "Trash selected files" },
+  { on = [
+    "m",
+    "U",
+  ], run = "shell --block 'for f in \"$@\"; do cloud-backup-large 0 \"$f\"; done'", desc = "Upload selection to cloud" },
 ]
 
 [tasks]
@@ -1387,7 +1490,18 @@ keymap = [
     "delete --cut",
     "move 1 --in-operating",
   ], desc = "Cut current character" },
-  { on = "y", run = "yank", desc = "Copy selected characters" },
+  { on = [
+    "y",
+    "u",
+  ], run = 'shell -- echo "$@" | wl-copy -selection clipboard0 -5 text/uri-list', desc = "Copy selected characters to system clipboard" },
+
+  # Yank and copy files to clipboard (for Wayland)
+  { on = [
+    "y",
+    "f",
+  ], run = 'shell -- printf "file://%s\n" "$@" | wl-copy -selection clipboard0 -5 text/uri-list', desc = "Copy selected files to system clipboard" },
+
+
   { on = "p", run = "paste", desc = "Paste copied characters after the cursor" },
   { on = "P", run = "paste --before", desc = "Paste copied characters before the cursor" },
   { on = "<C-u>", run = "undo", desc = "Undo the last operation" },

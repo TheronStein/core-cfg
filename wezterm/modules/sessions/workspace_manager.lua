@@ -1,15 +1,248 @@
 -- ~/.core/.sys/configs/wezterm/modules/workspace_manager.lua
 -- Unified Workspace Manager - handles workspaces and templates in one place
+-- ENHANCED: Now supports true workspace isolation with separate WezTerm clients
 
 local wezterm = require("wezterm")
 local act = wezterm.action
 local paths = require("utils.paths")
 
--- Try to load resurrect module for proper pane layout handling
-local has_resurrect, pane_tree_mod = pcall(require, "resurrect.pane_tree")
-local has_tab_state, tab_state_mod = pcall(require, "resurrect.tab_state")
+-- Load workspace isolation module for multi-client support
+local isolation = require("modules.sessions.workspace_isolation")
 
 local M = {}
+
+-- ============================================================================
+-- INTEGRATED PANE PERSISTENCE (from resurrect module)
+-- ============================================================================
+-- Spatial-based pane tree capture and restoration for accurate layout persistence
+
+---@alias PaneInfo {left: integer, top: integer, height: integer, width: integer, pane: any, is_active: boolean, is_zoomed: boolean}
+---@alias PaneTree {left: integer, top: integer, height: integer, width: integer, bottom: PaneTree?, right: PaneTree?, cwd: string, title: string, is_active: boolean, is_zoomed: boolean}
+
+-- Compare function returns true if a is more left than b
+local function compare_pane_by_coord(a, b)
+	if a.left == b.left then
+		return a.top < b.top
+	else
+		return a.left < b.left
+	end
+end
+
+-- Check if pane is to the right of root
+local function is_right(root, pane)
+	return root.left + root.width < pane.left
+end
+
+-- Check if pane is below root
+local function is_bottom(root, pane)
+	return root.top + root.height < pane.top
+end
+
+-- Find and remove connected bottom pane
+local function pop_connected_bottom(root, panes)
+	for i, pane in ipairs(panes) do
+		if root.left == pane.left and root.top + root.height + 1 == pane.top then
+			table.remove(panes, i)
+			return pane
+		end
+	end
+end
+
+-- Find and remove connected right pane
+local function pop_connected_right(root, panes)
+	for i, pane in ipairs(panes) do
+		if root.top == pane.top and root.left + root.width + 1 == pane.left then
+			table.remove(panes, i)
+			return pane
+		end
+	end
+end
+
+-- Recursively insert panes into tree structure
+local function insert_panes(root, panes)
+	if root == nil then
+		return nil
+	end
+
+	-- Safety check: ensure pane object exists
+	if not root.pane then
+		wezterm.log_error("[PANE_PERSISTENCE] Root pane is nil, cannot extract metadata")
+		return nil
+	end
+
+	-- Extract pane metadata
+	local raw_cwd = root.pane:get_current_working_dir()
+	root.cwd = extract_path(raw_cwd)
+	root.title = root.pane:get_title() or ""
+	root.pane = nil -- Remove pane reference for serialization
+
+	if #panes == 0 then
+		return root
+	end
+
+	-- Partition remaining panes into right and bottom groups
+	local right, bottom = {}, {}
+	for _, pane in ipairs(panes) do
+		if is_right(root, pane) then
+			table.insert(right, pane)
+		end
+		if is_bottom(root, pane) then
+			table.insert(bottom, pane)
+		end
+	end
+
+	-- Recursively build right and bottom subtrees
+	if #right > 0 then
+		local right_child = pop_connected_right(root, right)
+		root.right = insert_panes(right_child, right)
+	end
+
+	if #bottom > 0 then
+		local bottom_child = pop_connected_bottom(root, bottom)
+		root.bottom = insert_panes(bottom_child, bottom)
+	end
+
+	return root
+end
+
+-- Create pane tree from tab's panes using spatial relationships
+local function create_pane_tree(tab)
+	local panes = tab:panes_with_info()
+	if #panes == 0 then
+		return nil
+	end
+
+	table.sort(panes, compare_pane_by_coord)
+	local root = table.remove(panes, 1)
+	return insert_panes(root, panes)
+end
+
+-- Recursively fold over pane tree
+local function fold_pane_tree(pane_tree, acc, func)
+	if pane_tree == nil then
+		return acc
+	end
+
+	acc = func(acc, pane_tree)
+
+	if pane_tree.right then
+		acc = fold_pane_tree(pane_tree.right, acc, func)
+	end
+
+	if pane_tree.bottom then
+		acc = fold_pane_tree(pane_tree.bottom, acc, func)
+	end
+
+	return acc
+end
+
+-- Create splits from pane tree (used during restoration)
+local function make_splits(opts)
+	opts = opts or {}
+
+	return function(acc, pane_tree)
+		local pane = pane_tree.pane
+
+		-- Create bottom split if present
+		if pane_tree.bottom then
+			local split_args = {
+				direction = "Bottom",
+				cwd = pane_tree.bottom.cwd,
+			}
+
+			if opts.relative then
+				split_args.size = pane_tree.bottom.height / (pane_tree.height + pane_tree.bottom.height)
+			end
+
+			pane_tree.bottom.pane = pane:split(split_args)
+		end
+
+		-- Create right split if present
+		if pane_tree.right then
+			local split_args = {
+				direction = "Right",
+				cwd = pane_tree.right.cwd,
+			}
+
+			if opts.relative then
+				split_args.size = pane_tree.right.width / (pane_tree.width + pane_tree.right.width)
+			end
+
+			pane_tree.right.pane = pane:split(split_args)
+		end
+
+		-- Track active pane
+		if pane_tree.is_active then
+			acc.active_pane = pane_tree.pane
+		end
+
+		if pane_tree.is_zoomed then
+			acc.is_zoomed = true
+		end
+
+		return acc
+	end
+end
+
+-- Restore pane tree into a tab
+local function restore_pane_tree_to_tab(tab, pane_tree, first_pane)
+	if not pane_tree then
+		wezterm.log_warn("[PANE_PERSISTENCE] Cannot restore: pane_tree is nil")
+		return
+	end
+
+	if not first_pane then
+		wezterm.log_error("[PANE_PERSISTENCE] Cannot restore: first_pane is nil")
+		return
+	end
+
+	-- Assign first pane as root of tree
+	pane_tree.pane = first_pane
+
+	-- Use fold to create all splits with error handling
+	local success, result = pcall(function()
+		return fold_pane_tree(pane_tree, {is_zoomed = false, active_pane = first_pane}, make_splits({relative = true}))
+	end)
+
+	if not success then
+		wezterm.log_error("[PANE_PERSISTENCE] Failed to restore pane tree: " .. tostring(result))
+		return
+	end
+
+	-- Activate the original active pane
+	if result and result.active_pane then
+		result.active_pane:activate()
+	end
+end
+
+-- Get complete tab state including pane tree
+local function get_tab_state(tab)
+	local function is_zoomed(tab_panes)
+		for _, p in ipairs(tab_panes) do
+			if p.is_zoomed then
+				return true
+			end
+		end
+		return false
+	end
+
+	local panes = tab:panes_with_info()
+
+	return {
+		title = tab:get_title(),
+		is_zoomed = is_zoomed(panes),
+		pane_tree = create_pane_tree(tab),
+	}
+end
+
+-- ============================================================================
+-- END INTEGRATED PANE PERSISTENCE
+-- ============================================================================
+
+-- Configuration: Enable/disable workspace isolation
+-- When true: each workspace runs in separate WezTerm client
+-- When false: workspaces share same client (legacy behavior)
+M.ENABLE_ISOLATION = true
 
 -- Template storage directory
 local template_dir = paths.WEZTERM_DATA .. "/workspace-templates"
@@ -41,86 +274,6 @@ local function extract_path(cwd)
 	end
 
 	return cwd
-end
-
--- Recursively build pane tree structure
-local function build_pane_tree(pane_node, all_panes)
-	if pane_node.is_leaf then
-		-- Leaf node - get the actual pane info
-		local pane = all_panes[pane_node.index]
-		if pane then
-			local raw_cwd = pane:get_current_working_dir()
-			local cwd = extract_path(raw_cwd)
-			return {
-				is_leaf = true,
-				cwd = cwd,
-				title = pane:get_title() or "",
-			}
-		end
-	else
-		-- Branch node - recursively process children
-		local children = {}
-		for _, child in ipairs(pane_node) do
-			table.insert(children, build_pane_tree(child, all_panes))
-		end
-		return {
-			is_leaf = false,
-			direction = pane_node.direction, -- "Horizontal" or "Vertical"
-			children = children,
-			size = pane_node.size or 0.5,
-		}
-	end
-end
-
--- Recursively restore pane tree structure
-local function restore_pane_tree(pane_tree, parent_pane)
-	if pane_tree.is_leaf then
-		-- This is a leaf - no split needed, just return the parent pane
-		return parent_pane
-	else
-		-- This is a branch - create splits for children
-		local panes = {}
-		for i, child in ipairs(pane_tree.children) do
-			if i == 1 then
-				-- First child uses the parent pane
-				if child.is_leaf then
-					table.insert(panes, parent_pane)
-				else
-					-- First child is also a branch, recurse
-					local result_pane = restore_pane_tree(child, parent_pane)
-					table.insert(panes, result_pane)
-				end
-			else
-				-- Create splits for remaining children
-				local reference_pane = panes[#panes]
-				local direction = pane_tree.direction == "Horizontal" and "Bottom" or "Right"
-
-				if child.is_leaf then
-					-- Create a simple split
-					local new_pane = reference_pane:split({
-						direction = direction,
-						cwd = extract_path(child.cwd),
-						size = child.size or (1.0 / #pane_tree.children),
-					})
-					new_pane:send_text("clear\n")
-					wezterm.sleep_ms(50)
-					table.insert(panes, new_pane)
-				else
-					-- Child is a branch, need to split then recurse
-					local split_pane = reference_pane:split({
-						direction = direction,
-						cwd = wezterm.home_dir, -- Will be overridden by recursion
-						size = child.size or (1.0 / #pane_tree.children),
-					})
-					split_pane:send_text("clear\n")
-					wezterm.sleep_ms(50)
-					local result_pane = restore_pane_tree(child, split_pane)
-					table.insert(panes, result_pane)
-				end
-			end
-		end
-		return panes[#panes] -- Return the last pane
-	end
 end
 
 -- List available workspaces
@@ -209,18 +362,31 @@ local function create_workspace(window, pane)
 
 				-- Show icon picker
 				tab_rename.show_icon_set_menu(win, p, function(inner_win, inner_pane, full_title, icon, title)
-					-- Store workspace icon in global state
+					-- Store workspace icon in global state and metadata
 					set_workspace_icon(workspace_name, icon or "")
 
 					local display_name = (icon and icon ~= "") and (icon .. " " .. workspace_name) or workspace_name
 
-					-- Switch to the new workspace (will create it if it doesn't exist)
-					inner_win:perform_action(act.SwitchToWorkspace({ name = workspace_name }), inner_pane)
+					-- ISOLATION MODE: Spawn new client for this workspace
+					if M.ENABLE_ISOLATION then
+						wezterm.log_info("[WORKSPACE_MANAGER] Creating isolated workspace: " .. workspace_name)
 
-					-- Emit workspace-created event to trigger auto-save
-					wezterm.emit("workspace-created", inner_win, workspace_name)
+						-- Spawn new WezTerm client with this workspace
+						local success = isolation.create_workspace_isolated(workspace_name, icon)
 
-					inner_win:toast_notification("WezTerm", "✅ Created workspace: " .. display_name, nil, 2000)
+						if success then
+							inner_win:toast_notification("WezTerm", "✅ Created isolated workspace: " .. display_name, nil, 3000)
+							-- Emit workspace-created event
+							wezterm.emit("workspace-created", inner_win, workspace_name)
+						else
+							inner_win:toast_notification("WezTerm", "❌ Failed to create workspace", nil, 3000)
+						end
+					else
+						-- LEGACY MODE: Switch within current client
+						inner_win:perform_action(act.SwitchToWorkspace({ name = workspace_name }), inner_pane)
+						wezterm.emit("workspace-created", inner_win, workspace_name)
+						inner_win:toast_notification("WezTerm", "✅ Created workspace: " .. display_name, nil, 2000)
+					end
 				end)
 			end),
 		}),
@@ -243,17 +409,40 @@ local function switch_workspace(window, pane)
 		local icon = get_workspace_icon(ws)
 		local icon_prefix = (icon and icon ~= "") and (icon .. " ") or ""
 		local prefix = (ws == current_workspace) and "▶ " or "  "
-		table.insert(choices, { label = prefix .. icon_prefix .. ws, id = ws })
+
+		-- ISOLATION MODE: Add indicator if workspace has running client
+		local running_indicator = ""
+		if M.ENABLE_ISOLATION then
+			local window_id = isolation.find_client_for_workspace(ws)
+			if window_id then
+				running_indicator = " 🟢" -- Green dot = running client
+			end
+		end
+
+		table.insert(choices, { label = prefix .. icon_prefix .. ws .. running_indicator, id = ws })
 	end
 
 	window:perform_action(
 		act.InputSelector({
 			action = wezterm.action_callback(function(win, p, id)
 				if id then
-					win:perform_action(act.SwitchToWorkspace({ name = id }), p)
+					-- ISOLATION MODE: Spawn/focus isolated client
+					if M.ENABLE_ISOLATION then
+						wezterm.log_info("[WORKSPACE_MANAGER] Switching to isolated workspace: " .. id)
+						local success = isolation.switch_to_workspace(id)
+
+						if success then
+							win:toast_notification("WezTerm", "📂 Switched to workspace: " .. id, nil, 2000)
+						else
+							win:toast_notification("WezTerm", "❌ Failed to switch workspace", nil, 2000)
+						end
+					else
+						-- LEGACY MODE: Switch within current client
+						win:perform_action(act.SwitchToWorkspace({ name = id }), p)
+					end
 				end
 			end),
-			title = "📂 Switch Workspace",
+			title = "📂 Switch Workspace" .. (M.ENABLE_ISOLATION and " (Isolated Mode)" or ""),
 			choices = choices,
 			fuzzy = true,
 		}),
@@ -276,63 +465,87 @@ local function close_workspace(window, pane)
 		local icon = get_workspace_icon(ws)
 		local icon_prefix = (icon and icon ~= "") and (icon .. " ") or ""
 		local marker = (ws == current_workspace) and " [current]" or ""
-		table.insert(choices, { label = icon_prefix .. ws .. marker, id = ws })
+
+		-- ISOLATION MODE: Show if workspace has running client
+		local running_indicator = ""
+		if M.ENABLE_ISOLATION then
+			local window_id = isolation.find_client_for_workspace(ws)
+			if window_id then
+				running_indicator = " 🟢"
+			end
+		end
+
+		table.insert(choices, { label = icon_prefix .. ws .. marker .. running_indicator, id = ws })
 	end
 
 	window:perform_action(
 		act.InputSelector({
 			action = wezterm.action_callback(function(win, p, id)
 				if id then
-					local is_current = (id == win:active_workspace())
+					-- ISOLATION MODE: Use isolation module to close client
+					if M.ENABLE_ISOLATION then
+						wezterm.log_info("[WORKSPACE_MANAGER] Closing isolated workspace: " .. id)
 
-					-- If closing current workspace, switch to another workspace first
-					if is_current then
-						local other_workspace = nil
-						for _, ws in ipairs(workspaces) do
-							if ws ~= id then
-								other_workspace = ws
-								break
+						local success = isolation.close_workspace_client(id)
+
+						if success then
+							win:toast_notification("WezTerm", "🗑️  Closed isolated workspace: " .. id, nil, 3000)
+						else
+							win:toast_notification("WezTerm", "❌ Failed to close workspace", nil, 3000)
+						end
+					else
+						-- LEGACY MODE: Close within current client
+						local is_current = (id == win:active_workspace())
+
+						-- If closing current workspace, switch to another workspace first
+						if is_current then
+							local other_workspace = nil
+							for _, ws in ipairs(workspaces) do
+								if ws ~= id then
+									other_workspace = ws
+									break
+								end
+							end
+
+							if other_workspace then
+								win:perform_action(act.SwitchToWorkspace({ name = other_workspace }), p)
+								wezterm.sleep_ms(200)
 							end
 						end
 
-						if other_workspace then
-							win:perform_action(act.SwitchToWorkspace({ name = other_workspace }), p)
-							wezterm.sleep_ms(200)
-						end
-					end
+						-- Close all windows in the target workspace
+						local tabs_closed = 0
+						local windows_to_close = {}
 
-					-- Close all windows in the target workspace
-					local tabs_closed = 0
-					local windows_to_close = {}
-
-					-- Collect windows to close
-					for _, mux_win in ipairs(wezterm.mux.all_windows()) do
-						if mux_win:get_workspace() == id then
-							table.insert(windows_to_close, mux_win)
-						end
-					end
-
-					-- Close the windows
-					for _, mux_win in ipairs(windows_to_close) do
-						local tabs = mux_win:tabs()
-						tabs_closed = tabs_closed + #tabs
-						for _, tab in ipairs(tabs) do
-							for _, tab_pane in ipairs(tab:panes()) do
-								tab_pane:activate()
-								win:perform_action(wezterm.action.CloseCurrentPane({ confirm = false }), tab_pane)
+						-- Collect windows to close
+						for _, mux_win in ipairs(wezterm.mux.all_windows()) do
+							if mux_win:get_workspace() == id then
+								table.insert(windows_to_close, mux_win)
 							end
 						end
-					end
 
-					win:toast_notification(
-						"WezTerm",
-						"🗑️  Closed workspace '" .. id .. "' (" .. tabs_closed .. " tabs closed)",
-						nil,
-						3000
-					)
+						-- Close the windows
+						for _, mux_win in ipairs(windows_to_close) do
+							local tabs = mux_win:tabs()
+							tabs_closed = tabs_closed + #tabs
+							for _, tab in ipairs(tabs) do
+								for _, tab_pane in ipairs(tab:panes()) do
+									tab_pane:activate()
+									win:perform_action(wezterm.action.CloseCurrentPane({ confirm = false }), tab_pane)
+								end
+							end
+						end
+
+						win:toast_notification(
+							"WezTerm",
+							"🗑️  Closed workspace '" .. id .. "' (" .. tabs_closed .. " tabs closed)",
+							nil,
+							3000
+						)
+					end
 				end
 			end),
-			title = "🗑️  Close Workspace",
+			title = "🗑️  Close Workspace" .. (M.ENABLE_ISOLATION and " (Isolated Mode)" or ""),
 			choices = choices,
 			fuzzy = true,
 		}),
@@ -621,7 +834,6 @@ local function save_current_workspace_session(window, pane)
 				}
 
 				for i, tab in ipairs(tabs) do
-					local tab_panes = tab:panes()
 					local tab_id = tostring(tab:tab_id())
 
 					-- Get custom tab data
@@ -629,28 +841,30 @@ local function save_current_workspace_session(window, pane)
 					local tab_title = custom_tab_data and custom_tab_data.title or tab:get_title() or "Tab " .. i
 					local tab_icon = custom_tab_data and custom_tab_data.icon_key or ""
 
+					-- DEBUG: Log what we're capturing
+					wezterm.log_info("[SAVE] Tab " .. i .. " ID=" .. tab_id)
+					wezterm.log_info("[SAVE]   custom_tab_data exists: " .. tostring(custom_tab_data ~= nil))
+					wezterm.log_info("[SAVE]   title from custom: " .. tostring(custom_tab_data and custom_tab_data.title or "nil"))
+					wezterm.log_info("[SAVE]   title from tab: " .. tostring(tab:get_title()))
+					wezterm.log_info("[SAVE]   icon from custom: " .. tostring(custom_tab_data and custom_tab_data.icon_key or "nil"))
+
 					-- Get tab color
 					local tab_color_picker = require("modules.tabs.tab_color_picker")
 					local tab_color = tab_color_picker.get_tab_color(tab_id)
+					wezterm.log_info("[SAVE]   color: " .. tostring(tab_color or "nil"))
+
+					-- Use integrated pane persistence to capture full layout
+					local tab_state = get_tab_state(tab)
 
 					local tab_data = {
 						title = tab_title,
 						icon = tab_icon or "",
 						color = tab_color,
-						panes = {},
+						pane_tree = tab_state.pane_tree, -- Spatial pane tree with full layout
+						is_zoomed = tab_state.is_zoomed,
 					}
 
-					-- Save panes
-					for j, pane_obj in ipairs(tab_panes) do
-						local raw_cwd = pane_obj:get_current_working_dir()
-						local cwd = extract_path(raw_cwd)
-
-						table.insert(tab_data.panes, {
-							cwd = cwd,
-							title = pane_obj:get_title() or "",
-						})
-					end
-
+					wezterm.log_info("[SAVE] Final tab_data: title='" .. tab_data.title .. "', icon='" .. tab_data.icon .. "', color=" .. tostring(tab_data.color))
 					table.insert(session_data.tabs, tab_data)
 				end
 
@@ -760,7 +974,28 @@ local function load_workspace_session(window, pane)
 				-- Determine target workspace name
 				local target_workspace = session.workspace_name or session_id
 
-				-- Spawn first tab
+				-- ISOLATION MODE: Check if we need to spawn new client
+				if M.ENABLE_ISOLATION then
+					local existing_client = isolation.find_client_for_workspace(target_workspace)
+
+					if existing_client then
+						-- Workspace already exists, warn user
+						win:toast_notification(
+							"WezTerm",
+							"⚠️  Workspace '" .. target_workspace .. "' already running (window " .. existing_client .. ")",
+							nil,
+							4000
+						)
+						-- Focus the existing client instead
+						isolation.focus_workspace_client(target_workspace)
+						return
+					else
+						-- Spawn new isolated client and let restoration happen below
+						wezterm.log_info("[WORKSPACE_MANAGER] Spawning isolated client for session: " .. target_workspace)
+					end
+				end
+
+				-- Spawn first tab (works in both isolation and legacy mode)
 				local first_tab_data = session.tabs[1]
 				local first_cwd = extract_path(first_tab_data.panes[1].cwd)
 				local first_tab, first_pane, new_window = wezterm.mux.spawn_window({
@@ -988,32 +1223,17 @@ local function save_template(window, pane)
 
 					wezterm.log_info("Saving tab " .. i .. ": title=" .. tab_title .. ", icon=" .. tostring(tab_icon))
 
+					-- Use integrated pane persistence to capture full layout
+					local tab_state = get_tab_state(tab)
+
 					local tab_data = {
 						title = tab_title,
 						icon = tab_icon or "",
+						pane_tree = tab_state.pane_tree, -- Spatial pane tree with full layout
+						is_zoomed = tab_state.is_zoomed,
 					}
 
-					-- Use resurrect module for proper pane layout if available
-					if has_resurrect and has_tab_state then
-						local tab_info = tab_state_mod.get_tab_state(tab)
-						-- Store the pane tree structure from resurrect
-						tab_data.pane_tree = tab_info.pane_tree
-						wezterm.log_info("  Using resurrect pane tree for tab " .. i)
-					else
-						-- Fallback: save panes in simple list format
-						local panes_data = {}
-						for _, pane in ipairs(tab_panes) do
-							local raw_cwd = pane:get_current_working_dir()
-							local cwd = extract_path(raw_cwd)
-							table.insert(panes_data, {
-								cwd = cwd,
-								title = pane:get_title() or "",
-							})
-						end
-						tab_data.panes = panes_data
-						wezterm.log_info("  Using simple panes list for tab " .. i)
-					end
-
+					wezterm.log_info("  Saved tab " .. i .. " with pane tree structure")
 					table.insert(template_data.tabs, tab_data)
 				end
 
@@ -1153,18 +1373,13 @@ local function load_template(window, pane)
 												}
 												first_tab:set_title(first_tab_data.title)
 
-												-- Restore pane layout
-												if first_tab_data.pane_tree and has_tab_state then
-													-- Use resurrect module for proper layout restoration
-													wezterm.log_info("  Restoring tab 1 using resurrect pane tree")
-													local tab_state = {
-														title = first_tab_data.title,
-														pane_tree = first_tab_data.pane_tree,
-													}
-													tab_state_mod.restore_tab(first_tab, tab_state, { pane = first_pane })
+												-- Restore pane layout using integrated pane persistence
+												if first_tab_data.pane_tree then
+													wezterm.log_info("  Restoring tab 1 with pane tree structure")
+													restore_pane_tree_to_tab(first_tab, first_tab_data.pane_tree, first_pane)
 												elseif first_tab_data.panes then
-													-- Fallback: simple horizontal splits
-													wezterm.log_info("  Restoring tab 1 using simple panes list")
+													-- Legacy fallback: simple horizontal splits
+													wezterm.log_info("  Restoring tab 1 using legacy panes list")
 													for j = 2, #first_tab_data.panes do
 														local pane_cwd = extract_path(first_tab_data.panes[j].cwd)
 														local split_pane = first_pane:split({
@@ -1202,18 +1417,13 @@ local function load_template(window, pane)
 													}
 													new_tab:set_title(tab_data.title)
 
-													-- Restore pane layout
-													if tab_data.pane_tree and has_tab_state then
-														-- Use resurrect module for proper layout restoration
-														wezterm.log_info("  Restoring tab " .. i .. " using resurrect pane tree")
-														local tab_state = {
-															title = tab_data.title,
-															pane_tree = tab_data.pane_tree,
-														}
-														tab_state_mod.restore_tab(new_tab, tab_state, { pane = new_tab_pane })
+													-- Restore pane layout using integrated pane persistence
+													if tab_data.pane_tree then
+														wezterm.log_info("  Restoring tab " .. i .. " with pane tree structure")
+														restore_pane_tree_to_tab(new_tab, tab_data.pane_tree, new_tab_pane)
 													elseif tab_data.panes then
-														-- Fallback: simple horizontal splits
-														wezterm.log_info("  Restoring tab " .. i .. " using simple panes list")
+														-- Legacy fallback: simple horizontal splits
+														wezterm.log_info("  Restoring tab " .. i .. " using legacy panes list")
 														for j = 2, #tab_data.panes do
 															local pane_cwd = extract_path(tab_data.panes[j].cwd)
 															local split_pane = new_tab_pane:split({

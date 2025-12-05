@@ -1,0 +1,33 @@
+
+    --height=80%
+    --layout=vertical
+    --border=rounded
+    --info=inline
+    --margin=1
+    --padding=1
+    --prompt='❯ '
+    --pointer='▶'
+    --marker='✓'
+    --header-first
+    --ansi
+    --cycle
+    --multi
+    --bind='ctrl-/:toggle-preview'
+    --bind='ctrl-a:select-all'
+    --bind='ctrl-d:deselect-all'
+    --bind='ctrl-y:execute-silent(echo -n {2..} | wl-copy)+abort'
+    --bind='ctrl-u:preview-page-up'
+    --bind='ctrl-n:preview-page-down'
+    --bind='alt-j:preview-down'
+    --bind='alt-k:preview-up'
+    --bind='ctrl-f:page-down'
+    --bind='ctrl-b:page-up'
+    --bind='tab:down'
+    --bind='shift-tab:up'
+    --bind='ctrl-m:toggle+down'
+    --bind='^K:up' \
+    --preview "bash \"$FZF_PREVIEW\" {} 2>/dev/null || true"
+    --preview-window='right:60%:wrap'
+    --color='$(_fzf_colors)'
+"
+

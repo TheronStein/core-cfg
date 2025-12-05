@@ -4,9 +4,15 @@
 tmux display-menu -x W -y S \
   "" \
   "Back" Tab "run-shell '$TMUX_MENUS/main-menu.sh'" \
+  "" \
+  "Kill Pane" x "kill-pane" \
+  "Vertical Split" v "run-shell '$TMUX_CONF/events/vsplit.sh'" \
+  "Horizontal Split" d "run-shell '$TMUX_CONF/events/hsplit.sh'" \
+  "Rotate Clockwise" r "rotate-window" \
+  "Rotate Counter-Clockwise" R "rotate-window -D" \
+  "" \
   "Break Pane (follow)" b "break-pane" \
   "Break Pane (don't follow)" B "break-pane -d" \
-  "Kill Pane" x "kill-pane" \
   "" \
   "Move Pane" m "move-pane -t :+1" \
   "Select Pane" o "display-panes" \
@@ -19,8 +25,6 @@ tmux display-menu -x W -y S \
   "" \
   "Move Pane Up" U "swap-pane -U" \
   "Move Pane Down" D "swap-pane -D" \
-  "Rotate Clockwise" r "rotate-window" \
-  "Rotate Counter-Clockwise" R "rotate-window -D" \
   "" \
   "Split Pane" a "run-shell '$TMUX_MENUS/pane-split-menu.sh'" \
   "" \

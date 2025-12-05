@@ -9,6 +9,7 @@ return {
 			float = { enabled = true },
 			terminal = { enabled = true },
 			git = { enabled = true },
+			indent = { enabled = true },
 			notifier = {
 				enabled = true,
 				timeout = 3000,
@@ -433,7 +434,21 @@ return {
 			{
 				"<leader>lr",
 				function()
-					require("fzf-lua").lsp_references()
+					-- Check if any LSP client supports references
+					local clients = vim.lsp.get_clients({ bufnr = 0 })
+					local has_references = false
+					for _, client in ipairs(clients) do
+						if client.server_capabilities.referencesProvider then
+							has_references = true
+							break
+						end
+					end
+
+					if has_references then
+						require("fzf-lua").lsp_references()
+					else
+						vim.notify("No LSP server supports textDocument/references", vim.log.levels.WARN)
+					end
 				end,
 				nowait = true,
 				desc = "References",

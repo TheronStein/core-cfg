@@ -59,6 +59,7 @@ local M = {
   debug_mods_ai_copilot = false,     -- CopilotChat initialization and events
   debug_mods_ai_generators = false,  -- AI generators (ollama, google, lm_studio)
   debug_mods_ai_commander = false,   -- AI command interface
+  debug_mods_claude_code = false,    -- Claude Code status indicator (tab icons, state changes)
 
   -- ============================================================================
   -- UTILITY MODULES

@@ -1436,6 +1436,9 @@ function M.show_menu(window, pane)
         elseif id == "tab_management" then
           local tab_manager = require("modules.tabs.tab_manager")
           tab_manager.show_main_menu(win, p)
+        elseif id == "tab_metadata" then
+          local tab_metadata_browser = require("modules.tabs.tab_metadata_browser")
+          tab_metadata_browser.show_browser(win, p)
         elseif id == "pane_management" then
           -- Show pane management bash submenu
           show_bash_pane_management_menu(win, p)

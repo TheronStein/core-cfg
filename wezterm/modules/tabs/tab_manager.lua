@@ -12,6 +12,7 @@ local function safe_require(module_name)
 end
 
 local tab_templates = safe_require("modules.tabs.tab_templates")
+local tab_hooks = safe_require("modules.tabs.tab_hooks")
 local bookmarks = safe_require("modules.sessions.bookmarks")
 local tab_rename = safe_require("modules.tabs.tab_rename")
 local tab_tmux_browser = safe_require("modules.tabs.tab_tmux_browser")
@@ -41,6 +42,8 @@ function M.show_main_menu(window, pane)
 		{ id = "template_save", label = "💾 Save Current Tab as Template" },
 		{ id = "template_load", label = "📂 Load Template" },
 		{ id = "template_delete", label = "🗑️  Delete Template" },
+		{ id = "hooks_manage", label = "🪝 Manage Template Hooks" },
+		{ id = "hooks_quick_add", label = "⚡ Quick Add Hook for Current Dir" },
 		{ id = "tmux_attach", label = "📺 Attach to Tmux Session" },
 		{ id = "tmux_create", label = "➕ Create New Tmux Session" },
 
@@ -98,6 +101,14 @@ function M.show_main_menu(window, pane)
 				elseif id == "template_delete" then
 					if tab_templates then
 						tab_templates.delete_template(win, p)
+					end
+				elseif id == "hooks_manage" then
+					if tab_hooks then
+						tab_hooks.show_hooks_menu(win, p)
+					end
+				elseif id == "hooks_quick_add" then
+					if tab_hooks then
+						tab_hooks.quick_add_current_directory(win, p)
 					end
 				elseif id == "tmux_attach" then
 					if tmux_sessions then

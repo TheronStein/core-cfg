@@ -7,10 +7,47 @@
 -- Consolidates logic from:
 --   - format-tab-title.lua (format-tab-title)
 --   - tab-cleanup.lua (mux-tab-closed, mux-window-close)
+--   - claude-code-status.lua (Claude Code AI status icons)
 
 local wezterm = require("wezterm")
+local debug_config = require("config.debug")
 
 local M = {}
+
+-- ============================================================================
+-- CLAUDE CODE STATUS INTEGRATION
+-- ============================================================================
+-- Try to load the Claude Code status module (optional dependency)
+local claude_status = nil
+local function get_claude_status()
+	if claude_status == nil then
+		local ok, module = pcall(require, "modules.ai.claude-code-status")
+		if ok then
+			claude_status = module
+		else
+			claude_status = false -- Mark as unavailable
+		end
+	end
+	return claude_status or nil
+end
+
+-- Get Claude Code icon for a pane (returns nil if no Claude session)
+local function get_claude_icon(pane)
+	local cs = get_claude_status()
+	if not cs then
+		return nil
+	end
+
+	-- Wrap pane object to match expected interface
+	local pane_wrapper = {
+		pane_id = function() return pane.pane_id end,
+		get_foreground_process_name = function()
+			return pane.foreground_process_name
+		end,
+	}
+
+	return cs.get_pane_icon(pane_wrapper)
+end
 
 -- ============================================================================
 -- FORMAT TAB TITLE
@@ -31,6 +68,7 @@ local process_icons = {
 	["cargo"] = "",
 	["tmux"] = "",
 	["yazi"] = "",
+	["claude"] = wezterm.nerdfonts.md_robot or "", -- Claude Code AI assistant
 }
 
 local function get_process_icon(process_name)
@@ -67,6 +105,16 @@ function M.format_tab_title(tab, tabs, panes, config, hover, max_width)
 	local pane = tab.active_pane
 	local process_name = pane.foreground_process_name or ""
 	local process_icon = get_process_icon(process_name)
+
+	-- Check for Claude Code status icon (dynamic state-based icon)
+	local claude_icon = get_claude_icon(pane)
+	if claude_icon then
+		-- Claude Code is active - use the dynamic status icon instead
+		process_icon = claude_icon
+		if debug_config.is_enabled("debug_mods_claude_code") then
+			wezterm.log_info("[TAB] Using Claude Code status icon for tab")
+		end
+	end
 
 	-- Get user variables (tmux info)
 	local user_vars = pane.user_vars or {}
@@ -186,6 +234,19 @@ function M.handle_mux_tab_closed(tab_id, pane_id)
 		wezterm.log_info("Tab closed: " .. tostring(tab_id) .. ", cleaning up tmux view")
 		tmux_sessions.cleanup_tab_view(tab_id)
 	end
+
+	-- Clean up Claude Code state for the closed pane
+	local cs = get_claude_status()
+	if cs and pane_id then
+		cs.cleanup_pane(pane_id)
+		cs.cleanup_tab(tab_id)
+	end
+
+	-- Clean up tab hooks state for the closed pane
+	local ok_hooks, tab_hooks = pcall(require, "modules.tabs.tab_hooks")
+	if ok_hooks and tab_hooks and pane_id then
+		tab_hooks.cleanup_pane(pane_id)
+	end
 end
 
 function M.handle_mux_window_close(window_id)
@@ -205,6 +266,10 @@ function M.setup()
 		return
 	end
 	wezterm.GLOBAL.tab_lifecycle_initialized = true
+
+	-- Setup tab metadata persistence hooks
+	local tab_metadata = require("modules.tabs.tab_metadata_persistence")
+	tab_metadata.setup_hooks()
 
 	-- Format tab title event
 	wezterm.on("format-tab-title", function(tab, tabs, panes, config, hover, max_width)

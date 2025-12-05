@@ -1,0 +1,123 @@
+# Set binary directory for custom commands
+# BIN_DIR="$ZDOTDIR/zinit/polaris/bin"
+
+set -g prefix C-Space
+unbind C-b
+bind C-Space send-prefix
+
+source-file "$TMUX_CONF/conf/env.conf"
+source-file "$TMUX_CONF/keymaps/escape-codes.conf"
+source-file "$TMUX_CONF/conf/plugins.conf"
+# Source configuration files in proper order
+
+# Terminal/Environment setup
+source-file "$TMUX_CONF/conf/global.conf"
+source-file "$TMUX_CONF/conf/term.conf"
+source-file "$TMUX_CONF/conf/colors.conf"
+
+# Load menu theme (dynamic theme support)
+# %if "test -f ~/.local/state/tmux/current-menu-theme"
+#   run-shell "tmux source-file $TMUX_CONF/conf/themes/$(cat ~/.local/state/tmux/current-menu-theme).conf"
+# %else
+#   source-file "$TMUX_CONF/conf/menu-theme.conf"
+# %endif
+# source-file "$TMUX_CONF/conf/user-keys.conf"
+source-file "$TMUX_CONF/conf/hooks.conf"
+
+#TMUX Commands and Input
+source-file "$TMUX_CONF/keymaps/core.conf"
+source-file "$TMUX_CONF/keymaps/mouse.conf"
+
+#UI and Navigation bindings
+# source-file "$TMUX_CONF/keymaps/app.conf"
+source-file "$TMUX_CONF/keymaps/menus.conf"
+source-file "$TMUX_CONF/keymaps/popups.conf"
+source-file "$TMUX_CONF/keymaps/ui.conf"
+source-file "$TMUX_CONF/keymaps/pane.conf"
+source-file "$TMUX_CONF/keymaps/window.conf"
+source-file "$TMUX_CONF/keymaps/clipboard.conf"
+
+# Keytables
+# source-file "$TMUX_CONF/keymaps/copymode.conf"
+source-file "$TMUX_CONF/keymaps/resize-mode.conf"
+source-file "$TMUX_CONF/keymaps/copy-mode.conf"
+
+# Core-IDE Integration
+# source-file "$TMUX_CONF/keymaps/core-ide.conf"
+
+# UI configuration
+source-file "$TMUX_CONF/conf/panes.conf"
+# Use WezTerm-integrated status bar (comment out to use original)
+source-file "$TMUX_CONF/conf/status.conf"
+# source-file "$TMUX_CONF/conf/status.conf"
+source-file "$TMUX_CONF/conf/windows.conf"
+
+
+run "${CORE_CFG}/tmux/plugins/tmux-resurrect/resurrect.tmux"
+# Yazibar - Dual Yazi Sidebar Module
+run-shell "$TMUX_CONF/modules/yazibar/yazibar.tmux"
+run "${CORE_CFG}/tmux/plugins/tpm/tpm"
+# == Formats ================================================================ [[[
+# https://github.com/tmux/tmux/wiki/Formats
+# '#{t:var}'       => human readable time
+# '#{d:path}'      => trim file from path
+# '#{b:path}'      => trim dir from path
+# '#{=3:@v}'       => trim text (foobar -> foo)
+# '#{=-3:@v}'      => trim text (foobar -> bar)
+# '#{=|5|...:@v}'  => trimmed on right ('foobar' -> 'fooba...')
+# '#{=|-5|...:@v}' => trimmed on right ('foobar' -> '...oobar')
+# '#{p9:@v}baz'    => pad text (foobar -> 'foobar   baz')
+# '#{p-9:@v}baz'   => pad text (foobar -> '   foobarbaz')
+# '#{=3;p-6:@v}'   => combine ('foobar' -> '   foo   ')
+
+# Comparison
+# '#{#,}'                    => escaped comma
+# '#{==:#{@v}bar,foobar}'    => if v#{bar} == foobar then 1 else 0
+# '#{!=:#{@v}bar,foobar}'    => if v#{bar} != foobar then 1 else 0
+# '#{<:#{@v},bar}'           => if v < bar then 1 else 0
+# '#{||:0,#{@v}}'            => if 0 || #{v} then 1 else 0
+# '#{&&:0,#{@v}}'            => if 0 && #{v} then 1 else 0
+# '#{?@v,yes,no}'            => if #{v} then yes else no
+# '#{?#{==:#{@v},0},yes,no}' => if #{v} == 0 then yes else no
+# '#{?#{==:#{@v},0},#{@v} is true,#{@v} is false}'  => if #{v} == 0 then '#{v} is true' else '#{v} is false'
+
+# Substitution
+# '#{s|foo|bar|:@v}'            => s/foo/bar @v
+# '#{s|(foo)(bar)|\2\1|:@v}'    => s/(foo)(bar)/\2\1 @v
+# '#{s|#{@w}|xxx|:@v}'          => s/#w/xxx @v
+# '#{s|FOO|xxx|i:@v}'           => s/FOO/xxx/i @v
+# '#{s|foo|xxx|;s|bar|yyy|:@v}' => s/foo/xxx;s/bar/yyy @v
+
+# Arithmetic
+# '#{e|+|:1,1}'       => 2
+# '#{e|-|:1,1}'       => 0
+# '#{e|*|:1,1}'       => 1
+# '#{e|/|f|4:10,3}'   => 3.3333
+# '#{e|m|:4,3}'       => 1
+
+# Matching
+# '#{m:*foo*,#{@v}}'     => v=foobar; 1 if pattern matches else 0 (1)
+# '#{m|ri:^FOO,#{@v}}'   => v=foobar; r=regex i=ignore_case; 1 if pattern matches else 0 (1)
+
+# C = searches for format in pane content; returns line number or 0
+# '#{C:x*z}'
+# '#{C|r:x.z}'
+
+# Loops (S W P)
+# '#{W:#{window_name} }'      => irssi mutt emacs ksh ksh ksh ksh ksh ksh emacs emacs ksh
+# '#{W:#{window_name} ,--- }' => irssi mutt emacs ksh ksh ksh ksh ksh --- emacs emacs ksh
+
+# Literals and Quoting
+#   - l = literal string given to it
+#   - q = quote special chars
+# '#{?#{l:1},a,b}'
+# '#{q:@v}'
+
+# Expand more than once (E T)
+# '#{status-left}'   => [#{session_name}]
+# '#{T:status-left}' => [0]
+
+# #{?#{&&:#{||:#{window_activity_flag},#{window_silence_flag}},#{!=:#{window-status-activity-style},default}}, #{window-status-activity-style},}
+# ]]]
+
+# vim: ft=tmux:et:sw=0:ts=2:sts=2:fdm=marker:fmr=[[[,]]]:

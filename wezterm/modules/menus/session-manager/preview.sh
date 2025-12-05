@@ -64,6 +64,34 @@ ${BOLD}Operations:${RESET}
 EOF
         ;;
 
+    tab_metadata)
+        cat <<EOF
+${BOLD}${CYAN}📊 Tab Metadata Browser${RESET}
+
+${BOLD}Description:${RESET}
+  Browse and restore tab metadata (titles, icons,
+  colors, working directories) with auto-save tracking.
+
+${BOLD}Features:${RESET}
+  ${GREEN}•${RESET} Auto-saved tab metadata on changes
+  ${GREEN}•${RESET} Browse all saved tab configurations
+  ${GREEN}•${RESET} Filter by workspace
+  ${GREEN}•${RESET} View tab creation/update timestamps
+  ${GREEN}•${RESET} Preview saved CWD and pane counts
+  ${GREEN}•${RESET} Restore tab configurations
+
+${BOLD}Metadata Tracked:${RESET}
+  • Tab Title          • Icon
+  • Color              • Working Directory
+  • Workspace          • Pane Count
+  • Last Updated       • Creation Time
+
+${BOLD}Usage:${RESET}
+  Opens interactive browser showing saved tabs
+  with their metadata and restoration options.
+EOF
+        ;;
+
     pane_management)
         cat <<EOF
 ${BOLD}${CYAN}🪟 Pane Management${RESET}

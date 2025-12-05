@@ -32,18 +32,18 @@ EOF
 _fzf_tab_colors=$(echo "$_fzf_tab_colors" | paste -sd, -)
 # ── Keybindings ──
 _fzf_binds=(
-  ctrl-/:toggle-preview
-  ctrl-a:select-all
-  ctrl-d:deselect-all
-  ctrl-y:execute-silent(echo -n {2..} | wl-copy)+abort
-  ctrl-u:preview-page-up
-  ctrl-n:preview-page-down
-  alt-j:preview-down
-  alt-k:preview-up
-  ctrl-f:page-down
-  ctrl-b:page-up
-  tab:toggle+down
-  shift-tab:toggle+up
+  'ctrl-/:toggle-preview'
+  'ctrl-a:select-all'
+  'ctrl-d:deselect-all'
+  'ctrl-y:execute-silent(echo -n {2..} | wl-copy)+abort'
+  'ctrl-u:preview-page-up'
+  'ctrl-n:preview-page-down'
+  'alt-j:preview-down'
+  'alt-k:preview-up'
+  'ctrl-f:page-down'
+  'ctrl-b:page-up'
+  'tab:toggle+down'
+  'shift-tab:toggle+up'
 )
 _fzf_border=(
   --border=double
@@ -100,8 +100,25 @@ EOF
 }
 
 _fzf_base_opts() {
-  local colors="$(_fzf_colors)"
-  echo "--ansi --height=50% --reverse --border=rounded --border-label-pos=3 --prompt=❯ --pointer=▶ --marker=✓ --color=$colors --bind=ctrl-/:toggle-preview --preview-window=right:60%:wrap:rounded"
+  local colors
+  colors=$(_fzf_colors | tr '\n' ',')
+  colors=${colors%,}  # Remove trailing comma
+
+  local -a opts
+  opts=(
+    --ansi
+    --height=50%
+    --reverse
+    --border=rounded
+    --border-label-pos=3
+    "--prompt=❯ "
+    "--pointer=▶"
+    "--marker=✓"
+    "--color=$colors"
+    --bind=ctrl-/:toggle-preview
+    --preview-window=right:60%:wrap:rounded
+  )
+  echo "${opts[@]}"
 }
 
 # FZF environment configuration
@@ -122,9 +139,9 @@ export FZF_DEFAULT_OPTS="
     --info=inline
     --margin=1
     --padding=1
-    --prompt='❯ '
-    --pointer='▶'
-    --marker='✓'
+    --prompt='> '
+    --pointer='>'
+    --marker='*'
     --header-first
     --ansi
     --cycle
@@ -139,23 +156,24 @@ export FZF_DEFAULT_OPTS="
     --bind='alt-k:preview-up'
     --bind='ctrl-f:page-down'
     --bind='ctrl-b:page-up'
-    --bind='tab:toggle+down'
-    --bind='shift-tab:toggle+up'
-    --preview "bash \"$FZF_PREVIEW\" {} 2>/dev/null || true"
+    --bind='tab:down'
+    --bind='shift-tab:up'
+    --bind='ctrl-m:toggle+down'
+    --bind='ctrl-k:up'
+    --bind='enter:accept'
     --preview-window='right:60%:wrap'
-    --color='$(_fzf_colors)'
 "
 
 export FZF_CTRL_T_OPTS="
-    --preview "bash \"$FZF_PREVIEW\" {} 2>/dev/null || true"
-    --preview-window='right:60%:wrap'
+    --preview 'bash \"$FZF_PREVIEW\" {} 2>/dev/null || true'
+    --preview-window='right:90%:wrap'
     --bind='ctrl-/:toggle-preview'
     --header='Files | C-/: toggle preview | C-y: copy'
 "
 
 export FZF_ALT_C_OPTS="
-    --preview "bash \"$FZF_PREVIEW\" {} 2>/dev/null || true"
-    --preview-window='right:60%:wrap'
+    --preview 'bash \"$FZF_PREVIEW\" {} 2>/dev/null || true'
+    --preview-window='right:10%:wrap'
     --header='Directories | C-/: toggle preview'
 "
 
@@ -358,6 +376,50 @@ function fzf-wifi() {
     fi
 }
 
+function fzf-cliphist() {
+    (( $+commands[cliphist] )) || { echo "cliphist not found"; return 1; }
+    (( $+commands[wl-copy] )) || { echo "wl-copy not found"; return 1; }
+
+    local selection
+    selection=$(cliphist list | \
+        fzf $(_fzf_base_opts) \
+            --preview 'echo {} | cliphist decode' \
+            --preview-window 'down:3:wrap' \
+            --header 'Clipboard History | Enter: yank to clipboard')
+
+    if [[ -n "$selection" ]]; then
+        echo "$selection" | cliphist decode | wl-copy
+        echo "✓ Copied to clipboard"
+    fi
+}
+
+function fzf-tmux-layouts() {
+    [[ -z "$TMUX" ]] && { echo "Not in a tmux session"; return 1; }
+
+    local layouts=(
+        "even-horizontal|Split panes evenly horizontally|┌──┬──┬──┬──┐\n│  │  │  │  │\n└──┴──┴──┴──┘"
+        "even-vertical|Split panes evenly vertically|┌────────────┐\n├────────────┤\n├────────────┤\n└────────────┘"
+        "main-horizontal|One large pane on top, others below|┌────────────┐\n│   MAIN     │\n├────┬───┬───┤\n└────┴───┴───┘"
+        "main-vertical|One large pane on left, others on right|┌─────┬──┬──┐\n│     │  │  │\n│MAIN │  │  │\n└─────┴──┴──┘"
+        "tiled|Tile all panes evenly|┌──────┬──────┐\n│      │      │\n├──────┼──────┤\n│      │      │\n└──────┴──────┘"
+    )
+
+    local selection
+    selection=$(printf '%s\n' "${layouts[@]}" | \
+        fzf $(_fzf_base_opts) \
+            --delimiter='|' \
+            --with-nth=1,2 \
+            --preview 'echo {3} | sed "s/\\\\n/\n/g"' \
+            --preview-window='right:40%:wrap' \
+            --header='Select tmux layout' | \
+        cut -d'|' -f1)
+
+    if [[ -n "$selection" ]]; then
+        tmux select-layout "$selection"
+        echo "✓ Applied layout: $selection"
+    fi
+}
+
 # Aliases from integrations/fzf.zsh
 alias fga='fzf-git-add'
 alias fgco='fzf-git-checkout-file'
@@ -370,6 +432,8 @@ alias fkill='fzf-kill-port'
 alias fnpm='fzf-npm-scripts'
 alias fenv='fzf-environment'
 alias fwifi='fzf-wifi'
+alias fclip='fzf-cliphist'
+alias flayout='fzf-tmux-layouts'
 
 # Key bindings from integrations/fzf.zsh
 [[ -f /usr/share/fzf/key-bindings.zsh ]] && source /usr/share/fzf/key-bindings.zsh
@@ -384,7 +448,10 @@ fi
 
 # FZF-TAB integration from integrations/fzf.zsh
 if (( $+commands[fzf] )) && (( $+functions[fzf-tab] )); then
-    zstyle ':fzf-tab:*' fzf-flags --height=60% --color="$(_fzf_colors)"
+    local fzf_tab_colors_converted
+    fzf_tab_colors_converted=$(_fzf_colors | tr '\n' ',')
+    fzf_tab_colors_converted=${fzf_tab_colors_converted%,}  # Remove trailing comma
+    zstyle ':fzf-tab:*' fzf-flags --height=60% --color="$fzf_tab_colors_converted"
 fi
 
 if [[ -n "$TMUX" ]]; then
@@ -500,7 +567,7 @@ function f1ssh() {
   local -a hosts
   local choice
 
-  hosts=( ${=${${${${(@M)${(f)"$(<$HOME/.ssh/config)"}}:#Host *}#Host }:#*\**}:#*\?*}} )
+  hosts=( ${=${${${${(@M)${(f)"$(<$HOME/.ssh/config)"}}:#Host *}#Host }:#*\**}:#*\?*} )
   choice=$(builtin print -rl "$hosts[@]" | fzf +m)
 
   [[ -n $choice ]] && command ssh $choice

@@ -10,6 +10,7 @@ om() {
 }
 
 tmux display-menu -x C -y C -T "#[fg=#e0af68,bold] Main Menu " \
+  "󰒓 Config Management" c "$(om config-management.sh)" \
   "Zoom Toggle" z "resize-pane -Z" \
   " Vertical Split" v "run-shell '$TMUX_CONF/events/vsplit.sh'" \
   " Horizontal Split" d "run-shell '$TMUX_CONF/events/hsplit.sh'" \
@@ -28,7 +29,6 @@ tmux display-menu -x C -y C -T "#[fg=#e0af68,bold] Main Menu " \
   " Plugin Management" p "$(om tmux/plugin-menu.sh)" \
   "󰏘 Theme Selector" T "run-shell '$TMUX_CONF/modules/themes/theme-switcher.sh'" \
   "" \
-  "󰒓 Config Management" c "$(om config-management.sh)" \
   " App Management" A "$(om app-management.sh)"
 
 # 󰾱 Email

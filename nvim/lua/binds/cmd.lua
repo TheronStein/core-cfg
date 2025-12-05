@@ -1,0 +1,8 @@
+--
+-- -- Ctrl-Enter opens Vim command-line
+-- map("n", "<C-CR>", ":", { noremap = true, desc = "Command-line" })
+-- map("i", "<C-CR>", "<Esc>:", { noremap = true, desc = "Command-line (exit insert)" })
+-- map("v", "<C-CR>", ":", { noremap = true, desc = "Command-line" })
+--
+---- -- Repeat last command (semicolon functionality moved to <leader>;)
+-- -- map("n", "<leader>;", ".", { noremap = true, silent = true, desc = "Repeat last command" })

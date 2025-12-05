@@ -59,24 +59,38 @@ function M.setup(config)
 
 	local keys = {}
 
-	-- Only add session manager binding if module is loaded
-	if session_manager then
-		-- Main session/workspace menu
+	-- Unified Workspace-Session Manager (replaces old session_manager and workspace_manager)
+	local ok_unified, unified_workspace = pcall(require, "modules.sessions.unified_workspace")
+	if ok_unified then
+		wezterm.log_info("✅ Unified workspace manager loaded successfully")
+
+		-- Main workspace menu
 		table.insert(keys, {
 			key = "F1",
 			mods = "LEADER",
-			desc = "Show session/workspace menu",
+			desc = "Show workspace manager menu",
 			action = wezterm.action_callback(function(window, pane)
-				session_manager.show_menu(window, pane)
+				unified_workspace.show_menu(window, pane)
 			end),
 		})
 
+		-- Quick workspace menu (same as F1, for muscle memory)
+		table.insert(keys, {
+			key = "w",
+			mods = "LEADER",
+			desc = "Show workspace manager menu",
+			action = wezterm.action_callback(function(window, pane)
+				unified_workspace.show_menu(window, pane)
+			end),
+		})
+
+		-- Pane management
 		table.insert(keys, {
 			key = "m",
 			mods = "LEADER",
 			desc = "Move pane to another tab",
 			action = wezterm.action_callback(function(window, pane)
-				session_manager.move_pane_to_tab(window, pane)
+				unified_workspace.move_pane_to_tab(window, pane)
 			end),
 		})
 
@@ -85,27 +99,11 @@ function M.setup(config)
 			mods = "LEADER",
 			desc = "Grab pane from another tab",
 			action = wezterm.action_callback(function(window, pane)
-				session_manager.grab_pane_from_tab(window, pane)
-			end),
-		})
-	end
-
-	-- Workspace Manager (unified module for workspaces and templates)
-	local ok_workspace_manager, workspace_manager = pcall(require, "modules.sessions.workspace_manager")
-	if ok_workspace_manager then
-		-- logger_ws_man.info("✅ Workspace manager module loaded successfully")
-		-- Workspace manager menu
-		table.insert(keys, {
-			key = "w",
-			mods = "LEADER",
-			desc = "Show workspace manager menu",
-			action = wezterm.action_callback(function(window, pane)
-				workspace_manager.show_menu(window, pane)
+				unified_workspace.grab_pane_from_tab(window, pane)
 			end),
 		})
 	else
-		-- logger_ws_man.error("❌ Failed to load workspace_manager: " .. tostring(workspace_manager))
-		wezterm.log_error("❌ Failed to load workspace_manager: " .. tostring(workspace_manager))
+		wezterm.log_error("❌ Failed to load unified_workspace: " .. tostring(unified_workspace))
 	end
 
 	-- -- Tab Management Menu (replaces bookmarks menu)
@@ -157,24 +155,15 @@ function M.setup(config)
 	-- 	})
 	-- end
 
-	-- Tmux workspace browser
+	-- Tmux workspace management
 	if ok_tmux_workspaces then
-		table.insert(keys, {
-			key = "W",
-			mods = "LEADER|SHIFT",
-			desc = "Browse tmux workspaces",
-			action = wezterm.action_callback(function(window, pane)
-				tmux_workspaces.show_workspace_browser(window, pane)
-			end),
-		})
-
-		-- Tmux workspace handler (start/kill workspaces)
+		-- Moved to LEADER+SHIFT+A to avoid conflict with unified workspace switcher
 		table.insert(keys, {
 			key = "A",
 			mods = "LEADER|SHIFT",
-			desc = "Manage tmux workspaces (start/kill)",
+			desc = "Browse and manage tmux workspaces",
 			action = wezterm.action_callback(function(window, pane)
-				tmux_workspaces.show_workspace_handler_menu(window, pane)
+				tmux_workspaces.show_workspace_browser(window, pane)
 			end),
 		})
 	end
@@ -559,74 +548,60 @@ function M.setup(config)
 	--    │
 	--    │
 	--
-	-- Only add session manager binding if module is loaded
-	if session_manager then
-		-- Quick access to pane management
-		table.insert(keys, {
-			key = "T",
-			mods = "LEADER|SHIFT",
-			desc = "Move pane to its own tab",
-			action = wezterm.action_callback(function(window, pane)
-				session_manager.move_pane_to_own_tab(window, pane)
-			end),
-		})
-		-- Quick access to workspace management
+	-- Unified workspace shortcuts (LEADER+SHIFT)
+	if ok_unified then
+		-- Quick workspace switcher
 		table.insert(keys, {
 			key = "W",
 			mods = "LEADER|SHIFT",
-			desc = "Switch workspace",
+			desc = "Quick switch workspace (isolated clients)",
 			action = wezterm.action_callback(function(window, pane)
-				session_manager.switch_workspace(window, pane)
+				unified_workspace.switch_workspace(window, pane)
 			end),
 		})
 
-		-- Workspace rename (works in default workspace too!)
+		-- Rename current workspace (works in default workspace too!)
 		table.insert(keys, {
 			key = "R",
 			mods = "LEADER|SHIFT",
 			desc = "Rename current workspace",
 			action = wezterm.action_callback(function(window, pane)
-				session_manager.rename_workspace(window, pane)
+				unified_workspace.rename_workspace(window, pane)
 			end),
 		})
-	end
 
-	if ok_workspace_manager then
-		-- Save current workspace as template
+		-- Save current session
 		table.insert(keys, {
 			key = "S",
 			mods = "LEADER|SHIFT",
-			desc = "Save current workspace as template",
+			desc = "Save current workspace session",
 			action = wezterm.action_callback(function(window, pane)
-				workspace_manager.save_template(window, pane)
+				unified_workspace.save_session(window, pane)
 			end),
 		})
 
-		-- Load workspace template
+		-- Load session
 		table.insert(keys, {
 			key = "L",
 			mods = "LEADER|SHIFT",
-			desc = "Load workspace template",
+			desc = "Load workspace session",
 			action = wezterm.action_callback(function(window, pane)
-				workspace_manager.load_template(window, pane)
+				unified_workspace.load_session(window, pane)
 			end),
 		})
-	else
-		logger_ws_man.error("❌ Failed to load workspace_manager: " .. tostring(workspace_manager))
-		-- wezterm.log_error("❌ Failed to load workspace_manager: " .. tostring(workspace_manager))
+
+		-- Move pane to its own tab
+		table.insert(keys, {
+			key = "T",
+			mods = "LEADER|SHIFT",
+			desc = "Move pane to its own tab",
+			action = wezterm.action_callback(function(window, pane)
+				unified_workspace.move_pane_to_own_tab(window, pane)
+			end),
+		})
 	end
 
-	if ok_tmux_sessions then
-		-- Create new tmux session
-		table.insert(keys, {
-			key = "A",
-			mods = "LEADER|SHIFT",
-			desc = "Create new tmux session",
-			action = wezterm.action_callback(function(window, pane)
-				tmux_sessions.prompt_create_session(window, pane)
-			end),
-		})
-	end
+	-- Note: LEADER+SHIFT+A is now used for tmux workspace browser (see above)
 
 	-- Merge remaining_keys into keys
 	for _, key in ipairs(remaining_keys) do

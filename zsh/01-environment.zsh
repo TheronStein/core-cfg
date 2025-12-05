@@ -59,6 +59,8 @@ fpath=(
   $fpath
 )
 
+
+
 #=============================================================================
 # DEFAULT APPLICATIONS
 #=============================================================================
@@ -365,6 +367,26 @@ validate_dir "$DENO_INSTALL/bin"
 
 # ]]]
 
+# BWZY_CACHE=`/dev/shm/bwzy-cache`           # where the passwords are cached
+# BWZY_KEEP_CACHE='true'                     # set to false and cache will be purged on exit
+# BWZY_COPY_CMD='wl-copy'                    # the command to copy something to the clipboard
+# BWZY_TYPE_CMD='wtype'                      # the command used to type / send keyboard events
+# BWZY_HIDE_CMD=''                           # the command to hide bwzy.desktop or a terminal named `bwzy`
+# BWZY_REFOCUS_CMD=''                        # the command to refocus the previous window
+# BWZY_COPY_AND_HIDE='true'                  # set to 'false' to not hide bwzy on copy - does not affect auto-fill
+# BWZY_NOTIFY_CMD='notify-send -i bitwarden' # send a notification (optional, but nice to know if a TOTP has been copied)
+# BWZY_FILTER="-zz~ "                        # exclude items with this string in name of folder
+#
+# # cosmetic overrides which adjust the looks
+# BWZY_USER_SYMBOL='u+'    # new prompt on user copy
+# BWZY_PASS_SYMBOL='p+'    # new prompt on password copy
+# BWZY_TOTP_SYMBOL='t+'    # new prompt on TOTP copy
+# BWZY_LINK_SYMBOL='l+'    # new prompt on link copy
+# BWZY_AUTO_SYMBOL='a+'    # new prompt on auto-fill 
+# BWZY_FOLDER_SYMBOL='/'   # new symbol used for a folder
+# BWZY_POINTER_SYMBOL='> ' # the line marker used by FZF 
+# BWZY_PROMPT_SYMBOL='? '  # the prompt symbol used by FZF 
+
 # ──────────────────────────────────────────────────────────────
 # Perl – fully relocated
 # ──────────────────────────────────────────────────────────────
@@ -630,6 +652,7 @@ declare -gAH Zkeymaps_v=()
 declare -gAH Zkeymaps_o=()
 declare -gAH Zkeymaps_i=()
 declare -gAH Zkeymaps_nvo=()
+declare -gxA Zkeymaps=()
 
 # === Non-zsh variables that are used later ============================== [[[
 typeset -gx RUST_SYSROOT=$(rustc --print sysroot)

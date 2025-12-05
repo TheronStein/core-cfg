@@ -1,0 +1,14 @@
+# === Wifi =============================================================== [[[
+# @desc: lsof open fd
+zmodload -F zsh/system p:sysparams
+# @desc: get your IP address
+function n1ip()      { curl -s ipinfo.io/json | jq .; }
+function n1ip6()     { dig myip.opendns.com @resolver1.opendns.com ; } # +short
+# @desc: get wifi information
+function n1wifi() { command iw dev ${${=${${(f)"$(</proc/net/wireless)"}:#*\|*}[1]}[1]%:} link; }
+# @desc: list available Wifi networks
+function lswifi()    { nmcli device wifi; }
+# @desc: nmap info
+function lsnmap()    { nmap --iflist; }
+# ]]]
+

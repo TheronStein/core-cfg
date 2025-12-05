@@ -2,6 +2,28 @@ local wezterm = require("wezterm")
 local nf = wezterm.nerdfonts
 local M = {}
 
+-- Helper function to set custom tab data and emit change event
+local function set_custom_tab_data(tab, title, icon_key)
+	local tab_id = tostring(tab:tab_id())
+
+	if not wezterm.GLOBAL.custom_tabs then
+		wezterm.GLOBAL.custom_tabs = {}
+	end
+
+	wezterm.GLOBAL.custom_tabs[tab_id] = {
+		title = title,
+		icon_key = icon_key
+	}
+
+	-- Emit event for metadata persistence
+	wezterm.emit("tab-title-changed", tab)
+	if icon_key then
+		wezterm.emit("tab-icon-changed", tab)
+	end
+
+	return tab_id
+end
+
 -- Safe icon getter - returns the icon or a fallback if it doesn't exist
 local function safe_icon(icon_ref, fallback)
 	if icon_ref ~= nil then

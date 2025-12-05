@@ -91,6 +91,19 @@ local function safe_require(module_name)
 	return result
 end
 
+-- Fast directory existence check using pure Lua (no subprocess spawning)
+local function dir_exists_fast(path)
+	local ok, err, code = os.rename(path, path)
+	if not ok then
+		if code == 13 then
+			-- Permission denied, but it exists
+			return true
+		end
+		return false
+	end
+	return true
+end
+
 -- Safe require with existence check
 local function safe_require_checked(module_name)
 	local user = os.getenv("USER") or "theron"
@@ -102,22 +115,11 @@ local function safe_require_checked(module_name)
 		or core .. "/.sys/cfg/yazi"
 		or core .. "/cfg/yazi"
 	local yazi_plugins = yazi .. "/plugins"
-	-- local yaz_dev = os.getenv("YAZI_DEV_HOME")
-	--   or os.getenv("CORE_PROJ") .. "/
-	--   or core .. "/.sys/cfg/yazi/dev"
-	--   or core .. "/cfg/yazi/dev"
 
 	local plugin_dir = yazi .. "/plugins/" .. module_name .. ".yazi"
-	-- local plugin_dev = yazi .. "/dev/" .. module_ame .. ".yazi"
 
-	-- Check plugins/ directory first, then dev/ directory
-	local stat = io.popen("test -d '" .. plugin_dir .. "' && echo 'exists' ")
-	-- '  || test -d '" .. plugin_dev .. )
-	-- local exists = stat:read("*a"):match("exists")
-	local exists = stat:read("*a"):match("exists") or false
-	stat:close() -- Close the popen handle
-
-	if not exists then
+	-- Fast check using pure Lua (no subprocess)
+	if not dir_exists_fast(plugin_dir) then
 		return nil
 	end
 
@@ -405,7 +407,7 @@ end
 -- Now includes global key support and bookmark groups!
 
 local home = os.getenv("HOME") or "/home/theron"
-local yazi_config = os.getenv("YAZI_CONFIG_HOME") or home .. "/.core/cfg/yazi"
+local yazi_config = os.getenv("YAZI_CONFIG_HOME")
 local bookmarks_dir = yazi_config .. "/.data/bookmarks"
 local fzf_bookmarks = safe_require_checked("fzf-bookmarks")
 if fzf_bookmarks then
@@ -445,22 +447,22 @@ safe_require_checked("smart-enter")
 local fuse_archive = safe_require_checked("fuse-archive")
 if fuse_archive then
 	fuse_archive:setup({
-		smart_enter = true, -- Enter files to open, directories to navigate
+		-- smart_enter = true, -- Enter files to open, directories to navigate
 		mount_dir = os.getenv("HOME") .. "/Mount/yazi/fuse-archive",
 	})
 end
 
--- -- Disk Operations Plugin - Comprehensive disk management with archive support
--- local disk_ops = safe_require_checked("disk-ops")
--- if disk_ops then
--- 	disk_ops:setup({
--- 		mount_base = os.getenv("HOME") .. "/Mount/yazi",
--- 		fuse_dir = os.getenv("HOME") .. "/Mount/yazi/fuse-archive",
--- 		rclone_dir = os.getenv("HOME") .. "/Mount/rclone",
--- 		show_mount_status = true,  -- Show mount count in status bar
--- 		show_disk_status = false,  -- Show scanning indicator
--- 	})
--- end
+-- Disk Operations Plugin - Comprehensive disk management with archive support
+local disk_ops = safe_require_checked("disk-ops")
+if disk_ops then
+	disk_ops:setup({
+		mount_base = os.getenv("HOME") .. "/Mount/yazi",
+		fuse_dir = os.getenv("HOME") .. "/Mount/yazi/fuse-archive",
+		rclone_dir = os.getenv("HOME") .. "/Mount/rclone",
+		show_mount_status = false, -- DISABLED to avoid rendering issues
+		show_disk_status = false, -- Show scanning indicator
+	})
+end
 
 -- Smart Paste Plugin (no setup needed)
 safe_require_checked("smart-paste")

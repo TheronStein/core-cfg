@@ -9,41 +9,11 @@ vim.g.maplocalleader = "\\" -- Set local leader to comma (optional, adjust as ne
 -- -- Load core configurations
 require("core.lazy") -- Load lazy.nvim (sets up plugins)
 require("options") -- Load general options
-require("keymaps")
+require("mods.keymaps").setup()
 require("autocmds")
 -- require("keymaps.lsp-diagnostic")
 -- require("autocmds") -- Load autocommands
 
--- Load reload system (for hot-reloading config)
-require("mods.reload").setup()
-
--- Load landing page system
-require("mods.landing-page").setup()
-
--- Load new keybinding structure
--- require("binds").setup()
-
--- Load UI enhancements (notifications, global help, lualine extensions)
-local ok, _ = pcall(function()
-  -- Initialize notification system
-  local notifications = require("mods.notifications")
-  notifications.setup()
-
-  -- Set up notification keymaps
-  require("keymaps.notifications")
-
-  -- Set up global help system
-  local global_help = require("keymaps.global-help")
-  global_help.setup()
-
-  vim.notify("UI Enhancements loaded successfully", vim.log.levels.INFO)
-end)
-
-if not ok then
-  vim.notify("Failed to load UI enhancements", vim.log.levels.WARN)
-end
-
-require("keymaps.ai")
 -- Load modules
 -- In your main init.lua or lazy.nvim setup
 -- Only load cfg folders that live directly under lua/plugins/ or lua/core/

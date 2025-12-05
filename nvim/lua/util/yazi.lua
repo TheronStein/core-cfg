@@ -1,46 +1,60 @@
 -- ~/.config/nvim/lua/plugins/yazi.lua
 -- Simple yazi configuration that works naturally with tabs
 return {
-  "mikavilpas/yazi.nvim",
-  event = "VeryLazy",
-  dependencies = { "nvim-lua/plenary.nvim" },
-  keys = {
-    { "<leader>ee", "<cmd>Yazi<cr>", desc = "Open yazi (current window)" },
-    { "<leader>ed", "<cmd>Yazi cwd<cr>", desc = "Open yazi (working directory)" },
-    { "<leader>es", "<cmd>Yazi toggle<cr>", desc = "Resume last yazi session" },
-    {
-      "<leader>ev",
-      function()
-        vim.cmd("vsplit")
-        vim.schedule(function()
-          vim.cmd("Yazi")
-        end)
-      end,
-      desc = "Open yazi in vertical split",
-    },
-  },
-  opts = {
-    open_for_directories = false,
-    -- Disable floating to match your buffer-replacement preference
-    floating_window_scaling_factor = nil, -- Disables floating entirely
-    yazi_floating_window_winblend = 0,
-    yazi_floating_window_use_border = false,
-    keymaps = {
-      show_help = "<f1>",
-      open_file_in_vertical_split = "<c-v>",
-      open_file_in_horizontal_split = "<c-x>",
-      open_file_in_tab = "<c-t>",
-      grep_in_directory = "<c-g>",
-      cycle_open_buffers = "<tab>",
-    },
-  },
-  init = function()
-    vim.g.loaded_netrw = 1
-    vim.g.loaded_netrwPlugin = 1
-  end,
-  -- Force latest: ignore versions, always use main branch head
-  version = false,
-  branch = "main",
+	"mikavilpas/yazi.nvim",
+	event = "VeryLazy",
+	dependencies = { "nvim-lua/plenary.nvim" },
+	keys = {
+		-- Standard single-pane yazi
+		{ "<leader>ee", "<cmd>Yazi<cr>", desc = "Open yazi (current window)" },
+		{ "<leader>ed", "<cmd>Yazi cwd<cr>", desc = "Open yazi (working directory)" },
+		{ "<leader>es", "<cmd>Yazi toggle<cr>", desc = "Resume last yazi session" },
+
+		-- Dual-pane mode (navigator + preview)
+		{ "<leader>ey", "<cmd>YaziDualPane<cr>", desc = "Toggle yazi dual-pane (navigator + preview)" },
+		{ "<leader>eY", "<cmd>YaziSidebarSync<cr>", desc = "Toggle dual-pane auto-sync" },
+	},
+	opts = {
+		-- Disable open_multiple_tabs to reduce startup overhead
+		open_multiple_tabs = false,
+		open_for_directories = false,
+		-- Use floating window for better performance (nil = buffer replacement mode has overhead)
+		floating_window_scaling_factor = 0.9,
+		yazi_floating_window_winblend = 0,
+		yazi_floating_window_use_border = true,
+		-- Enable debug logging to diagnose timing issues (comment out when not needed)
+		-- log_level = vim.log.levels.DEBUG,
+		keymaps = {
+			show_help = "<f1>",
+			open_file_in_vertical_split = "ov",
+			open_file_in_horizontal_split = "od",
+			open_file_in_tab = "c<tab>",
+			grep_in_directory = "<c-g>",
+			send_to_quickfix_list = "sq",
+			change_working_directory = "cd",
+			open_and_pick_window = "ow",
+			cycle_open_buffers = "<tab>",
+			integrations = {
+				--- What should be done when the user wants to grep in a directory
+				grep_in_directory = function(directory)
+					require("fzf-lua").lgrep({ search = "", cwd = directory })
+					-- the default implementation uses telescope if available, otherwise nothing
+				end,
+
+				grep_in_selected_files = function(selected_files)
+					require("fzf-lua").lgrep({ search = "", files = selected_files })
+					-- similar to grep_in_directory, but for selected files
+				end,
+			},
+		},
+	},
+
+	init = function()
+		vim.g.loaded_netrwPlugin = 1
+	end,
+	-- Force latest: ignore versions, always use main branch head
+	version = false,
+	branch = "main",
 }
 -- return {
 -- 	"mikavilpas/yazi.nvim",

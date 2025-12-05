@@ -5,6 +5,7 @@
 --   - tab-cleanup.lua (TMUX_CLEANUP_TRIGGER)
 --   - user-var.lua (navigate_wezterm for tmux navigation)
 --   - workspace_theme_handler.lua (theme_applied, stop_theme_watcher)
+--   - claude-code-status.lua (CLAUDE_CODE_STATE for AI assistant status)
 
 local wezterm = require("wezterm")
 local debug_config = require("config.debug")
@@ -137,6 +138,35 @@ function handle_tmux_tabline_refresh(window, pane, name, value)
 end
 
 -- ============================================================================
+-- CLAUDE CODE STATE HANDLING
+-- ============================================================================
+-- Handles CLAUDE_CODE_STATE user variable for AI assistant status indicators
+-- Values: busy, waiting, complete, error, active, exit
+function handle_claude_code_state(window, pane, name, value)
+	if name ~= "CLAUDE_CODE_STATE" then
+		return false
+	end
+
+	-- Try to load claude-code-status module
+	local ok, claude_status = pcall(require, "modules.ai.claude-code-status")
+	if not ok then
+		if debug_config.is_enabled("debug_mods_claude_code") then
+			wezterm.log_warn("[CLAUDE_CODE] Failed to load claude-code-status module")
+		end
+		return false
+	end
+
+	-- Delegate to the module's handler
+	local handled = claude_status.handle_user_var(pane, name, value)
+
+	if handled and debug_config.is_enabled("debug_mods_claude_code") then
+		wezterm.log_info("[EVENT:USER_VAR] Claude Code state updated")
+	end
+
+	return handled
+end
+
+-- ============================================================================
 -- UNIFIED USER-VAR-CHANGED HANDLER
 -- ============================================================================
 function M.setup()
@@ -177,6 +207,11 @@ function M.setup()
 
 		-- 5. TMUX tabline refresh (TMUX_SESSION, TMUX_WINDOW, etc.)
 		if handle_tmux_tabline_refresh(window, pane, name, value) then
+			return
+		end
+
+		-- 6. Claude Code state handling (CLAUDE_CODE_STATE)
+		if handle_claude_code_state(window, pane, name, value) then
 			return
 		end
 

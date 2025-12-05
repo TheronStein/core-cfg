@@ -1,0 +1,6 @@
+plugins/yazi	/home/theron/.core/.proj/plugins	p,y
+icons	/usr/share/icons	i,c
+env	/home/theron/.core/.sys/env	c,e
+desk	/home/theron/.core/.sys/env/desktop	c,d
+core-themes	/home/theron/.core/.sys/env/themes	c,t
+core-cfg	/home/theron/.core/.sys/cfg	c,f

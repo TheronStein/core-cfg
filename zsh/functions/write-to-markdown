@@ -1,0 +1,316 @@
+function w2md() {
+  local -A Opts
+  local -a opts
+  @parse-opts "r -reference n -no-wrap i -images g -google-doc" Opts opts "$@"
+  builtin set -- "$reply[@]"
+
+  local from="$1"
+  local isurl=${${${(M)from:#https#:\/\/*}:+1}:-0}
+  local output="${2:-${${from:t:r}:-output}.md}"
+
+  # h2m
+  # --single-line-break
+  # --ignore-emphasis
+  # --google-doc
+  # --hide-strikethrough
+  # --reference-links
+  # --body-width=0 \
+  # --wrap-list-items
+  #
+  # --links-after-para
+  # --no-automatic-links
+  # --no-skip-internal-links
+  function ___w2md() {
+    html2text \
+      --unicode-snob \
+      --asterisk-emphasis \
+      --open-quote=\' \
+      --close-quote=\' \
+      --mark-code \
+      --links-after-para \
+      --dash-unordered-list \
+      --no-automatic-links \
+      --google-list-indent=4 \
+      --no-wrap-links \
+      --pad-tables \
+      --default-image-alt='NULL' \
+      --body-width=${${${Opts[-n]:-${Opts[--no-wrap]}}:+0}:-100} \
+      ${${Opts[-r]:-${Opts[--reference]}}:+--reference-links} \
+      ${${${Opts[-i]:-${Opts[--images]}}:+--images-to-alt}:---ignore-images} \
+      ${${Opts[-g]:-${Opts[--google-doc]}}:+--google-doc} \
+      "$@"
+  }
+
+  (
+    (( isurl )) && {
+      wget -q "$from" \
+        | iconv -t utf-8 \
+        | ___w2md
+    } || ___w2md "$from"
+  ) | sponge -a "$output"
+}
+
+function w2md-clean() {
+  local -A Opts; zparseopts -F -D -E -A Opts -- a -all l: -lang:
+  local all lang="${${Opts[-l]:-$Opts[--lang]}:-zsh}"
+  (($+Opts[-a]+$+Opts[--all])) && all="--accept-all"
+
+  # fastmod $all '\((?:(?:https?[[:^blank:]]+\.html)|([[:^blank:]]+\.html))' $'${1}.md' "$1"
+  perl -i -pe 's/\((?!https?)(.+?).html\)/($1.md)/' "$1"
+  fastmod $all '\[code\]' '```'"$lang" "$1"
+  fastmod $all '\[/code\]' '```' "$1"
+  fastmod $all '^\s*$\n```$' '```' "$1"
+  fastmod $all '^(\s*$\n){2,}' $'\n' "$1"
+  # fastmod $all '^(\s*$\n){2,}' $'\n' "$1"
+  fastmod $all '^\[\[?\s<<?\s.*\n' '' "$1"
+  fastmod $all '\[\*\*' '[' "$1"
+  fastmod $all '\*\*\]' ']' "$1"
+  fastmod $all '^\*\s\*\s\*$' "## *${(l:94::*:):-}" "$1"
+  fastmod $all '(’|‘)' '`' "$1"
+  fastmod $all '(does|did|ca|do|would|wo|is|was|were|should)n`t' $'${1}n\'t' "$1"
+  fastmod $all '(that|what|it|there|let)`s' $'${1}\'s' "$1"
+  fastmod $all '(you|I)`ll' $'${1}\'ll' "$1"
+  fastmod $all '(you|would|I)`ve' $'${1}\'ve' "$1"
+  fastmod $all '(you|they)`re' $'${1}\'re' "$1"
+  fastmod $all '(you)`d' $'${1}\'d' "$1"
+  fastmod $all '(I)`m' $'${1}\'m' "$1"
+  fastmod $all '¶' '' "$1"
+}
+# ]]]
+
+function clean-vimpersisted() {
+  # if [[ "$PWD" != "$XDG_CACHE_HOME/nvim/fundo"
+  #    || "$PWD" != "$XDG_DATA_HOME/nvim/vim-persisted-undo" ]]
+  # then
+  #   zinfo -s "$PWD is not in an undo directory"
+  #   return $errnos[(i)EBADF];
+  # fi
+
+  local -a undodirs=(
+    $XDG_CACHE_HOME/nvim/fundo
+    $XDG_DATA_HOME/nvim/vim-persisted-undo
+  )
+
+  local dir qf
+  for dir ("$undodirs[@]") {
+    [[ -f $dir/*(#qNY1.) ]] && for qf ($dir/*(#qNY1.)) {
+      if [[ ! -e ${f//\%/\/} ]]; then
+        builtin print -r -- "$f"
+      fi
+    } | rargs rip {}
+  }
+}
+
+# ================== Bin ================== [[[
+# @desc: link file from mybin to $PATH
+function lnbin() {
+  zmodload -F zsh/files b:zf_ln 2>/dev/null &&
+    zf_ln -si $CORE/bin/$1 $XDG_BIN_HOME
+}
+# @desc: unlink file from mybin to $PATH
+function unlbin() {
+  zmodload -F zsh/files b:zf_rm 2>/dev/null &&
+    zf_rm rm -v $XDG_BIN_HOME/$1
+}
+
+# @desc: removes /$HOME/mybin from $PATH
+function mybin_off() { path=( "${path[@]:#$CORE_SYS/bin}" ) }
+# @desc: adds /$HOME/mybin to $PATH
+function mybin_on()  { mybin_off; PATH=$PATH:$CORE_SYS/bin; }
+
+# @desc: removes /usr/local/{bin,sbin} from $PATH
+function localbin_off() { path=( "${path[@]:#/usr/local/bin}" ); path=( "${path[@]:#/usr/local/sbin}" ); }
+# @desc: adds /usr/local/{bin,sbin} to $PATH
+function localbin_on()  { localbin_off; PATH=$PATH:/usr/local/bin:/usr/local/sbin }
+# ]]]
+
+# @desc: date format for taskwarrior
+function td() { date -d "+${*}" "+%FT%R" ; }
+# @desc: edit file recursively
+function ee() { lax -f nvim "@${1}" ; }
+# @desc: open $PWD in file browser
+function ofd() { handlr open "$PWD" ; }
+
+# @desc: convert hexadecimal to base 10
+function h2d() { builtin print $(( [#10_3] 0x${1#0x} )); }
+# @desc: convert hexadecimal to octal
+function h2o() { builtin print $(( [#8_3] 0x${1#0x} )); }
+# @desc: convert hexadecimal to binary
+function h2b() { builtin print "0b$(( [##2_4] 0x${1#0x} ))"; }
+
+# @desc: convert base 10 to hexadecimal
+function d2h() { builtin print $(( [#16] $1 )); }
+# @desc: convert base 10 to octal
+function d2o() { builtin print $(( [#8_3] $1 )); }
+# @desc: convert base 10 to binary
+function d2b() { builtin print "0b$(( [##2_4] $1 ))"; }
+
+# @desc: convert octal to base 10
+function o2d() { builtin print $(( [#10_3] 0${1#0} )); }
+# @desc: convert octal to hexadecimal
+function o2h() { builtin print $(( [#16] 0${1#0} )); }
+# @desc: convert octal to binary
+function o2b() { builtin print "0b$(( [##2_4] 0${1#0} ))"; }
+
+# @desc: convert binary to base 10
+function b2d() { builtin print $(( [#10_3] 0b${1#0b} )); }
+# @desc: convert binary to hexadecimal
+function b2h() { builtin print $(( [#16] 0b${1#0b} )); }
+# @desc: convert binary to octal
+function b2o() { builtin print $(( [#8_3] 0b${1#0b} )); }
+
+# function b2o() { print "0o$(( [##8_3] 0b${1#0b} ))"; }
+# print 'obase=16; ibase=8; $1' | bc
+# [#16_4]   printf 0x%X\\n $1;
+
+# @desc: move items out of a directory
+function mvout() { command cp -vaR ${1:?Invalid directory}/ . }
+function mvoutc() { command cp -vaR ${1:?Invalid directory}/ . && rip ${1}/ }
+
+# @desc: create 'gif' and 'video' dirs, then move those filetypes into the directory
+function mvmedia() {
+  mkdir -p gif video
+  fd -e gif -d1 -x mv {} gif &&
+    fd -e webm -d1 -x mv {} video
+}
+
+# @desc: use youtube-dl to get audio
+function get-mp3() {
+  youtube-dl -f bestaudio -x --audio-format mp3 --audio-quality 0 -o '%(title)s.%(ext)s' $@
+}
+
+# ================= Image ================= [[[
+function jpeg() { jpegoptim -S "${2:-1000}" "$1"; jhead -purejpg "$1" && du -sh "$1"; }
+function pngo() { optipng -o"${2:-3}" "$1"; exiftool -all= "$1" && du -sh "$1"; }
+function png()  { pngquant --speed "${2:-4}" "$1"; exiftool -all= "$1" && du -sh "$1"; }
+
+# @desc: create png from gif
+function create-gif() {
+  convert -verbose -coalesce ${1} ${1:r}.png
+}
+
+\ ]]]
+
+# === Typescript ========================================================= [[[
+# @desc: Link relevant files to a Typescript project
+function linkts() {
+  local d; d="$XDG_CONFIG_HOME/languages/typescript"
+  command ln -Lv $d/typescript.just $PWD/justfile
+  command ln -Lv $d/eslintrc.js     $PWD/.eslintrc.js
+  command ln -Lv $d/tsconfig.json   $PWD/tsconfig.json
+  # command cp -v $HOME/projects/rust/.pre-commit-config.yaml $PWD/.pre-commit-config.yaml
+}
+# ]]]
+
+# === Clang ============================================================== [[[
+# @desc: Link relevant files to a C project
+function linkclang() {
+  local d; d="$XDG_CONFIG_HOME/languages/c"
+  command ln -Lv $d/justfile.clang          $PWD/justfile
+  command ln -Lv $d/.clang-format           $PWD/.clang-format
+  command ln -Lv $d/.clangd                 $PWD/.clangd
+  command ln -Lv $d/.clang-tidy             $PWD/.clang-tidy
+}
+# ]]]
+
+# === Rust =============================================================== [[[
+# @desc: Link relevant files to a Rust project
+function linkrust() {
+  local d; d="$XDG_CONFIG_HOME/languages/rust"
+  command ln -Lv $d/justfile.rust           $PWD/justfile
+  command ln -Lv $d/rustfmt.toml            $PWD/rustfmt.toml
+  command cp -v  $d/build.rs                $PWD/build.rs
+  command cp -v  $d/pre-commit-config.yaml  $PWD/.pre-commit-config.yaml
+}
+
+function cargo-bin() {
+  local root binpath bin
+  root=${$(cargo locate-project | jq -r '.root'):h} bin=${root:t}
+  binpath=${root}/target/release/${bin}
+  if [[ -x $binpath ]] {
+      command mv $binpath $root && cargo trim clear
+  } elif [[ -x $root/$bin ]] {
+      cargo trim clear
+  }
+}
+
+# function cargo-take() { cargo new "$@" && builtin cd "$@"; }
+function cargo-home() { cargo show "${@}" --json | jq -r .crate.homepage; }
+function cdc() { builtin cd ${$(cargo locate-project | jq -r '.root'):h}; }
+function cme() { $EDITOR ${$(cargo locate-project | jq -r '.root'):h}/src/main.rs; }
+function cml() { $EDITOR ${$(cargo locate-project | jq -r '.root'):h}/src/lib.rs; }
+function cmc() { $EDITOR ${$(cargo locate-project | jq -r '.root'):h}/Cargo.toml; }
+
+# @desc: wrapper for rusty-man for tui
+function rmant() { rusty-man "$1" --theme 'Solarized (dark)' --viewer tui "${@:2}"; }
+
+(( ${+commands[paru]} )) && {
+  function plist() {
+    command paru --color=always -Ql ${(z)@} | lscolors | bat --paging=always
+  }
+}
+
+
+# ]]]
+
+# === TIP: =========================================================== [[[
+# print -P '%15>...>%d' => /home/lucas/...
+# print -P '%15<...<%d' => ...fig/nvim/lua
+
+# Longest element
+# ${arr[(r)${(l.${#${(O@)arr//?/X}[1]}..?.)}]}
+# ${(M)array:#${~${(O@)array//?/?}[1]}}
+
+# Reverse word
+# ${(j::)${(@Oa)${(s::):-word}}}
+
+# All .c files with no matching .o
+# *.c(e_'[[ ! -e $REPLY:r.o ]]'_)
+
+# Save arrays
+# print -r -- ${(qq)m} > $fname
+# m=( "${(@Q)${(z)"$(<$fname)"}}" )
+
+# print *(e:'[[ -d $REPLY ]]':)
+# print *(e:'reply=(${REPLY}{1,2})':)
+
+# : ${(S)string##(#m)([A-Z]##)}    #=> $MATCH = 'LO'
+
+# zmv -n '(*)' '${(U)1}'      =>   mv -- foo FOO              => zmv -nw '*' '${(U)1}'
+# zmv -n '(**/)lone' '$1sol'  =>   mv -- test/lone test/sol   =>  zmv -nw '***/lone' '$1sol'
+# zmv '(*)' '${1//(#m)[aeiou]/${(U)MATCH}}'
+
+# ${${${${(@)f_opts##-(h|-height(=|))}//=/}}//(#m)*/--height=${MATCH}}
+# ${${${(M@)opts:#-(h|-height(=|))*}##-(h|-height(=|))}//(#m)*/--height=${(q-)MATCH}}
+
+# ━Best Practices━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# typeset -ga prevf
+# prevf=( ${(@k)functions} )
+# trap "unset -f -- \"\${(k)functions[@]:|prevf}\" &>/dev/null; unset prevf" EXIT
+# trap "unset -f -- \"\${(k)functions[@]:|prevf}\" &>/dev/null; unset prevf; return 1" INT
+
+# ━Scope━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# .func = private
+# →func = hooks
+# +func = output
+# /func = debug
+# @func = api
+
+# ━Variables━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# ${langinfo[T_FMT_AMPM]}
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# find -L . -inum 101715870  (not present in fd)
+# print -l /proc/*/cwd(:h:t:s/self//)
+
+# emulate -L zsh -o cbases -o octalzeroes
+# local REPLY
+# local -a reply stat lstat
+
+# zstat -A lstat -L -- $1
+# # follow symlink
+# (( lstat[3] & 0170000 )) && zstat -A stat -- $1 2>/dev/null
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# ]]]
+
+# vim: ft=zsh:et:sw=0:ts=2:sts=2

@@ -17,3 +17,5 @@
 [credential "https://gist.github.com"]
 	helper = 
 	helper = !/home/theron/.local/share/zinit/plugins/cli---cli/gh/bin/gh auth git-credential
+[credential "https://gitlab.chaoscore.org"]
+	helper = store

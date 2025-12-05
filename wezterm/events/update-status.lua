@@ -7,6 +7,7 @@
 --   - leader-activated.lua (leader key tracking)
 --   - tab-cleanup.lua (periodic tmux cleanup)
 --   - update-status-unified.lua (previous attempt at unification)
+--   - claude-code-status.lua (Claude Code AI session polling)
 
 local wezterm = require("wezterm")
 local debug_config = require("config.debug")
@@ -247,6 +248,70 @@ function update_workspace_theme(window, pane)
 end
 
 -- ============================================================================
+-- CLAUDE CODE STATUS POLLING
+-- ============================================================================
+-- Polls process state as fallback when user vars aren't available
+-- This detects Claude Code sessions by checking the foreground process
+
+local claude_code_poll = {
+	last_poll = {},
+	POLL_INTERVAL = 2, -- seconds (lightweight check)
+}
+
+function claude_code_poll.update(window, pane)
+	local window_id = tostring(window:window_id())
+	local now = os.time()
+
+	-- Rate limit polling per window
+	if claude_code_poll.last_poll[window_id] and
+	   (now - claude_code_poll.last_poll[window_id]) < claude_code_poll.POLL_INTERVAL then
+		return
+	end
+	claude_code_poll.last_poll[window_id] = now
+
+	-- Try to load Claude Code status module
+	local ok, claude_status = pcall(require, "modules.ai.claude-code-status")
+	if not ok then
+		return
+	end
+
+	-- Poll the active pane for Claude Code process
+	claude_status.poll_pane_state(pane)
+end
+
+-- ============================================================================
+-- TAB TEMPLATE HOOKS (Directory-based auto-loading)
+-- ============================================================================
+-- Monitors directory changes and applies templates when patterns match
+-- Rate-limited to avoid excessive checks
+
+local tab_hooks_poll = {
+	last_poll = {},
+	POLL_INTERVAL = 3, -- seconds (check every 3 seconds)
+}
+
+function tab_hooks_poll.update(window, pane)
+	local pane_id = tostring(pane:pane_id())
+	local now = os.time()
+
+	-- Rate limit polling per pane
+	if tab_hooks_poll.last_poll[pane_id] and
+	   (now - tab_hooks_poll.last_poll[pane_id]) < tab_hooks_poll.POLL_INTERVAL then
+		return
+	end
+	tab_hooks_poll.last_poll[pane_id] = now
+
+	-- Try to load tab hooks module
+	local ok, tab_hooks = pcall(require, "modules.tabs.tab_hooks")
+	if not ok then
+		return
+	end
+
+	-- Check and apply hooks for current pane
+	tab_hooks.check_and_apply_hooks(window, pane)
+end
+
+-- ============================================================================
 -- UNIFIED UPDATE-STATUS HANDLER
 -- ============================================================================
 function M.setup()
@@ -282,6 +347,12 @@ function M.setup()
 
 		-- 7. Workspace theme application (auto-apply workspace themes)
 		update_workspace_theme(window, pane)
+
+		-- 8. Claude Code status polling (fallback detection when user vars unavailable)
+		claude_code_poll.update(window, pane)
+
+		-- 9. Tab template hooks (directory-based auto-loading)
+		tab_hooks_poll.update(window, pane)
 	end)
 
 	wezterm.log_info("[EVENT] Unified update-status handler initialized")

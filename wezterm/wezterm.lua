@@ -107,6 +107,10 @@ backdrops:set_scroll_attachment(true) -- Enable parallax scrolling for tall imag
 
 require("modules.gui.overlay-mode-picker").setup()
 
+-- Initialize tab template hooks system
+local tab_hooks = require("modules.tabs.tab_hooks")
+tab_hooks.initialize()
+
 -- NOTE: Event handlers are now loaded earlier in this file (see LOAD CONSOLIDATED EVENT HANDLERS section above)
 -- The old individual event files have been consolidated to avoid handler conflicts
 

@@ -1,12 +1,14 @@
 #!/usr/bin/env bash
 # Tmux-aware Neovim opener for Yazi
 # Sidebar-aware: creates smart splits in content area
+# Supports opening multiple files at once
 
-FILE="$1"
+# Handle multiple files - store all arguments
+FILES=("$@")
 
 # Check if we're in tmux
 if [ -z "$TMUX" ]; then
-    nvim "$FILE"
+    nvim "${FILES[@]}"
     exit 0
 fi
 
@@ -36,8 +38,14 @@ for pane in "${CONTENT_PANES[@]}"; do
 done
 
 if [ -n "$NVIM_PANE" ]; then
-    # Found nvim - open file there
-    tmux send-keys -t "$NVIM_PANE" ":e $(printf '%q' "$FILE")" C-m
+    # Found nvim - open all files there
+    # First file with :e, subsequent files with :badd to add to buffer list
+    FIRST_FILE="${FILES[0]}"
+    tmux send-keys -t "$NVIM_PANE" ":e $(printf '%q' "$FIRST_FILE")" C-m
+    # Add remaining files to buffer list
+    for ((i=1; i<${#FILES[@]}; i++)); do
+        tmux send-keys -t "$NVIM_PANE" ":badd $(printf '%q' "${FILES[$i]}")" C-m
+    done
     tmux select-pane -t "$NVIM_PANE"
 else
     # No nvim found - create smart split
@@ -62,6 +70,12 @@ else
     tmux set-hook -gu after-split-window
     tmux set-hook -gu window-resized
 
+    # Build properly quoted file arguments for nvim
+    NVIM_ARGS=""
+    for f in "${FILES[@]}"; do
+        NVIM_ARGS="$NVIM_ARGS $(printf '%q' "$f")"
+    done
+
     # Determine optimal split: horizontal if width > height, else vertical
     if [ "$WINDOW_WIDTH" -gt "$WINDOW_HEIGHT" ]; then
         # Prefer full-width horizontal split (40% of window height for nvim)
@@ -69,14 +83,14 @@ else
         [ $NVIM_HEIGHT -lt 20 ] && NVIM_HEIGHT=20  # Minimum 20 lines
 
         # Split horizontally from bottom pane
-        NEW_PANE=$(tmux split-window -t "$BOTTOM_PANE" -v -l "$NVIM_HEIGHT" -P -F '#{pane_id}' "nvim $(printf '%q' "$FILE")")
+        NEW_PANE=$(tmux split-window -t "$BOTTOM_PANE" -v -l "$NVIM_HEIGHT" -P -F '#{pane_id}' "nvim $NVIM_ARGS")
     else
         # Vertical split (60% width for nvim)
         NVIM_WIDTH=$((WINDOW_WIDTH * 60 / 100))
         [ $NVIM_WIDTH -lt 80 ] && NVIM_WIDTH=80  # Minimum 80 columns
 
         # Split vertically from first content pane
-        NEW_PANE=$(tmux split-window -t "${CONTENT_PANES[0]}" -h -l "$NVIM_WIDTH" -P -F '#{pane_id}' "nvim $(printf '%q' "$FILE")")
+        NEW_PANE=$(tmux split-window -t "${CONTENT_PANES[0]}" -h -l "$NVIM_WIDTH" -P -F '#{pane_id}' "nvim $NVIM_ARGS")
     fi
 
     # Re-enable layout restore hooks

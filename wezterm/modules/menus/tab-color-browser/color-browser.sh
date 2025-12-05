@@ -4,7 +4,8 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-COLORS_FILE="$HOME/.core/.sys/configs/wezterm/.data/tabs/colors.json"
+WEZTERM_CONFIG_DIR="${WEZTERM_CONFIG_DIR:-$HOME/.core/.sys/cfg/wezterm}"
+COLORS_FILE="$WEZTERM_CONFIG_DIR/.data/tabs/colors.json"
 
 # Arguments from WezTerm
 TAB_ID="${1:-}"

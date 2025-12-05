@@ -77,4 +77,4 @@ export YAZIBAR_PANE_ID="$TMUX_PANE"
 
 # Run yazi
 # Note: Yazi plugins will call handle_yazi_event via DDS or hooks
-exec yazi "$START_DIR"
+exec yazi "$START_DIR" --cwd-file=/tmp/yazi_cwd --chooser-file=/tmp/yazi_choose"

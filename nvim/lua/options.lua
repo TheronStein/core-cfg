@@ -31,7 +31,6 @@ opt.laststatus = 3 -- Global statusline (3 = single statusline at top with globa
 opt.showtabline = 2 -- Always show tabline
 
 -- Memory and performance
-opt.hidden = true -- Allow buffer switching without saving
 opt.swapfile = false -- Disable swap files
 opt.undofile = true -- Enable persistent undo
 opt.undodir = vim.fn.stdpath("data") .. "/undo" -- Undo file directory

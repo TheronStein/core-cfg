@@ -4,11 +4,11 @@ local paths = require("utils.paths")
 local M = {}
 
 -- File to persist tab colors
-local COLORS_FILE = wezterm.config_dir .. "/.data/tabs/colors.json"
+local COLORS_FILE = paths.TAB_COLORS_FILE
 
 -- Ensure the data directory exists
 local function ensure_data_dir()
-	local handle = io.popen("mkdir -p " .. wezterm.config_dir .. "/.data/tabs")
+	local handle = io.popen("mkdir -p " .. paths.TABS_DATA)
 	if handle then
 		handle:close()
 	end
@@ -91,6 +91,12 @@ function M.set_tab_color(tab_id, color)
 	M.save_colors(colors)
 
 	wezterm.log_info("Set tab color for " .. tab_id .. ": " .. tostring(color))
+
+	-- Emit event for metadata persistence
+	local tab = wezterm.mux.get_tab(tab_id)
+	if tab then
+		wezterm.emit("tab-color-changed", tab)
+	end
 end
 
 -- Remove color for a specific tab
@@ -120,7 +126,7 @@ function M.show_color_picker(window, pane)
 	local tmux_workspace = tab_meta and tab_meta.tmux_workspace
 
 	-- Create a callback file for the browser to write the result
-	local callback_file = wezterm.config_dir .. "/.data/tabs/color-callback-" .. tab_id .. ".tmp"
+	local callback_file = paths.TABS_DATA .. "/color-callback-" .. tab_id .. ".tmp"
 
 	-- Launch the color picker browser
 	window:perform_action(

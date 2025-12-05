@@ -28,6 +28,7 @@ declare -a MENU_ITEMS=(
     "header_management|─── 📋 MANAGEMENT ───"
     "workspace_management|🌐 Workspace Management"
     "tab_management|📑 Tab Management"
+    "tab_metadata|📊 Tab Metadata Browser"
     "pane_management|🪟 Pane Management"
     "tmux_management|🖥️  TMUX Management"
     "header_customization|─── 🎨 CUSTOMIZATION ───"

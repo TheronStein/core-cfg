@@ -36,6 +36,10 @@ M.METADATA_BACKUP_DIR = M.WEZTERM_DATA .. "/metadata-backups"
 M.TABS_DATA = M.WEZTERM_DATA .. "/tabs"
 M.TAB_TEMPLATES_FILE = M.TABS_DATA .. "/templates.json"
 M.TAB_COLORS_FILE = M.TABS_DATA .. "/colors.json"
+M.TAB_METADATA_FILE = M.TABS_DATA .. "/metadata.json"
+
+-- WezTerm tab scripts
+M.TAB_METADATA_BROWSER_SCRIPT = M.WEZTERM_CONFIG .. "/scripts/tab-metadata-browser/browser.sh"
 
 -- WezTerm session data
 M.SESSIONS_DIR = M.WEZTERM_DATA .. "/sessions"

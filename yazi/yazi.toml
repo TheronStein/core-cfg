@@ -1,5 +1,6 @@
 "$schema" = "https://yazi-rs.github.io/schemas/yazi.json"
 
+
 # RIGHT SIDEBAR CONFIGURATION
 # Preview focused: Show only preview column
 # Synchronized with left sidebar navigation
@@ -144,7 +145,7 @@ rules = [
   { mime = "application/pdf", use = "pdf" },
 
   # ━━━ Markdown (special handling for Obsidian) ━━━
-  { name = "*.md", use = "markdown" },
+  { name = "*.md", use = "edit" },
 
   # ━━━ CSV/Data files ━━━
   { name = "*.{csv,tsv}", use = "csv" },
@@ -309,7 +310,7 @@ append_previewers = [
   # { mime = "text/*", run = "rich-preview" },
 
   # Markdown files (uses glow for terminal rendering)
-  { name = "*.md", run = "glow" },
+  # { name = "*.md", run = "" },
   # { name = "*.rasi", run =  },
 
   # Office documents (requires pandoc for conversion)
