@@ -10,7 +10,7 @@
 # # Human-readable fzf colors (edit freely, one per line)
 # # ── Get raw multiline colors (from your theme script or fallback) ──
 _fzf_tab_colors=$(
-  "$HOME/.core/.sys/cfg/wezterm/scripts/theme-browser/get-current-fzf-colors.zsh" 2>/dev/null || cat <<'EOF'
+  "$HOME/.core/.sys/cfg/wezterm/modules/menus/theme-browser/get-current-fzf-colors.zsh" 2>/dev/null || cat <<'EOF'
 bg+:#313244
 bg:#1e1e2e
 spinner:#f5e0dc
@@ -91,7 +91,7 @@ export FZF_PREVIEW="${ZDOTDIR:-$HOME/.core/.sys/cfg/zsh}/functions/fzf-preview"
 
 # Dynamic FZF theme system
 _fzf_colors() {
-  "$HOME/.core/.sys/cfg/wezterm/scripts/theme-browser/get-current-fzf-colors.zsh" 2>/dev/null || cat <<'EOF'
+  "$HOME/.core/.sys/cfg/wezterm/modules/menus/theme-browser/get-current-fzf-colors.zsh" 2>/dev/null || cat <<'EOF'
 bg+:#313244,bg:#1e1e2e,spinner:#f5e0dc,hl:#f38ba8,fg:#cdd6f4
 header:#f38ba8,info:#cba6f7,pointer:#f5e0dc,marker:#f5e0dc
 fg+:#cdd6f4,prompt:#cba6f7,hl+:#f38ba8,border:#89b4fa
@@ -132,6 +132,10 @@ fi
 
 export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
 
+# Build FZF_DEFAULT_OPTS with dynamic colors
+_fzf_colors_str=$(_fzf_colors | tr '\n' ',')
+_fzf_colors_str=${_fzf_colors_str%,}  # Remove trailing comma
+
 export FZF_DEFAULT_OPTS="
     --height=80%
     --layout=reverse
@@ -146,6 +150,7 @@ export FZF_DEFAULT_OPTS="
     --ansi
     --cycle
     --multi
+    --color='${_fzf_colors_str}'
     --bind='ctrl-/:toggle-preview'
     --bind='ctrl-a:select-all'
     --bind='ctrl-d:deselect-all'
@@ -433,7 +438,8 @@ alias fnpm='fzf-npm-scripts'
 alias fenv='fzf-environment'
 alias fwifi='fzf-wifi'
 alias fclip='fzf-cliphist'
-alias flayout='fzf-tmux-layouts'
+alias flayout='fzf-tmux-layouts'      # Change tmux pane layouts
+alias fzf-appearance='fzf-layout-switcher'  # Change fzf appearance/theme
 
 # Key bindings from integrations/fzf.zsh
 [[ -f /usr/share/fzf/key-bindings.zsh ]] && source /usr/share/fzf/key-bindings.zsh

@@ -1,21 +1,6 @@
 # Hidden files (but allow .gitignore)
 .*
 !.gitignore
-.archv
-
-# Runtime logs (generated, not source)
-.logs/
-*.log
-logs/
-*.log.*
-
-# Archives (old/deprecated content)
-.archv/
-archives/
-
-# External references (not your work)
-.ref/
-references/
 
 # Temporary files
 *.tmp
@@ -351,3 +336,28 @@ dist/
 archive/*.bak
 archive/*/*.log
 *plugins
+docs/
+.docs/
+.logs/
+tmp/
+state/
+.cache/
+temp/
+
+# Runtime logs (generated, not source)
+.logs/
+*.log
+logs/
+*.log.*
+# Archives (old/deprecated content)
+.archv/
+archives/
+.archv
+# External references (not your work)
+.ref/
+references/
+.work/
+work/
+mnt/
+Mount/
+

@@ -595,17 +595,21 @@ keymap = [
     "k",
   ], run = "plugin simple-tag -- toggle-tag", desc = "Toggle a tag (press any key)" },
 
-  # Fast Toggle tag(s) with fixed keys=!1q. key=!1q tag=!1q or tags=!1q also work
-  # NOTE: For key=" (Quotation mark), then use key=\" (Backslash + Quotation mark) instead.
-  { on = [
-    "`",
-  ], run = "plugin simple-tag -- toggle-tag --keys=!1q", desc = "Toggle tag(s) with fixed tag key(s) = (! and 1 and q)" },
-  { on = [
-    "`",
-  ], run = "plugin simple-tag -- toggle-tag --keys=*", desc = "Toggle tag with fixed tag key = *" },
-  { on = [
-    "`",
-  ], run = "plugin simple-tag -- toggle-tag --key=*", desc = "Toggle tag with fixed tag key = *" },
+  # DISK OPERATIONS
+  { on = ["`", "`"], run = "plugin disk-ops", desc = "Disk operations menu" },
+  { on = ["`", "s"], run = "plugin disk-ops -- s", desc = "Disk scan (GDU/ncdu)" },
+  { on = ["`", "d"], run = "plugin disk-ops -- d", desc = "Find duplicates" },
+  { on = ["`", "l"], run = "plugin disk-ops -- l", desc = "Large files (>100M)" },
+  { on = ["`", "L"], run = "plugin disk-ops -- L", desc = "Large files (custom)" },
+  { on = ["`", "e"], run = "plugin disk-ops -- e", desc = "Empty directories" },
+  { on = ["`", "a"], run = "plugin disk-ops -- a", desc = "Search archives (rga)" },
+  { on = ["`", "A"], run = "plugin disk-ops -- A", desc = "Archive operations" },
+  { on = ["`", "c"], run = "plugin disk-ops -- c", desc = "Cloud operations (rclone)" },
+  { on = ["`", "t"], run = "plugin disk-ops -- t", desc = "Trash operations" },
+  { on = ["`", "w"], run = "plugin disk-ops -- w", desc = "Cleanup wizard" },
+  { on = ["`", "o"], run = "plugin disk-ops -- o", desc = "Disk overview" },
+  { on = ["`", "i"], run = "plugin disk-ops -- i", desc = "Inode check" },
+  { on = ["`", "p"], run = "plugin disk-ops -- p", desc = "Space suggestions" },
 
   # Toggle tag(s) with value from input box.
   # A tag hint window and an input box will show up.

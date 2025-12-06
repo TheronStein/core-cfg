@@ -122,31 +122,6 @@ local function list_session_files()
 	return sessions
 end
 
--- Build a map of workspace -> window_id for running clients
--- This caches the expensive `wezterm cli list` call
-local function get_running_workspace_map()
-	local running_map = {}
-
-	-- Use pcall to safely handle any errors from isolation module
-	local success, clients = pcall(isolation.get_running_clients)
-	if not success then
-		wezterm.log_warn("[UNIFIED_WORKSPACE] Failed to get running clients: " .. tostring(clients))
-		return running_map
-	end
-
-	if not clients then
-		return running_map
-	end
-
-	for _, client in ipairs(clients) do
-		if client.workspace and client.window_id then
-			running_map[client.workspace] = client.window_id
-		end
-	end
-
-	return running_map
-end
-
 -- ============================================================================
 -- CORE WORKSPACE OPERATIONS
 -- ============================================================================
@@ -165,9 +140,9 @@ function M.create_workspace(window, pane)
 					return
 				end
 
-				-- Check if workspace already exists (safe check)
-				local success, existing_window_id = pcall(isolation.find_client_for_workspace, workspace_name)
-				if success and existing_window_id then
+				-- Check if workspace already exists
+				local existing_window_id = isolation.find_client_for_workspace(workspace_name)
+				if existing_window_id then
 					win:toast_notification(
 						"WezTerm",
 						"⚠️  Workspace '" .. workspace_name .. "' already running (window " .. existing_window_id .. ")",
@@ -212,13 +187,13 @@ function M.create_workspace(window, pane)
 						-- We're in a named workspace, spawn NEW isolated client
 						wezterm.log_info("[UNIFIED_WORKSPACE] Creating isolated workspace: " .. workspace_name)
 
-						local spawn_success, spawn_result = pcall(isolation.spawn_workspace_client, workspace_name)
+						local success = isolation.spawn_workspace_client(workspace_name)
 
-						if spawn_success and spawn_result then
+						if success then
 							inner_win:toast_notification("WezTerm", "✅ Created isolated workspace: " .. display_name, nil, 3000)
 							wezterm.emit("workspace-created", inner_win, workspace_name)
 						else
-							inner_win:toast_notification("WezTerm", "❌ Failed to create workspace: " .. tostring(spawn_result), nil, 3000)
+							inner_win:toast_notification("WezTerm", "❌ Failed to create workspace", nil, 3000)
 						end
 					end
 				end)
@@ -238,9 +213,6 @@ function M.switch_workspace(window, pane)
 		return
 	end
 
-	-- Cache running clients ONCE (this was the crash culprit!)
-	local running_map = get_running_workspace_map()
-
 	-- Build choices with visual indicators
 	local choices = {}
 	for _, ws in ipairs(all_workspaces) do
@@ -248,8 +220,9 @@ function M.switch_workspace(window, pane)
 		local icon_prefix = (icon and icon ~= "") and (icon .. " ") or ""
 		local prefix = (ws == current_workspace) and "▶ " or "  "
 
-		-- Use cached map instead of calling find_client for each workspace
-		local running_indicator = running_map[ws] and " 🟢" or ""
+		-- Check if workspace has running client
+		local window_id = isolation.find_client_for_workspace(ws)
+		local running_indicator = window_id and " 🟢" or ""
 
 		table.insert(choices, {
 			label = prefix .. icon_prefix .. ws .. running_indicator,
@@ -263,12 +236,12 @@ function M.switch_workspace(window, pane)
 				if id then
 					-- Always use isolation mode
 					wezterm.log_info("[UNIFIED_WORKSPACE] Switching to workspace: " .. id)
-					local success, result = pcall(isolation.switch_to_workspace, id)
+					local success = isolation.switch_to_workspace(id)
 
-					if success and result then
+					if success then
 						win:toast_notification("WezTerm", "📂 Switched to workspace: " .. id, nil, 2000)
 					else
-						win:toast_notification("WezTerm", "❌ Failed to switch workspace: " .. tostring(result), nil, 2000)
+						win:toast_notification("WezTerm", "❌ Failed to switch workspace", nil, 2000)
 					end
 				end
 			end),
@@ -343,17 +316,15 @@ function M.close_workspace(window, pane)
 		return
 	end
 
-	-- Cache running clients ONCE
-	local running_map = get_running_workspace_map()
-
 	local choices = {}
 	for _, ws in ipairs(workspaces) do
 		local icon = get_workspace_icon(ws)
 		local icon_prefix = (icon and icon ~= "") and (icon .. " ") or ""
 		local marker = (ws == current_workspace) and " [current]" or ""
 
-		-- Use cached map
-		local running_indicator = running_map[ws] and " 🟢" or ""
+		-- Show if workspace has running client
+		local window_id = isolation.find_client_for_workspace(ws)
+		local running_indicator = window_id and " 🟢" or ""
 
 		table.insert(choices, {
 			label = icon_prefix .. ws .. marker .. running_indicator,
@@ -367,12 +338,12 @@ function M.close_workspace(window, pane)
 				if id then
 					wezterm.log_info("[UNIFIED_WORKSPACE] Closing workspace: " .. id)
 
-					local success, result = pcall(isolation.close_workspace_client, id)
+					local success = isolation.close_workspace_client(id)
 
-					if success and result then
+					if success then
 						win:toast_notification("WezTerm", "🗑️  Closed workspace: " .. id, nil, 3000)
 					else
-						win:toast_notification("WezTerm", "❌ Failed to close workspace: " .. tostring(result), nil, 3000)
+						win:toast_notification("WezTerm", "❌ Failed to close workspace", nil, 3000)
 					end
 				end
 			end),
@@ -545,10 +516,10 @@ function M.load_session(window, pane)
 				-- Determine target workspace name
 				local target_workspace = session.workspace_name or session_id
 
-				-- Check if workspace already has a running client (safe check)
-				local success, existing_client = pcall(isolation.find_client_for_workspace, target_workspace)
+				-- Check if workspace already has a running client
+				local existing_client = isolation.find_client_for_workspace(target_workspace)
 
-				if success and existing_client then
+				if existing_client then
 					-- Workspace already running, warn user
 					win:toast_notification(
 						"WezTerm",
@@ -557,7 +528,7 @@ function M.load_session(window, pane)
 						4000
 					)
 					-- Focus the existing client instead
-					pcall(isolation.focus_workspace_client, target_workspace)
+					isolation.focus_workspace_client(target_workspace)
 					return
 				end
 
@@ -673,9 +644,6 @@ function M.show_menu(window, pane)
 	local all_workspaces = list_all_workspaces()
 	local current_workspace = window:active_workspace()
 
-	-- **FIX: Cache running clients ONCE** - this was causing the deadlock!
-	local running_map = get_running_workspace_map()
-
 	local choices = {
 		{ id = "separator0", label = "─────────────────────────────" },
 		{ id = "actions_header", label = "─── ⚡ WORKSPACE ACTIONS ───" },
@@ -698,8 +666,9 @@ function M.show_menu(window, pane)
 			local icon_prefix = (icon and icon ~= "") and (icon .. " ") or ""
 			local prefix = (ws == current_workspace) and "▶ " or "  "
 
-			-- **FIX: Use cached map instead of calling isolation for each workspace**
-			local running_indicator = running_map[ws] and " 🟢" or ""
+			-- Check if workspace has running client
+			local window_id = isolation.find_client_for_workspace(ws)
+			local running_indicator = window_id and " 🟢" or ""
 
 			table.insert(choices, {
 				id = "workspace:" .. ws,
@@ -742,12 +711,12 @@ end
 -- Helper to switch directly to a named workspace
 function M.switch_workspace_to(window, pane, workspace_name)
 	wezterm.log_info("[UNIFIED_WORKSPACE] Direct switch to workspace: " .. workspace_name)
-	local success, result = pcall(isolation.switch_to_workspace, workspace_name)
+	local success = isolation.switch_to_workspace(workspace_name)
 
-	if success and result then
+	if success then
 		window:toast_notification("WezTerm", "📂 Switched to workspace: " .. workspace_name, nil, 2000)
 	else
-		window:toast_notification("WezTerm", "❌ Failed to switch workspace: " .. tostring(result), nil, 2000)
+		window:toast_notification("WezTerm", "❌ Failed to switch workspace", nil, 2000)
 	end
 end
 

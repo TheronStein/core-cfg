@@ -479,3 +479,12 @@ man() {
   fi
 }
 
+#=============================================================================
+# LOAD ADDITIONAL FUNCTION FILES
+# Source all .zsh files from the functions directory
+#=============================================================================
+if [[ -d "$ZSH_CORE/functions" ]]; then
+    for func_file in "$ZSH_CORE/functions"/*.zsh(N); do
+        source "$func_file"
+    done
+fi

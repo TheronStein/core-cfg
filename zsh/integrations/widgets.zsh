@@ -21,7 +21,7 @@
 # One shared function that returns your current beautiful fzf colors
 # This is also defined in integrations/fzf.zsh
 _fzf_colors() {
-  "$HOME/.core/.sys/cfg/wezterm/scripts/theme-browser/get-current-fzf-colors.zsh" 2>/dev/null || cat <<'EOF'
+  "$HOME/.core/.sys/cfg/wezterm/modules/menus/theme-browser/get-current-fzf-colors.zsh" 2>/dev/null || cat <<'EOF'
 bg+:#313244,bg:#1e1e2e,spinner:#f5e0dc,hl:#f38ba8,fg:#cdd6f4
 header:#f38ba8,info:#cba6f7,pointer:#f5e0dc,marker:#f5e0dc
 fg+:#cdd6f4,prompt:#cba6f7,hl+:#f38ba8,border:#89b4fa
