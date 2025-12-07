@@ -6,10 +6,11 @@ local paths = require("utils.paths")
 -- local logger_ws_man = require("utils.logger").new({ prefix = "[WORKSPACE MANAGER]", debug_enabled = true })
 
 -- Safely load optional modules
-local ok1, session_manager = pcall(require, "sessions.manager")
-if not ok1 then
-	session_manager = nil
-end
+-- REMOVED: Old sessions.manager module (replaced by unified_workspace)
+-- local ok1, session_manager = pcall(require, "sessions.manager")
+-- if not ok1 then
+-- 	session_manager = nil
+-- end
 
 local ok2, bookmarks = pcall(require, "bookmarks")
 if not ok2 then

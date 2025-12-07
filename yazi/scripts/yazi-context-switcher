@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+# ~/.config/yazi/switch-context.sh
+# Script to switch Yazi context configuration
+
+YAZI_CONFIG_DIR="$HOME/.config/yazi"
+CONTEXT="${1:-default}"
+
+# Available contexts
+CONTEXTS=("default" "nvim" "fm" "media" "dev")
+
+# Function to show usage
+show_usage() {
+    echo "Usage: $0 [context]"
+    echo "Available contexts: ${CONTEXTS[*]}"
+    echo "Current context: $(readlink $YAZI_CONFIG_DIR/yazi.toml 2>/dev/null | xargs basename | sed 's/yazi-//' | sed 's/.toml//')"
+    exit 1
+}
+
+# Check if context is valid
+if [[ ! " ${CONTEXTS[@]} " =~ " ${CONTEXT} " ]]; then
+    echo "Error: Invalid context '$CONTEXT'"
+    show_usage
+fi
+
+# Check if config files exist
+if [[ ! -f "$YAZI_CONFIG_DIR/conf/yazi-${CONTEXT}.toml" ]]; then
+    echo "Error: Configuration file not found: conf/yazi-${CONTEXT}.toml"
+    echo "Creating default configuration..."
+    cp "$YAZI_CONFIG_DIR/conf/yazi-default.toml" "$YAZI_CONFIG_DIR/conf/yazi-${CONTEXT}.toml"
+fi
+
+if [[ ! -f "$YAZI_CONFIG_DIR/keymaps/keymap-${CONTEXT}.toml" ]]; then
+    echo "Warning: Keymap file not found: keymaps/keymap-${CONTEXT}.toml"
+    echo "Creating default keymap..."
+    cp "$YAZI_CONFIG_DIR/keymaps/keymap-default.toml" "$YAZI_CONFIG_DIR/keymaps/keymap-${CONTEXT}.toml"
+fi
+
+if [[ ! -f "$YAZI_CONFIG_DIR/themes/theme-${CONTEXT}.toml" ]]; then
+    echo "Warning: Theme file not found: themes/theme-${CONTEXT}.toml"
+    echo "Creating default theme..."
+    cp "$YAZI_CONFIG_DIR/themes/theme-default.toml" "$YAZI_CONFIG_DIR/themes/theme-${CONTEXT}.toml"
+fi
+
+# Remove existing symlinks
+rm -f "$YAZI_CONFIG_DIR/yazi.toml"
+rm -f "$YAZI_CONFIG_DIR/keymap.toml"
+rm -f "$YAZI_CONFIG_DIR/theme.toml"
+
+# Create new symlinks
+ln -sf "$YAZI_CONFIG_DIR/conf/yazi-${CONTEXT}.toml" "$YAZI_CONFIG_DIR/yazi.toml"
+ln -sf "$YAZI_CONFIG_DIR/keymaps/keymap-${CONTEXT}.toml" "$YAZI_CONFIG_DIR/keymap.toml"
+ln -sf "$YAZI_CONFIG_DIR/themes/theme-${CONTEXT}.toml" "$YAZI_CONFIG_DIR/theme.toml"
+
+echo "Switched to context: $CONTEXT"
+echo "Symlinks created:"
+echo "  yazi.toml -> conf/yazi-${CONTEXT}.toml"
+echo "  keymap.toml -> keymaps/keymap-${CONTEXT}.toml"
+echo "  theme.toml -> themes/theme-${CONTEXT}.toml"

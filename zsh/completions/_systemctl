@@ -1,0 +1,38 @@
+#compdef systemctl
+# Custom systemctl completion wrapper
+#
+# Purpose: Fix systemctl completion color parsing issue
+#
+# Problem: SYSTEMD_COLORS=1 causes systemctl to output ANSI escape codes
+# which break zsh's _systemctl completion function that expects plain text.
+#
+# Error: _systemctl_unit_state:7: bad set of key/value pairs for associative array
+#
+# Solution: This file is placed in fpath BEFORE /usr/share/zsh/site-functions
+# so it loads instead of the system completion. We source the original,
+# then override __systemctl() to force SYSTEMD_COLORS=0.
+
+# Find and source the original _systemctl from system paths
+local _systemctl_original
+for _dir in /usr/share/zsh/site-functions /usr/local/share/zsh/site-functions; do
+  if [[ -f "${_dir}/_systemctl" ]]; then
+    _systemctl_original="${_dir}/_systemctl"
+    break
+  fi
+done
+
+if [[ -z "$_systemctl_original" ]]; then
+  # Fallback: just return without completion if we can't find the original
+  _message "systemctl completion not found"
+  return 1
+fi
+
+# Source the original completion file
+source "$_systemctl_original"
+
+# Now override __systemctl to disable colors for parsing
+# This MUST come after sourcing the original because it unconditionally
+# defines __systemctl() at line 155-158
+__systemctl() {
+  SYSTEMD_COLORS=0 command systemctl $_sys_service_mgr --full --legend=no --no-pager --plain "$@" 2>/dev/null
+}

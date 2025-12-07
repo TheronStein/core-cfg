@@ -15,7 +15,7 @@ source "$SCRIPTS_DIR/yazibar-utils.sh"
 
 # Check tmux version
 if ! validate_tmux_version "3.0"; then
-    exit 1
+  exit 1
 fi
 
 # Ensure sessions exist on startup (lazy initialization)
@@ -28,14 +28,14 @@ fi
 
 # Load keybindings
 if [ -f "$CONF_DIR/keybindings.conf" ]; then
-    tmux source-file "$CONF_DIR/keybindings.conf"
-    debug_log "Loaded keybindings"
+  tmux source-file "$CONF_DIR/keybindings.conf"
+  debug_log "Loaded keybindings"
 fi
 
 # Load hooks
 if [ -f "$CONF_DIR/hooks.conf" ]; then
-    tmux source-file "$CONF_DIR/hooks.conf"
-    debug_log "Loaded hooks"
+  tmux source-file "$CONF_DIR/hooks.conf"
+  debug_log "Loaded hooks"
 fi
 
 # ============================================================================

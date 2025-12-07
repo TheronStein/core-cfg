@@ -19,6 +19,7 @@ border_type = "Plain"
 progress_bar_type = "Rectangle"
 progress_bar_position = "Bottom"
 genre_num = 2
+cover_img_pixels = 512
 cover_img_length = 16
 cover_img_width = 8
 cover_img_scale = 1.0

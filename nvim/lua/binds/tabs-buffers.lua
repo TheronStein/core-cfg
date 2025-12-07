@@ -7,26 +7,16 @@ local wk = require("which-key")
 
 function M.setup()
 	wk.add({
-		{ "<tab>", group = "Tabs/Buffers" },
-		{ "<tab>b", group = "Tabs/Buff" },
-		{ "<tab>wo", "<cmd>bwipeout<cr>", desc = "Wipeout buffer" },
-		{ "<tab>e", "<cmd>bnext<cr>", desc = "Next buffer" },
-		{ "<tab>q", "<cmd>bprevious<cr>", desc = "Previous buffer" },
-		{ "<tab>!", "<cmd>bfirst<cr>", desc = "First buffer" },
-		{ "<tab>@", "<cmd>blast<cr>", desc = "Last buffer" },
-		{ "<tab>d", "<cmd>bdelete<cr>", desc = "Delete buffer" },
-		{ "<tab>D", "<cmd>bdelete!<cr>", desc = "Delete buffer (force)" },
-		{ "<tab>X", "<cmd>%bd|e#|bd#<cr>", desc = "Close other buffers" },
-		{ "<tab>t", "<cmd>tab split<cr>", desc = "Buffer to new tab" },
-		{ "<tab>o", "<cmd>tabnew %<cr>", desc = "Open buffer in new tab" },
-		{ "<tab>b", "<cmd>buffers<cr>", desc = "List buffers" },
-		{ "<tab>u", "<cmd>tabprevious<cr>", desc = "Previous tab" },
-		{ "<tab>o", "<cmd>tabnext<cr>", desc = "Next tab" },
-		{ "<tab>U", "<cmd>-tabmove<cr>", desc = "Move tab left" },
-		{ "<tab>O", "<cmd>+tabmove<cr>", desc = "Move tab right" },
-		{ "<tab>n", "<cmd>tabnew<cr>", desc = "New tab" },
-		{ "<tab>c", "<cmd>tabclose<cr>", desc = "Close tab" },
-		{ "<tab>C", "<cmd>tabonly<cr>", desc = "Close other tabs" },
+		{ "<leader><tab>", group = "Tabs" },
+		{ "<leader><tab><tab>", "<cmd>tabnew %<cr>", desc = "Open buffer in new tab" },
+		{ "<leader><tab>q", "<cmd>tabprevious<cr>", desc = "Previous tab" },
+		{ "<leader><tab>e", "<cmd>tabnext<cr>", desc = "Next tab" },
+		{ "<leader><tab>Q", "<cmd>-tabmove<cr>", desc = "Move tab left" },
+		{ "<leader><tab>E", "<cmd>+tabmove<cr>", desc = "Move tab right" },
+		{ "<leader><tab>n", "<cmd>tabnew<cr>", desc = "New tab" },
+		{ "<leader><tab>c", "<cmd>tabclose<cr>", desc = "Close tab" },
+		{ "<leader><tab>C", "<cmd>tabonly<cr>", desc = "Close other tabs" },
+		{ "<leader><tab>s", "<cmd>tab split<cr>", desc = "Buffer to new tab" },
 		-- 	{ "<M-1>", "1gt", desc = "Tab 1" },
 		-- 	{ "<M-2>", "2gt", desc = "Tab 2" },
 		-- 	{ "<M-3>", "3gt", desc = "Tab 3" },
@@ -40,6 +30,19 @@ function M.setup()
 		mode = { "n", "v", "x" },
 		noremap = true,
 		silent = true,
+	})
+
+	wk.add({
+		{ "<leader>b", group = "buffers" },
+		{ "<leader>bw", "<cmd>bwipeout<cr>", desc = "Wipeout buffer" },
+		{ "<leader>bn", "<cmd>bnext<cr>", desc = "Next buffer" },
+		{ "<leader>bp", "<cmd>bprevious<cr>", desc = "Previous buffer" },
+		{ "<leader>bf", "<cmd>bfirst<cr>", desc = "First buffer" },
+		{ "<leader>bl", "<cmd>blast<cr>", desc = "Last buffer" },
+		{ "<leader>d", "<cmd>bdelete<cr>", desc = "Delete buffer" },
+		{ "<leader>D", "<cmd>bdelete!<cr>", desc = "Delete buffer (force)" },
+		{ "<leader>X", "<cmd>%bd|e#|bd#<cr>", desc = "Close other buffers" },
+		{ "<leader>bl", "<cmd>buffers<cr>", desc = "List buffers" },
 	})
 
 	wk.add({

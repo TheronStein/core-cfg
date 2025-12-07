@@ -1,20 +1,18 @@
 f1fig() {
   emulate -L zsh
-  
-  local font_dir="/usr/share/figlet/fonts"
-  local preview_text="NEO VIM"   # change to whatever you want previewed
-  
-  # If your fonts are in the main dir instead of /fonts subdir, uncomment the next line:
-  # font_dir="/usr/share/figlet"
-  
+
+  # Accept custom preview text as first argument, default to "NEO VIM"
+  local preview_text="${1:-NEO VIM}"
+  local font_dir="/usr/share/figlet"
+
   if [[ ! -d "$font_dir" ]]; then
     echo "Figlet fonts directory not found: $font_dir"
     return 1
   fi
-  
+
   (
     builtin cd -q "$font_dir" || return 1
-    
+
     ls *.flf 2>/dev/null | \
       sed 's/\.flf$//' | \
       sort | \
@@ -31,15 +29,24 @@ f1fig() {
 }
 
 f1fig-fancy() {
-  local preview_text="NEO VIM"
-  local font_dir="/usr/share/figlet/fonts"  # adjust if needed
-  
+  emulate -L zsh
+
+  # Accept custom preview text as first argument, default to "NEO VIM"
+  local preview_text="${1:-NEO VIM}"
+  local font_dir="/usr/share/figlet"
+
+  if [[ ! -d "$font_dir" ]]; then
+    echo "Figlet fonts directory not found: $font_dir"
+    return 1
+  fi
+
   (
-    cd "$font_dir" || return 1
+    builtin cd -q "$font_dir" || return 1
     ls *.flf 2>/dev/null | sed 's/\.flf$//' | sort |
     fzf --no-multi --reverse --height=70% --border=sharp \
-        --preview 'toilet -F figlet -f {} --metal "$preview_text" | lolcat 2>/dev/null || figlet -f {} "$preview_text"' \
+        --preview "toilet -f {} --metal \"$preview_text\" 2>/dev/null | lolcat 2>/dev/null || figlet -f {} \"$preview_text\"" \
         --preview-window=right:70%:wrap \
-        --header=" Figlet Font Selector (metal + rainbow) ─ $preview_text "
+        --header=" Figlet Font Selector (metal + rainbow) ─ $preview_text " \
+        --prompt="Font> "
   )
 }

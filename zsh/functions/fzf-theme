@@ -1,0 +1,495 @@
+#!/usr/bin/env zsh
+# fzf-theme - FZF Theme and Layout Management System
+# Location: $CORE_CFG/zsh/functions/fzf-theme
+#
+# This module provides:
+# - Theme loading from template files
+# - Layout switching independent of colors
+# - Persistent storage of theme preferences
+# - Live preview of themes before applying
+# - fzf-tab integration
+
+# ============================================================================
+# Configuration Paths
+# ============================================================================
+typeset -g FZF_THEMES_DIR="${CORE_CFG:-$HOME/.core/.sys/cfg}/zsh/integrations/themes/fzf"
+typeset -g FZF_LAYOUTS_DIR="$FZF_THEMES_DIR/layouts"
+typeset -g FZF_THEME_STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/fzf"
+typeset -g FZF_THEME_CURRENT_FILE="$FZF_THEME_STATE_DIR/current-theme"
+typeset -g FZF_LAYOUT_CURRENT_FILE="$FZF_THEME_STATE_DIR/current-layout"
+
+# Ensure state directory exists
+[[ -d "$FZF_THEME_STATE_DIR" ]] || mkdir -p "$FZF_THEME_STATE_DIR"
+
+# ============================================================================
+# Helper Functions
+# ============================================================================
+
+# Build color string from theme file
+_fzf_build_color_string() {
+    local theme_file="$1"
+    local colors=""
+
+    # Source the theme file to get FZF_THEME_COLORS array
+    local -a FZF_THEME_COLORS=()
+    source "$theme_file" 2>/dev/null || return 1
+
+    # Join colors with commas
+    colors="${(j:,:)FZF_THEME_COLORS}"
+    echo "$colors"
+}
+
+# Build layout options string from layout file
+_fzf_build_layout_string() {
+    local layout_file="$1"
+    local opts=""
+
+    # Source the layout file
+    local -a FZF_LAYOUT_OPTS=()
+    local FZF_LAYOUT_PROMPT FZF_LAYOUT_POINTER FZF_LAYOUT_MARKER
+    local FZF_LAYOUT_BORDER FZF_LAYOUT_BORDER_LABEL FZF_LAYOUT_BORDER_LABEL_POS
+    local FZF_LAYOUT_HEADER
+    source "$layout_file" 2>/dev/null || return 1
+
+    # Build options string
+    opts="${(j: :)FZF_LAYOUT_OPTS}"
+
+    # Add prompt/pointer/marker if defined
+    [[ -n "$FZF_LAYOUT_PROMPT" ]] && opts+=" --prompt='$FZF_LAYOUT_PROMPT'"
+    [[ -n "$FZF_LAYOUT_POINTER" ]] && opts+=" --pointer='$FZF_LAYOUT_POINTER'"
+    [[ -n "$FZF_LAYOUT_MARKER" ]] && opts+=" --marker='$FZF_LAYOUT_MARKER'"
+
+    # Add border styling if defined
+    [[ -n "$FZF_LAYOUT_BORDER" ]] && opts+=" --border=$FZF_LAYOUT_BORDER"
+    [[ -n "$FZF_LAYOUT_BORDER_LABEL" ]] && opts+=" --border-label='$FZF_LAYOUT_BORDER_LABEL'"
+    [[ -n "$FZF_LAYOUT_BORDER_LABEL_POS" ]] && opts+=" --border-label-pos=$FZF_LAYOUT_BORDER_LABEL_POS"
+
+    # Add header if defined
+    [[ -n "$FZF_LAYOUT_HEADER" ]] && opts+=" --header='$FZF_LAYOUT_HEADER'"
+
+    echo "$opts"
+}
+
+# Get theme name from file
+_fzf_get_theme_name() {
+    local theme_file="$1"
+    local FZF_THEME_NAME=""
+    source "$theme_file" 2>/dev/null
+    echo "${FZF_THEME_NAME:-$(basename "$theme_file" .zsh)}"
+}
+
+# Get layout name from file
+_fzf_get_layout_name() {
+    local layout_file="$1"
+    local FZF_LAYOUT_NAME=""
+    source "$layout_file" 2>/dev/null
+    echo "${FZF_LAYOUT_NAME:-$(basename "$layout_file" .zsh)}"
+}
+
+# Get layout description
+_fzf_get_layout_desc() {
+    local layout_file="$1"
+    local FZF_LAYOUT_DESC=""
+    source "$layout_file" 2>/dev/null
+    echo "$FZF_LAYOUT_DESC"
+}
+
+# ============================================================================
+# Core Theme Functions
+# ============================================================================
+
+# List available color themes
+fzf-theme-list() {
+    local theme_file theme_name category
+
+    echo "Available FZF Color Themes:"
+    echo "==========================="
+
+    for theme_file in "$FZF_THEMES_DIR"/*.zsh(N); do
+        [[ -f "$theme_file" ]] || continue
+        local FZF_THEME_NAME="" FZF_THEME_CATEGORY=""
+        source "$theme_file" 2>/dev/null
+        theme_name="${FZF_THEME_NAME:-$(basename "$theme_file" .zsh)}"
+        category="${FZF_THEME_CATEGORY:-unknown}"
+        printf "  %-25s [%s]\n" "$theme_name" "$category"
+    done
+}
+
+# List available layouts
+fzf-layout-list() {
+    local layout_file layout_name layout_desc
+
+    echo "Available FZF Layouts:"
+    echo "======================"
+
+    for layout_file in "$FZF_LAYOUTS_DIR"/*.zsh(N); do
+        [[ -f "$layout_file" ]] || continue
+        layout_name=$(_fzf_get_layout_name "$layout_file")
+        layout_desc=$(_fzf_get_layout_desc "$layout_file")
+        printf "  %-20s %s\n" "$layout_name" "${layout_desc:+- $layout_desc}"
+    done
+}
+
+# Apply a color theme
+fzf-theme-apply() {
+    local theme_name="${1:-}"
+    local theme_file
+
+    if [[ -z "$theme_name" ]]; then
+        echo "Usage: fzf-theme-apply <theme-name>"
+        echo ""
+        fzf-theme-list
+        return 1
+    fi
+
+    # Find theme file (case insensitive)
+    for f in "$FZF_THEMES_DIR"/*.zsh(N); do
+        local name=$(_fzf_get_theme_name "$f")
+        if [[ "${name:l}" == "${theme_name:l}" ]] || \
+           [[ "$(basename "$f" .zsh)" == "${theme_name:l}" ]]; then
+            theme_file="$f"
+            break
+        fi
+    done
+
+    if [[ ! -f "$theme_file" ]]; then
+        echo "Theme not found: $theme_name"
+        fzf-theme-list
+        return 1
+    fi
+
+    # Get color string
+    local colors=$(_fzf_build_color_string "$theme_file")
+
+    if [[ -z "$colors" ]]; then
+        echo "Error: Could not parse theme colors"
+        return 1
+    fi
+
+    # Save current theme preference (use >| to override noclobber)
+    echo "$(basename "$theme_file" .zsh)" >| "$FZF_THEME_CURRENT_FILE"
+
+    # Export for fzf-tab
+    export _FZF_THEME_COLORS="$colors"
+
+    # Rebuild FZF_DEFAULT_OPTS with new colors
+    _fzf_rebuild_opts
+
+    local actual_name=$(_fzf_get_theme_name "$theme_file")
+    echo "Applied theme: $actual_name"
+}
+
+# Apply a layout
+fzf-layout-apply() {
+    local layout_name="${1:-}"
+    local layout_file
+
+    if [[ -z "$layout_name" ]]; then
+        echo "Usage: fzf-layout-apply <layout-name>"
+        echo ""
+        fzf-layout-list
+        return 1
+    fi
+
+    # Find layout file
+    for f in "$FZF_LAYOUTS_DIR"/*.zsh(N); do
+        local name=$(_fzf_get_layout_name "$f")
+        if [[ "${name:l}" == "${layout_name:l}" ]] || \
+           [[ "$(basename "$f" .zsh)" == "${layout_name:l}" ]]; then
+            layout_file="$f"
+            break
+        fi
+    done
+
+    if [[ ! -f "$layout_file" ]]; then
+        echo "Layout not found: $layout_name"
+        fzf-layout-list
+        return 1
+    fi
+
+    # Save layout preference (use >| to override noclobber)
+    echo "$(basename "$layout_file" .zsh)" >| "$FZF_LAYOUT_CURRENT_FILE"
+
+    # Export layout options
+    local layout_opts=$(_fzf_build_layout_string "$layout_file")
+    export _FZF_LAYOUT_OPTS="$layout_opts"
+
+    # Rebuild FZF_DEFAULT_OPTS
+    _fzf_rebuild_opts
+
+    local actual_name=$(_fzf_get_layout_name "$layout_file")
+    echo "Applied layout: $actual_name"
+}
+
+# Rebuild FZF_DEFAULT_OPTS from current theme and layout
+_fzf_rebuild_opts() {
+    local -a opts=()
+    local colors="${_FZF_THEME_COLORS:-}"
+    local layout="${_FZF_LAYOUT_OPTS:-}"
+
+    # Base options that are always present
+    opts+=(
+        "--ansi"
+        "--cycle"
+        "--multi"
+        "--header-first"
+    )
+
+    # Add layout options
+    if [[ -n "$layout" ]]; then
+        opts+=("${(z)layout}")
+    else
+        # Default layout with user's preferred styling
+        opts+=(
+            "--height=80%"
+            "--layout=reverse"
+            "--border=double"
+            "--border-label-pos=3"
+            "--border-label='╣    CORE - FZF  ╠'"
+            "--info=inline"
+            "--margin=1"
+            "--padding=1"
+            "--prompt='❯ '"
+            "--pointer='▶'"
+            "--marker='✓'"
+        )
+    fi
+
+    # Add colors if available
+    if [[ -n "$colors" ]]; then
+        opts+=("--color='$colors'")
+    fi
+
+    # Add keybindings
+    opts+=(
+        "--bind='ctrl-/:toggle-preview'"
+        "--bind='ctrl-a:select-all'"
+        "--bind='ctrl-d:deselect-all'"
+        "--bind='ctrl-y:execute-silent(echo -n {2..} | wl-copy)+abort'"
+        "--bind='ctrl-u:preview-page-up'"
+        "--bind='ctrl-n:preview-page-down'"
+        "--bind='alt-j:preview-down'"
+        "--bind='alt-k:preview-up'"
+        "--bind='ctrl-f:page-down'"
+        "--bind='ctrl-b:page-up'"
+        "--bind='tab:down'"
+        "--bind='shift-tab:up'"
+        "--bind='ctrl-m:toggle+down'"
+        "--bind='ctrl-k:up'"
+        "--bind='enter:accept'"
+    )
+
+    # Add preview window default
+    opts+=("--preview-window='right:60%:wrap'")
+
+    # Export the combined options
+    export FZF_DEFAULT_OPTS="${(j: :)opts}"
+
+    # Update fzf-tab styles if available
+    _fzf_update_tab_styles
+}
+
+# Update fzf-tab zstyles with current theme
+_fzf_update_tab_styles() {
+    local colors="${_FZF_THEME_COLORS:-}"
+    if [[ -n "$colors" ]]; then
+        zstyle ':fzf-tab:*' fzf-flags \
+            --height=60% \
+            --color="$colors" \
+            --bind='ctrl-/:toggle-preview' \
+            --bind='ctrl-a:select-all' \
+            --bind='ctrl-d:deselect-all'
+    fi
+    # Also call the helper function if it exists (from fzf.zsh)
+    (( $+functions[_fzf_update_tab_theme] )) && _fzf_update_tab_theme "$colors"
+}
+
+# ============================================================================
+# Interactive Theme Selector
+# ============================================================================
+
+fzf-theme-select() {
+    local theme_file selection preview_script
+    local -a themes=()
+
+    # Build list of themes
+    for theme_file in "$FZF_THEMES_DIR"/*.zsh(N); do
+        [[ -f "$theme_file" ]] || continue
+        local name=$(_fzf_get_theme_name "$theme_file")
+        local FZF_THEME_CATEGORY=""
+        source "$theme_file" 2>/dev/null
+        themes+=("$name|${FZF_THEME_CATEGORY:-dark}|$theme_file")
+    done
+
+    if [[ ${#themes[@]} -eq 0 ]]; then
+        echo "No themes found in $FZF_THEMES_DIR"
+        return 1
+    fi
+
+    # Create preview script
+    preview_script='
+        theme_file=$(echo {} | cut -d"|" -f3)
+        if [[ -f "$theme_file" ]]; then
+            echo -e "\033[1;36m=== Theme Colors ===\033[0m\n"
+            grep -E "^[[:space:]]+\"[a-z]" "$theme_file" | head -20
+        fi
+    '
+
+    # Interactive selection
+    selection=$(printf '%s\n' "${themes[@]}" | \
+        fzf --delimiter='|' \
+            --with-nth=1,2 \
+            --header='Select FZF Color Theme (Enter to apply, Esc to cancel)' \
+            --prompt='Theme> ' \
+            --height=70% \
+            --layout=reverse \
+            --border=rounded \
+            --preview="$preview_script" \
+            --preview-window='right:50%:wrap')
+
+    if [[ -n "$selection" ]]; then
+        local theme_name=$(echo "$selection" | cut -d'|' -f1)
+        fzf-theme-apply "$theme_name"
+    else
+        # Show current theme if user cancelled
+        if [[ -f "$FZF_THEME_CURRENT_FILE" ]]; then
+            local current=$(cat "$FZF_THEME_CURRENT_FILE" 2>/dev/null)
+            [[ -n "$current" ]] && echo "Selection cancelled. Current theme: $current" || echo "Selection cancelled."
+        else
+            echo "Selection cancelled. No theme set."
+        fi
+    fi
+}
+
+# Interactive layout selector with live preview
+fzf-layout-select() {
+    local layout_file selection
+    local -a layouts=()
+
+    # Build list of layouts
+    for layout_file in "$FZF_LAYOUTS_DIR"/*.zsh(N); do
+        [[ -f "$layout_file" ]] || continue
+        local name=$(_fzf_get_layout_name "$layout_file")
+        local desc=$(_fzf_get_layout_desc "$layout_file")
+        layouts+=("$name|$desc|$layout_file")
+    done
+
+    if [[ ${#layouts[@]} -eq 0 ]]; then
+        echo "No layouts found in $FZF_LAYOUTS_DIR"
+        return 1
+    fi
+
+    # Preview script that shows layout options
+    local preview_script='
+        layout_file=$(echo {} | cut -d"|" -f3)
+        if [[ -f "$layout_file" ]]; then
+            echo -e "\033[1;36m=== Layout Options ===\033[0m\n"
+            grep -E "^FZF_LAYOUT" "$layout_file"
+            echo ""
+            echo -e "\033[1;33m=== Preview ===\033[0m"
+            echo "This layout will be applied when you press Enter."
+        fi
+    '
+
+    selection=$(printf '%s\n' "${layouts[@]}" | \
+        fzf --delimiter='|' \
+            --with-nth=1,2 \
+            --header='Select FZF Layout (Enter to apply, Esc to cancel)' \
+            --prompt='Layout> ' \
+            --height=70% \
+            --layout=reverse \
+            --border=rounded \
+            --preview="$preview_script" \
+            --preview-window='right:50%:wrap')
+
+    if [[ -n "$selection" ]]; then
+        local layout_name=$(echo "$selection" | cut -d'|' -f1)
+        fzf-layout-apply "$layout_name"
+    else
+        # Show current layout if user cancelled
+        if [[ -f "$FZF_LAYOUT_CURRENT_FILE" ]]; then
+            local current=$(cat "$FZF_LAYOUT_CURRENT_FILE" 2>/dev/null)
+            [[ -n "$current" ]] && echo "Selection cancelled. Current layout: $current" || echo "Selection cancelled."
+        else
+            echo "Selection cancelled. No layout set."
+        fi
+    fi
+}
+
+# Combined theme + layout selector
+fzf-appearance() {
+    local choice
+
+    echo "FZF Appearance Settings"
+    echo "======================="
+    echo ""
+    echo "1) Select Color Theme"
+    echo "2) Select Layout"
+    echo "3) List All Themes"
+    echo "4) List All Layouts"
+    echo "5) Reset to Defaults"
+    echo "q) Quit"
+    echo ""
+
+    read -k "choice?Select option [1-5/q]: "
+    echo ""
+
+    case "$choice" in
+        1) fzf-theme-select ;;
+        2) fzf-layout-select ;;
+        3) fzf-theme-list ;;
+        4) fzf-layout-list ;;
+        5)
+            rm -f "$FZF_THEME_CURRENT_FILE" "$FZF_LAYOUT_CURRENT_FILE"
+            unset _FZF_THEME_COLORS _FZF_LAYOUT_OPTS
+            _fzf_rebuild_opts
+            echo "Reset to default appearance"
+            ;;
+        q|Q) return 0 ;;
+        *) echo "Invalid option" ;;
+    esac
+}
+
+# ============================================================================
+# Initialization - Load saved preferences
+# ============================================================================
+
+fzf-theme-init() {
+    # Load saved theme
+    if [[ -f "$FZF_THEME_CURRENT_FILE" ]]; then
+        local saved_theme=$(cat "$FZF_THEME_CURRENT_FILE" 2>/dev/null)
+        if [[ -n "$saved_theme" ]]; then
+            local theme_file="$FZF_THEMES_DIR/${saved_theme}.zsh"
+            if [[ -f "$theme_file" ]]; then
+                export _FZF_THEME_COLORS=$(_fzf_build_color_string "$theme_file")
+            fi
+        fi
+    fi
+
+    # Load saved layout
+    if [[ -f "$FZF_LAYOUT_CURRENT_FILE" ]]; then
+        local saved_layout=$(cat "$FZF_LAYOUT_CURRENT_FILE" 2>/dev/null)
+        if [[ -n "$saved_layout" ]]; then
+            local layout_file="$FZF_LAYOUTS_DIR/${saved_layout}.zsh"
+            if [[ -f "$layout_file" ]]; then
+                export _FZF_LAYOUT_OPTS=$(_fzf_build_layout_string "$layout_file")
+            fi
+        fi
+    fi
+
+    # Build FZF_DEFAULT_OPTS
+    _fzf_rebuild_opts
+}
+
+# ============================================================================
+# Aliases
+# ============================================================================
+
+alias fzf-themes='fzf-theme-select'
+alias fzf-layouts='fzf-layout-select'
+alias fzf-colors='fzf-theme-select'
+alias fzf-style='fzf-appearance'
+
+# Mark functions as defined (autoload style)
+typeset -f fzf-theme-apply fzf-layout-apply fzf-theme-select fzf-layout-select >/dev/null 2>&1
+typeset -f fzf-theme-list fzf-layout-list fzf-appearance fzf-theme-init >/dev/null 2>&1

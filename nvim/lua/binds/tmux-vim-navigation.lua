@@ -5,7 +5,7 @@
 -- ╙────────────────────────────────────────────────────────────╜
 
 local M = {}
-
+local mod_string = "<M-"
 -- ─────────────────────────────────────────────────────────────
 -- Environment Detection
 -- ─────────────────────────────────────────────────────────────
@@ -24,9 +24,8 @@ local function is_tmux_at_edge(direction)
 		return false
 	end
 
-	local handle = io.popen(
-		"tmux display-message -p '#{pane_at_left}:#{pane_at_right}:#{pane_at_top}:#{pane_at_bottom}'"
-	)
+	local handle =
+		io.popen("tmux display-message -p '#{pane_at_left}:#{pane_at_right}:#{pane_at_top}:#{pane_at_bottom}'")
 	if not handle then
 		return false
 	end
@@ -85,7 +84,7 @@ local function navigate(direction)
 					up = "Up",
 					right = "Right",
 				}
-				vim.fn.system("tmux send-keys C-S-" .. arrow_map[direction])
+				vim.fn.system("tmux send-keys M-" .. arrow_map[direction])
 			else
 				-- Navigate within tmux
 				local tmux_direction = {
@@ -99,6 +98,13 @@ local function navigate(direction)
 		end
 	end
 end
+
+local nav_keys = {
+	up = mod_string .. "w>",
+	down = mod_string .. "s>",
+	left = mod_string .. "a>",
+	right = mod_string .. "d>",
+}
 
 --- Create a navigation function for terminal mode
 --- Exits terminal mode first, then navigates
@@ -139,51 +145,156 @@ function M.setup()
 	-- ═══════════════════════════════════════════════════════════
 
 	-- Normal, Insert, Visual modes
-	map({ "n", "i", "v" }, "<C-S-w>", normal_navigate("up"), vim.tbl_extend("force", opts, { desc = "Navigate Up (tmux aware)" }))
-	map({ "n", "i", "v" }, "<C-S-a>", normal_navigate("left"), vim.tbl_extend("force", opts, { desc = "Navigate Left (tmux aware)" }))
-	map({ "n", "i", "v" }, "<C-S-s>", normal_navigate("down"), vim.tbl_extend("force", opts, { desc = "Navigate Down (tmux aware)" }))
-	map({ "n", "i", "v" }, "<C-S-d>", normal_navigate("right"), vim.tbl_extend("force", opts, { desc = "Navigate Right (tmux aware)" }))
+	map(
+		{ "n", "i", "v" },
+		nav_keys.up,
+		normal_navigate("up"),
+		vim.tbl_extend("force", opts, { desc = "Navigate Up (tmux aware)" })
+	)
+	map(
+		{ "n", "i", "v" },
+		nav_keys.left,
+		normal_navigate("left"),
+		vim.tbl_extend("force", opts, { desc = "Navigate Left (tmux aware)" })
+	)
+	map(
+		{ "n", "i", "v" },
+		nav_keys.down,
+		normal_navigate("down"),
+		vim.tbl_extend("force", opts, { desc = "Navigate Down (tmux aware)" })
+	)
+	map(
+		{ "n", "i", "v" },
+		nav_keys.right,
+		normal_navigate("right"),
+		vim.tbl_extend("force", opts, { desc = "Navigate Right (tmux aware)" })
+	)
 
 	-- Terminal mode (special handling for Claude Code split)
-	map("t", "<C-S-w>", terminal_navigate("up"), vim.tbl_extend("force", opts, { desc = "Navigate Up from terminal" }))
-	map("t", "<C-S-a>", terminal_navigate("left"), vim.tbl_extend("force", opts, { desc = "Navigate Left from terminal" }))
-	map("t", "<C-S-s>", terminal_navigate("down"), vim.tbl_extend("force", opts, { desc = "Navigate Down from terminal" }))
-	map("t", "<C-S-d>", terminal_navigate("right"), vim.tbl_extend("force", opts, { desc = "Navigate Right from terminal" }))
+	map(
+		"t",
+		nav_keys.up,
+		terminal_navigate("up"),
+		vim.tbl_extend("force", opts, { desc = "Navigate Up from terminal" })
+	)
+	map(
+		"t",
+		nav_keys.left,
+		terminal_navigate("left"),
+		vim.tbl_extend("force", opts, { desc = "Navigate Left from terminal" })
+	)
+	map(
+		"t",
+		nav_keys.down,
+		terminal_navigate("down"),
+		vim.tbl_extend("force", opts, { desc = "Navigate Down from terminal" })
+	)
+	map(
+		"t",
+		nav_keys.right,
+		terminal_navigate("right"),
+		vim.tbl_extend("force", opts, { desc = "Navigate Right from terminal" })
+	)
 
 	-- ═══════════════════════════════════════════════════════════
 	-- IJKL Navigation (Alternative - Vim-style Layout)
 	-- Ctrl+Shift+I/J/K/L for Up/Left/Down/Right
 	-- ═══════════════════════════════════════════════════════════
 
-	-- Normal, Insert, Visual modes
-	map({ "n", "i", "v" }, "<C-S-i>", normal_navigate("up"), vim.tbl_extend("force", opts, { desc = "Navigate Up (tmux aware)" }))
-	map({ "n", "i", "v" }, "<C-S-j>", normal_navigate("left"), vim.tbl_extend("force", opts, { desc = "Navigate Left (tmux aware)" }))
-	map({ "n", "i", "v" }, "<C-S-k>", normal_navigate("down"), vim.tbl_extend("force", opts, { desc = "Navigate Down (tmux aware)" }))
-	map({ "n", "i", "v" }, "<C-S-l>", normal_navigate("right"), vim.tbl_extend("force", opts, { desc = "Navigate Right (tmux aware)" }))
-
-	-- Terminal mode
-	map("t", "<C-S-i>", terminal_navigate("up"), vim.tbl_extend("force", opts, { desc = "Navigate Up from terminal" }))
-	map("t", "<C-S-j>", terminal_navigate("left"), vim.tbl_extend("force", opts, { desc = "Navigate Left from terminal" }))
-	map("t", "<C-S-k>", terminal_navigate("down"), vim.tbl_extend("force", opts, { desc = "Navigate Down from terminal" }))
-	map("t", "<C-S-l>", terminal_navigate("right"), vim.tbl_extend("force", opts, { desc = "Navigate Right from terminal" }))
-
+	-- -- Normal, Insert, Visual modes
+	-- map(
+	-- 	{ "n", "i", "v" },
+	-- 	"<C-S-i>",
+	-- 	normal_navigate("up"),
+	-- 	vim.tbl_extend("force", opts, { desc = "Navigate Up (tmux aware)" })
+	-- )
+	-- map(
+	-- 	{ "n", "i", "v" },
+	-- 	"<C-S-j>",
+	-- 	normal_navigate("left"),
+	-- 	vim.tbl_extend("force", opts, { desc = "Navigate Left (tmux aware)" })
+	-- )
+	-- map(
+	-- 	{ "n", "i", "v" },
+	-- 	"<C-S-k>",
+	-- 	normal_navigate("down"),
+	-- 	vim.tbl_extend("force", opts, { desc = "Navigate Down (tmux aware)" })
+	-- )
+	-- map(
+	-- 	{ "n", "i", "v" },
+	-- 	"<C-S-l>",
+	-- 	normal_navigate("right"),
+	-- 	vim.tbl_extend("force", opts, { desc = "Navigate Right (tmux aware)" })
+	-- )
+	--
+	-- -- Terminal mode
+	-- map("t", "<C-S-i>", terminal_navigate("up"), vim.tbl_extend("force", opts, { desc = "Navigate Up from terminal" }))
+	-- map(
+	-- 	"t",
+	-- 	"<C-S-j>",
+	-- 	terminal_navigate("left"),
+	-- 	vim.tbl_extend("force", opts, { desc = "Navigate Left from terminal" })
+	-- )
+	-- map(
+	-- 	"t",
+	-- 	"<C-S-k>",
+	-- 	terminal_navigate("down"),
+	-- 	vim.tbl_extend("force", opts, { desc = "Navigate Down from terminal" })
+	-- )
+	-- map(
+	-- 	"t",
+	-- 	"<C-S-l>",
+	-- 	terminal_navigate("right"),
+	-- 	vim.tbl_extend("force", opts, { desc = "Navigate Right from terminal" })
+	-- )
+	--
 	-- ═══════════════════════════════════════════════════════════
 	-- Alt+Arrow Navigation (Universal fallback)
 	-- Works when Ctrl+Shift combinations are intercepted by terminal
 	-- ═══════════════════════════════════════════════════════════
 
-	-- Normal, Insert, Visual modes
-	map({ "n", "i", "v" }, "<M-Up>", normal_navigate("up"), vim.tbl_extend("force", opts, { desc = "Navigate Up" }))
-	map({ "n", "i", "v" }, "<M-Left>", normal_navigate("left"), vim.tbl_extend("force", opts, { desc = "Navigate Left" }))
-	map({ "n", "i", "v" }, "<M-Down>", normal_navigate("down"), vim.tbl_extend("force", opts, { desc = "Navigate Down" }))
-	map({ "n", "i", "v" }, "<M-Right>", normal_navigate("right"), vim.tbl_extend("force", opts, { desc = "Navigate Right" }))
-
-	-- Terminal mode
-	map("t", "<M-Up>", terminal_navigate("up"), vim.tbl_extend("force", opts, { desc = "Navigate Up from terminal" }))
-	map("t", "<M-Left>", terminal_navigate("left"), vim.tbl_extend("force", opts, { desc = "Navigate Left from terminal" }))
-	map("t", "<M-Down>", terminal_navigate("down"), vim.tbl_extend("force", opts, { desc = "Navigate Down from terminal" }))
-	map("t", "<M-Right>", terminal_navigate("right"), vim.tbl_extend("force", opts, { desc = "Navigate Right from terminal" }))
-
+	-- -- Normal, Insert, Visual modes
+	-- map({ "n", "i", "v" }, "<M-Up>", normal_navigate("up"), vim.tbl_extend("force", opts, { desc = "Navigate Up" }))
+	-- map(
+	-- 	{ "n", "i", "v" },
+	-- 	"<M-a>",
+	-- 	normal_navigate("left"),
+	-- 	vim.tbl_extend("force", opts, { desc = "Navigate Left" })
+	-- )
+	-- map(
+	-- 	{ "n", "i", "v" },
+	-- 	"<M->",
+	-- 	normal_navigate("down"),
+	-- 	vim.tbl_extend("force", opts, { desc = "Navigate Down" })
+	-- )
+	-- map(
+	-- 	{ "n", "i", "v" },
+	-- 	"<M-Right>",
+	-- 	normal_navigate("right"),
+	-- 	vim.tbl_extend("force", opts, { desc = "Navigate Right" })
+	-- )
+	--
+	-- -- Terminal mode
+	-- map("t", "<M-Up>", terminal_navigate("up"), vim.tbl_extend("force", opts, { desc = "Navigate Up from terminal" }))
+	-- map(
+	-- 	"t",
+	-- 	"<M-Left>",
+	-- 	terminal_navigate("left"),
+	-- 	vim.tbl_extend("force", opts, { desc = "Navigate Left from terminal" })
+	-- )
+	-- map(
+	-- 	"t",
+	-- 	"<M-Down>",
+	-- 	terminal_navigate("down"),
+	-- 	vim.tbl_extend("force", opts, { desc = "Navigate Down from terminal" })
+	-- )
+	-- map(
+	-- 	"t",
+	-- 	"<M-Right>",
+	-- 	terminal_navigate("right"),
+	-- 	vim.tbl_extend("force", opts, { desc = "Navigate Right from terminal" })
+	-- )
+	--
 	-- ═══════════════════════════════════════════════════════════
 	-- Quick escape from terminal mode
 	-- ═══════════════════════════════════════════════════════════
@@ -196,7 +307,7 @@ function M.setup()
 	-- ═══════════════════════════════════════════════════════════
 
 	-- Jump to Claude Code window (rightmost) or back to code
-	map({ "n", "t" }, "<C-S-Tab>", function()
+	map({ "n", "t" }, "<localleader><tab>", function()
 		local wins = vim.api.nvim_tabpage_list_wins(0)
 		if #wins < 2 then
 			return

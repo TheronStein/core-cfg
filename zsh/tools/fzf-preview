@@ -1,62 +1,364 @@
 #!/usr/bin/env bash
-set -euo pipefail
+# fzf-preview - Universal preview script with robust error handling
+# Location: $CORE_CFG/zsh/tools/fzf-preview
+#
+# This script provides intelligent previews for fzf with graceful degradation
+# when tools are unavailable or inputs are invalid.
 
-path="${1:?Provide a path to preview}"
+# Disable errexit - we handle errors gracefully
+set +e
 
-[[ -e "$path" ]] || exit 0
+# Color codes for fallback messages
+RED='\033[0;31m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+GREEN='\033[0;32m'
+DIM='\033[2m'
+RESET='\033[0m'
 
+# Get the input path
+input="${1:-}"
+
+# Handle empty input
+if [[ -z "$input" ]]; then
+    echo -e "${DIM}No input provided${RESET}"
+    exit 0
+fi
+
+# Handle special fzf placeholders that might be empty
+if [[ "$input" == "{}" ]] || [[ "$input" == "{q}" ]]; then
+    echo -e "${DIM}Waiting for selection...${RESET}"
+    exit 0
+fi
+
+# Clean up the path (remove leading/trailing whitespace, handle quotes)
+path="${input#"${input%%[![:space:]]*}"}"
+path="${path%"${path##*[![:space:]]}"}"
+path="${path#\"}"
+path="${path%\"}"
+path="${path#\'}"
+path="${path%\'}"
+
+# Handle paths with fzf field selectors (e.g., {1}, {2..})
+# If path looks like a field number, it's probably a placeholder
+if [[ "$path" =~ ^\{[0-9]+\}$ ]] || [[ "$path" =~ ^\{[0-9]+\.\.\}$ ]]; then
+    echo -e "${DIM}Field placeholder detected${RESET}"
+    exit 0
+fi
+
+# Helper function: check if command exists
+has_cmd() {
+    command -v "$1" &>/dev/null
+}
+
+# Helper function: safe file size check (returns 0 if file is too large)
+is_small_file() {
+    local file="$1"
+    local max_size="${2:-1048576}"  # 1MB default
+    local size
+    size=$(stat -c%s "$file" 2>/dev/null || stat -f%z "$file" 2>/dev/null || echo "0")
+    [[ "$size" -lt "$max_size" ]]
+}
+
+# Helper function: detect if file is binary
+is_binary() {
+    local file="$1"
+    # Check first 8000 bytes for null bytes
+    head -c 8000 "$file" 2>/dev/null | grep -qP '\x00'
+}
+
+# Helper function: get file mime type
+get_mime() {
+    file --mime-type -b "$1" 2>/dev/null || echo "unknown"
+}
+
+# Helper function: safe bat preview
+preview_with_bat() {
+    local file="$1"
+    local lines="${2:-200}"
+    if has_cmd bat; then
+        bat --color=always --style=numbers,changes,header \
+            --line-range ":$lines" \
+            --terminal-width="${FZF_PREVIEW_COLUMNS:-80}" \
+            "$file" 2>/dev/null
+    elif has_cmd batcat; then
+        batcat --color=always --style=numbers,changes,header \
+            --line-range ":$lines" \
+            "$file" 2>/dev/null
+    elif has_cmd highlight; then
+        highlight --out-format=ansi --force "$file" 2>/dev/null | head -n "$lines"
+    else
+        head -n "$lines" "$file" 2>/dev/null | nl -ba
+    fi
+}
+
+# Helper function: directory listing
+preview_directory() {
+    local dir="$1"
+    if has_cmd eza; then
+        eza --tree --color=always --icons --group-directories-first \
+            --level=2 --git-ignore "$dir" 2>/dev/null || \
+        eza -la --color=always --icons --group-directories-first "$dir" 2>/dev/null
+    elif has_cmd exa; then
+        exa --tree --color=always --icons --group-directories-first \
+            --level=2 "$dir" 2>/dev/null || \
+        exa -la --color=always --icons "$dir" 2>/dev/null
+    else
+        ls -lahF --color=always "$dir" 2>/dev/null || ls -lahF "$dir" 2>/dev/null
+    fi | head -100
+}
+
+# Helper function: image preview
+preview_image() {
+    local file="$1"
+    local cols="${FZF_PREVIEW_COLUMNS:-80}"
+    local lines="${FZF_PREVIEW_LINES:-20}"
+
+    if has_cmd chafa; then
+        chafa --format=symbols --size="${cols}x${lines}" "$file" 2>/dev/null
+    elif has_cmd catimg; then
+        catimg -w "$cols" "$file" 2>/dev/null
+    elif has_cmd viu; then
+        viu -w "$cols" "$file" 2>/dev/null
+    elif [[ -n "$KITTY_WINDOW_ID" ]] && has_cmd kitty; then
+        kitty +kitten icat --clear --transfer-mode=memory \
+            --place="${cols}x${lines}@0x0" "$file" 2>/dev/null
+    else
+        echo -e "${BLUE}Image:${RESET} $(basename "$file")"
+        file "$file" 2>/dev/null | sed 's/^[^:]*: //'
+    fi
+}
+
+# Helper function: archive listing
+preview_archive() {
+    local file="$1"
+    local ext="${file##*.}"
+    ext="${ext,,}"  # lowercase
+
+    case "$ext" in
+        zip)
+            if has_cmd unzip; then
+                unzip -l "$file" 2>/dev/null | head -50
+            else
+                echo -e "${YELLOW}Install unzip to preview ZIP files${RESET}"
+                file "$file" 2>/dev/null
+            fi
+            ;;
+        tar|tgz|txz|tbz|tbz2)
+            tar -tvf "$file" 2>/dev/null | head -50
+            ;;
+        gz)
+            if [[ "$file" == *.tar.gz ]]; then
+                tar -tvzf "$file" 2>/dev/null | head -50
+            else
+                gzip -l "$file" 2>/dev/null
+            fi
+            ;;
+        bz2)
+            if [[ "$file" == *.tar.bz2 ]]; then
+                tar -tvjf "$file" 2>/dev/null | head -50
+            else
+                bzip2 -l "$file" 2>/dev/null || file "$file"
+            fi
+            ;;
+        xz)
+            if [[ "$file" == *.tar.xz ]]; then
+                tar -tvJf "$file" 2>/dev/null | head -50
+            else
+                xz -l "$file" 2>/dev/null || file "$file"
+            fi
+            ;;
+        7z)
+            if has_cmd 7z; then
+                7z l "$file" 2>/dev/null | head -50
+            else
+                echo -e "${YELLOW}Install p7zip to preview 7z files${RESET}"
+                file "$file" 2>/dev/null
+            fi
+            ;;
+        rar)
+            if has_cmd unrar; then
+                unrar l "$file" 2>/dev/null | head -50
+            else
+                echo -e "${YELLOW}Install unrar to preview RAR files${RESET}"
+                file "$file" 2>/dev/null
+            fi
+            ;;
+        *)
+            if has_cmd atool; then
+                atool -l "$file" 2>/dev/null | head -50
+            else
+                file "$file" 2>/dev/null
+            fi
+            ;;
+    esac
+}
+
+# Helper function: PDF preview
+preview_pdf() {
+    local file="$1"
+    local cols="${FZF_PREVIEW_COLUMNS:-80}"
+    local lines="${FZF_PREVIEW_LINES:-20}"
+
+    if has_cmd pdftotext; then
+        pdftotext -l 2 -nopgbrk -q "$file" - 2>/dev/null | head -100
+    elif has_cmd pdftoppm && has_cmd chafa; then
+        pdftoppm -png -f 1 -l 1 -scale-to 400 "$file" - 2>/dev/null | \
+            chafa --format=symbols --size="${cols}x${lines}" - 2>/dev/null
+    else
+        echo -e "${BLUE}PDF:${RESET} $(basename "$file")"
+        if has_cmd pdfinfo; then
+            pdfinfo "$file" 2>/dev/null
+        else
+            file "$file" 2>/dev/null
+        fi
+    fi
+}
+
+# Helper function: media info
+preview_media() {
+    local file="$1"
+    if has_cmd mediainfo; then
+        mediainfo "$file" 2>/dev/null | head -30
+    elif has_cmd ffprobe; then
+        ffprobe -hide_banner "$file" 2>&1 | head -20
+    else
+        echo -e "${BLUE}Media:${RESET} $(basename "$file")"
+        file "$file" 2>/dev/null
+    fi
+}
+
+# Helper function: JSON preview
+preview_json() {
+    local file="$1"
+    if has_cmd jq; then
+        jq -C '.' "$file" 2>/dev/null | head -100
+    elif has_cmd python3; then
+        python3 -m json.tool "$file" 2>/dev/null | head -100
+    else
+        preview_with_bat "$file"
+    fi
+}
+
+# Helper function: markdown preview
+preview_markdown() {
+    local file="$1"
+    if has_cmd glow; then
+        glow -s dark -w "${FZF_PREVIEW_COLUMNS:-80}" "$file" 2>/dev/null
+    elif has_cmd mdcat; then
+        mdcat "$file" 2>/dev/null
+    else
+        preview_with_bat "$file"
+    fi
+}
+
+# Handle non-existent paths gracefully
+if [[ ! -e "$path" ]]; then
+    # Could be a special value like a command name, variable, etc.
+    # Try to provide useful info anyway
+
+    # Check if it looks like a command
+    if has_cmd "$path"; then
+        echo -e "${GREEN}Command:${RESET} $path"
+        if has_cmd tldr; then
+            tldr "$path" 2>/dev/null || which "$path" 2>/dev/null
+        else
+            which "$path" 2>/dev/null || type "$path" 2>/dev/null
+        fi
+        exit 0
+    fi
+
+    # Check if it's an environment variable name
+    if [[ -n "${!path:-}" ]]; then
+        echo -e "${GREEN}Environment Variable:${RESET} $path"
+        echo -e "${BLUE}Value:${RESET} ${!path}"
+        exit 0
+    fi
+
+    # Check if it might be a man page
+    if man -w "$path" &>/dev/null; then
+        echo -e "${GREEN}Man Page:${RESET} $path"
+        man "$path" 2>/dev/null | head -40
+        exit 0
+    fi
+
+    # Generic fallback for non-existent paths
+    echo -e "${DIM}Not a file or directory: $path${RESET}"
+    exit 0
+fi
+
+# Main preview logic based on file type
 case "$path" in
-  *.png | *.jpg | *.jpeg | *.gif | *.bmp | *.svg | *.webp)
-    if command -v chafa >/dev/null; then
-      chafa --size=80x20 "$path"
-    elif command -v kitty +kitten icat >/dev/null; then
-      kitty +kitten icat --align left "$path"
-    else
-      file "$path"
-    fi
-    ;;
-  *.pdf)
-    if command -v pdftoppm >/dev/null; then
-      pdftoppm -png -f 1 -l 1 -scale-to 800 -scale-to 600 "$path" - | chafa --size=80x20 -
-    else
-      file "$path"
-    fi
-    ;;
-  *.tar.* | *.zip | *.rar | *.7z | *.gz | *.bz2 | *.xz)
-    if command -v atool >/dev/null; then
-      atool -l "$path" | head -20
-    elif command -v tar >/dev/null; then
-      tar -tf "$path" | head -20
-    else
-      file "$path"
-    fi
-    ;;
-  *.mp4 | *.avi | *.mkv | *.mp3 | *.wav | *.flac | *.ogg)
-    ffprobe "$path" 2>&1 | head -10 || file "$path"
-    ;;
-  */)
-    if [[ -d "$path" ]]; then
-      if command -v eza >/dev/null; then
-        eza --tree --color=always --icons -L 3 --group-directories-first "$path" 2>/dev/null || ls -laFGh --color=always "$path"
-      else
-        ls -laFGh --color=always "$path"
-      fi | head -200
-    else
-      file "$path"
-    fi
-    ;;
-  *)
-    if [[ -f "$path" ]]; then
-      if command -v bat >/dev/null; then
-        bat --color=always --style=full --decorations=always --line-range=:200 "$path"
-      elif command -v highlight >/dev/null; then
-        highlight --out-format=ansi "$path" | head -200
-      else
-        head -200 "$path" | nl -b a | tail -100
-      fi
-    else
-      file "$path"
-    fi
-    ;;
+    # Images
+    *.png|*.jpg|*.jpeg|*.gif|*.bmp|*.svg|*.webp|*.ico|*.tiff|*.tif)
+        preview_image "$path"
+        ;;
+
+    # PDF documents
+    *.pdf|*.PDF)
+        preview_pdf "$path"
+        ;;
+
+    # Archives
+    *.tar|*.tar.gz|*.tgz|*.tar.bz2|*.tbz|*.tbz2|*.tar.xz|*.txz|\
+    *.zip|*.ZIP|*.rar|*.RAR|*.7z|*.gz|*.bz2|*.xz|*.lz|*.lzma)
+        preview_archive "$path"
+        ;;
+
+    # Media files
+    *.mp4|*.mkv|*.avi|*.mov|*.wmv|*.flv|*.webm|\
+    *.mp3|*.flac|*.wav|*.ogg|*.m4a|*.aac|*.wma)
+        preview_media "$path"
+        ;;
+
+    # JSON files
+    *.json)
+        preview_json "$path"
+        ;;
+
+    # Markdown
+    *.md|*.markdown)
+        preview_markdown "$path"
+        ;;
+
+    # Directories
+    */)
+        preview_directory "$path"
+        ;;
+
+    # Everything else
+    *)
+        if [[ -d "$path" ]]; then
+            preview_directory "$path"
+        elif [[ -f "$path" ]]; then
+            # Check file size first
+            if ! is_small_file "$path" 5242880; then  # 5MB
+                echo -e "${YELLOW}File too large for preview${RESET}"
+                file "$path" 2>/dev/null
+                ls -lh "$path" 2>/dev/null
+                exit 0
+            fi
+
+            # Check if binary
+            if is_binary "$path"; then
+                echo -e "${BLUE}Binary file:${RESET} $(basename "$path")"
+                file "$path" 2>/dev/null
+                if has_cmd xxd; then
+                    echo -e "\n${DIM}Hex dump (first 256 bytes):${RESET}"
+                    xxd "$path" 2>/dev/null | head -16
+                fi
+                exit 0
+            fi
+
+            # Text file - use bat
+            preview_with_bat "$path"
+        else
+            # Symbolic link, socket, device, etc.
+            echo -e "${BLUE}Special file:${RESET} $(basename "$path")"
+            ls -la "$path" 2>/dev/null
+            file "$path" 2>/dev/null
+        fi
+        ;;
 esac
 
+exit 0

@@ -1,50 +1,139 @@
-# ~/.config/zsh/defaults/fzf-previews.zsh
-# Comprehensive fzf-tab preview configurations for all completion types
+# ~/.config/zsh/functions/widgets/fzf-preview
+# Comprehensive fzf-tab preview configurations with robust error handling
+# All previews gracefully degrade when tools are unavailable
+
+#=============================================================================
+# SAFE PREVIEW HELPER
+# This wrapper ensures previews never cause errors
+#=============================================================================
+# Note: fzf-tab previews run in a subshell, so we define inline helpers
 
 #=============================================================================
 # DIRECTORY & FILE COMPLETIONS
 #=============================================================================
 
 # Directory preview (cd, z, zoxide, pushd, etc.)
-zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza -1 --color=always --icons --group-directories-first $realpath 2>/dev/null || ls -A --color=always $realpath'
-zstyle ':fzf-tab:complete:__zoxide_z:*' fzf-preview 'eza -1 --color=always --icons --group-directories-first $realpath 2>/dev/null || ls -A --color=always $realpath'
-zstyle ':fzf-tab:complete:pushd:*' fzf-preview 'eza -1 --color=always --icons --group-directories-first $realpath 2>/dev/null || ls -A --color=always $realpath'
-
-# File argument completions (most commands that take file arguments)
-zstyle ':fzf-tab:complete:-command-:*' fzf-preview '
-  [[ -z $realpath ]] && realpath=$word
-  if [[ -d $realpath ]]; then
-    eza -1 --color=always --icons --group-directories-first $realpath 2>/dev/null || ls -A --color=always $realpath 2>/dev/null
-  elif [[ -f $realpath ]]; then
-    bat --color=always --style=numbers,changes --line-range :200 $realpath 2>/dev/null || head -n 200 $realpath 2>/dev/null
-  fi
+zstyle ':fzf-tab:complete:cd:*' fzf-preview '
+    [[ -z "$realpath" ]] && exit 0
+    if [[ -d "$realpath" ]]; then
+        eza -1 --color=always --icons --group-directories-first "$realpath" 2>/dev/null || \
+        exa -1 --color=always --icons "$realpath" 2>/dev/null || \
+        ls -A --color=always "$realpath" 2>/dev/null || \
+        ls -A "$realpath" 2>/dev/null || \
+        echo "Directory: $realpath"
+    else
+        echo "Not a directory"
+    fi
 '
 
-# Generic file/directory preview (fallback for everything else)
+zstyle ':fzf-tab:complete:__zoxide_z:*' fzf-preview '
+    [[ -z "$realpath" ]] && exit 0
+    if [[ -d "$realpath" ]]; then
+        eza -1 --color=always --icons --group-directories-first "$realpath" 2>/dev/null || \
+        ls -A --color=always "$realpath" 2>/dev/null || \
+        echo "Directory: $realpath"
+    fi
+'
+
+zstyle ':fzf-tab:complete:pushd:*' fzf-preview '
+    [[ -z "$realpath" ]] && exit 0
+    [[ -d "$realpath" ]] && {
+        eza -1 --color=always --icons --group-directories-first "$realpath" 2>/dev/null || \
+        ls -A --color=always "$realpath" 2>/dev/null
+    }
+'
+
+# Generic file/directory preview - the fallback for most commands
 zstyle ':fzf-tab:complete:*:*' fzf-preview '
-  [[ -z $realpath ]] && realpath=$word
-  if [[ -d $realpath ]]; then
-    eza -1 --color=always --icons --group-directories-first $realpath 2>/dev/null || ls -A --color=always $realpath 2>/dev/null
-  elif [[ -f $realpath ]]; then
-    bat --color=always --style=numbers,changes --line-range :200 $realpath 2>/dev/null || head -n 200 $realpath 2>/dev/null
-  fi
+    # Handle empty input
+    target="${realpath:-$word}"
+    [[ -z "$target" ]] && exit 0
+
+    # Handle directories
+    if [[ -d "$target" ]]; then
+        eza -1 --color=always --icons --group-directories-first "$target" 2>/dev/null || \
+        ls -A --color=always "$target" 2>/dev/null || \
+        ls -A "$target" 2>/dev/null
+        exit 0
+    fi
+
+    # Handle regular files
+    if [[ -f "$target" ]]; then
+        # Check file size (skip large files)
+        size=$(stat -c%s "$target" 2>/dev/null || stat -f%z "$target" 2>/dev/null || echo 0)
+        if [[ "$size" -gt 2097152 ]]; then
+            echo "File too large for preview"
+            file "$target" 2>/dev/null
+            exit 0
+        fi
+
+        # Try bat first, then fallbacks
+        bat --color=always --style=numbers,changes --line-range :150 "$target" 2>/dev/null || \
+        batcat --color=always --style=numbers --line-range :150 "$target" 2>/dev/null || \
+        head -n 150 "$target" 2>/dev/null || \
+        echo "Cannot preview file"
+        exit 0
+    fi
+
+    # Not a file or directory - might be a command or variable
+    exit 0
 '
 
-# Common file operation commands (cat, less, more, head, tail, etc.)
-zstyle ':fzf-tab:complete:(cat|less|more|head|tail|bat):*' fzf-preview \
-  '[[ -f $realpath ]] && { bat --color=always --style=numbers,changes $realpath 2>/dev/null || head -n 200 $realpath 2>/dev/null; } || [[ -d $realpath ]] && eza -1 --color=always --icons $realpath 2>/dev/null'
+#=============================================================================
+# COMMAND COMPLETIONS
+#=============================================================================
+
+# File operation commands (cat, less, more, head, tail, bat)
+zstyle ':fzf-tab:complete:(cat|less|more|head|tail|bat|batcat):*' fzf-preview '
+    target="${realpath:-$word}"
+    [[ -z "$target" ]] && exit 0
+    [[ -f "$target" ]] && {
+        bat --color=always --style=numbers,changes --line-range :150 "$target" 2>/dev/null || \
+        head -n 150 "$target" 2>/dev/null
+    }
+    [[ -d "$target" ]] && {
+        eza -1 --color=always --icons "$target" 2>/dev/null || ls -A "$target" 2>/dev/null
+    }
+'
 
 # File modification commands (cp, mv, rm, chmod, chown)
-zstyle ':fzf-tab:complete:(cp|mv|rm|chmod|chown):*' fzf-preview \
-  '[[ -f $realpath ]] && { bat --color=always --style=plain $realpath 2>/dev/null || head -n 100 $realpath 2>/dev/null; } || [[ -d $realpath ]] && eza -1 --color=always --icons $realpath 2>/dev/null'
+zstyle ':fzf-tab:complete:(cp|mv|rm|chmod|chown|ln):*' fzf-preview '
+    target="${realpath:-$word}"
+    [[ -z "$target" ]] && exit 0
+    [[ -f "$target" ]] && {
+        bat --color=always --style=plain --line-range :100 "$target" 2>/dev/null || \
+        head -n 100 "$target" 2>/dev/null
+    }
+    [[ -d "$target" ]] && {
+        eza -1 --color=always --icons "$target" 2>/dev/null || ls -A "$target" 2>/dev/null
+    }
+'
 
-# ls/eza completions
-zstyle ':fzf-tab:complete:(ls|eza|exa):*' fzf-preview '
-  if [[ -d $realpath ]]; then
-    eza --tree --level=2 --color=always --icons $realpath 2>/dev/null || ls -lA --color=always $realpath 2>/dev/null
-  elif [[ -f $realpath ]]; then
-    bat --color=always --style=numbers,changes $realpath 2>/dev/null || head -n 200 $realpath 2>/dev/null
-  fi
+# ls/eza completions - tree view for directories
+zstyle ':fzf-tab:complete:(ls|eza|exa|tree):*' fzf-preview '
+    target="${realpath:-$word}"
+    [[ -z "$target" ]] && exit 0
+    if [[ -d "$target" ]]; then
+        eza --tree --level=2 --color=always --icons "$target" 2>/dev/null || \
+        tree -C -L 2 "$target" 2>/dev/null || \
+        ls -lA --color=always "$target" 2>/dev/null
+    elif [[ -f "$target" ]]; then
+        bat --color=always --style=numbers,changes "$target" 2>/dev/null || \
+        head -n 150 "$target" 2>/dev/null
+    fi
+'
+
+# Editor completions (nvim, vim, vi, nano, code)
+zstyle ':fzf-tab:complete:(nvim|vim|vi|nano|code|emacs|hx|helix):*' fzf-preview '
+    target="${realpath:-$word}"
+    [[ -z "$target" ]] && exit 0
+    [[ -f "$target" ]] && {
+        bat --color=always --style=numbers,changes,header --line-range :200 "$target" 2>/dev/null || \
+        head -n 200 "$target" 2>/dev/null
+    }
+    [[ -d "$target" ]] && {
+        eza -1 --color=always --icons "$target" 2>/dev/null || ls -A "$target" 2>/dev/null
+    }
 '
 
 #=============================================================================
@@ -52,147 +141,249 @@ zstyle ':fzf-tab:complete:(ls|eza|exa):*' fzf-preview '
 #=============================================================================
 
 # Git add/diff/restore - show file diff
-zstyle ':fzf-tab:complete:git-(add|diff|restore):*' fzf-preview \
-  'git diff --color=always $word 2>/dev/null | delta 2>/dev/null || git diff --color=always $word'
+zstyle ':fzf-tab:complete:git-(add|diff|restore):*' fzf-preview '
+    [[ -z "$word" ]] && exit 0
+    git diff --color=always -- "$word" 2>/dev/null | \
+        delta 2>/dev/null || \
+        git diff --color=always -- "$word" 2>/dev/null || \
+        echo "No diff available"
+'
 
 # Git log - show commit details
-zstyle ':fzf-tab:complete:git-log:*' fzf-preview \
-  'git show --color=always $word 2>/dev/null | delta 2>/dev/null || git show --color=always $word'
+zstyle ':fzf-tab:complete:git-log:*' fzf-preview '
+    [[ -z "$word" ]] && exit 0
+    git show --color=always "$word" 2>/dev/null | \
+        delta 2>/dev/null || \
+        git show --color=always "$word" 2>/dev/null || \
+        git log --oneline --graph --color=always "$word" 2>/dev/null | head -30
+'
 
 # Git checkout - context-aware preview
-zstyle ':fzf-tab:complete:git-checkout:*' fzf-preview \
-  'case $group in
-     "modified file") git diff --color=always $word | delta 2>/dev/null || git diff --color=always $word ;;
-     "recent commit") git show --color=always $word | delta 2>/dev/null || git show --color=always $word ;;
-     "remote branch") git log --oneline --graph --color=always $word | head -50 ;;
-     *) git log --oneline --graph --color=always $word | head -50 ;;
-   esac'
+zstyle ':fzf-tab:complete:git-checkout:*' fzf-preview '
+    [[ -z "$word" ]] && exit 0
+    case "$group" in
+        "modified file"|"file")
+            git diff --color=always -- "$word" 2>/dev/null | delta 2>/dev/null || \
+            git diff --color=always -- "$word" 2>/dev/null
+            ;;
+        "recent commit"|"commit")
+            git show --color=always "$word" 2>/dev/null | head -50
+            ;;
+        "remote branch"|"branch"|*)
+            git log --oneline --graph --color=always "$word" 2>/dev/null | head -30
+            ;;
+    esac
+'
 
-# Git branch - show branch info and recent commits
-zstyle ':fzf-tab:complete:git-branch:*' fzf-preview \
-  'git log --oneline --graph --color=always --decorate $word | head -50'
+# Git branch - show branch info
+zstyle ':fzf-tab:complete:git-(branch|switch|merge|rebase):*' fzf-preview '
+    [[ -z "$word" ]] && exit 0
+    git log --oneline --graph --color=always --decorate "$word" 2>/dev/null | head -30
+'
 
 # Git stash - show stash contents
-zstyle ':fzf-tab:complete:git-stash:*' fzf-preview \
-  'git stash show --color=always -p $word 2>/dev/null | delta 2>/dev/null || git stash show --color=always -p $word'
+zstyle ':fzf-tab:complete:git-stash:*' fzf-preview '
+    [[ -z "$word" ]] && exit 0
+    git stash show --color=always -p "$word" 2>/dev/null | \
+        delta 2>/dev/null || \
+        git stash show --color=always -p "$word" 2>/dev/null || \
+        echo "Cannot show stash"
+'
 
 #=============================================================================
 # PROCESS MANAGEMENT
 #=============================================================================
 
 # Kill/pkill - detailed process info
-zstyle ':fzf-tab:complete:(kill|pkill):*' fzf-preview \
-  'ps --pid=$word -o pid,ppid,user,%cpu,%mem,stat,start,time,command --no-headers -ww 2>/dev/null || echo "Process: $word"'
-
-# Top/htop/btm - process tree
-zstyle ':fzf-tab:complete:(top|htop|btm|bottom):*' fzf-preview \
-  'ps --pid=$word --forest -o pid,ppid,user,%cpu,%mem,command -ww'
+zstyle ':fzf-tab:complete:(kill|pkill|killall):*' fzf-preview '
+    [[ -z "$word" ]] && exit 0
+    # Handle both PID and process name
+    if [[ "$word" =~ ^[0-9]+$ ]]; then
+        ps --pid="$word" -o pid,ppid,user,%cpu,%mem,stat,start,time,command --no-headers -ww 2>/dev/null || \
+        ps -p "$word" -o pid,user,comm 2>/dev/null || \
+        echo "Process $word"
+    else
+        pgrep -a "$word" 2>/dev/null | head -10 || echo "Process: $word"
+    fi
+'
 
 #=============================================================================
 # SYSTEMD/SERVICE MANAGEMENT
 #=============================================================================
 
-# Systemctl - service status
-zstyle ':fzf-tab:complete:systemctl-*:*' fzf-preview \
-  'SYSTEMD_COLORS=1 systemctl status $word 2>/dev/null'
+# Systemctl - service status (with color fix)
+zstyle ':fzf-tab:complete:systemctl-*:*' fzf-preview '
+    [[ -z "$word" ]] && exit 0
+    SYSTEMD_COLORS=1 systemctl status --no-pager "$word" 2>/dev/null | head -30 || \
+    echo "Unit: $word"
+'
 
 # Journalctl - recent logs
-zstyle ':fzf-tab:complete:journalctl:*' fzf-preview \
-  'journalctl -u $word --no-pager -n 50 --output=cat 2>/dev/null'
+zstyle ':fzf-tab:complete:journalctl:*' fzf-preview '
+    [[ -z "$word" ]] && exit 0
+    journalctl -u "$word" --no-pager -n 30 --output=cat 2>/dev/null || \
+    echo "Journal for: $word"
+'
 
 #=============================================================================
 # PACKAGE MANAGEMENT
 #=============================================================================
 
 # Pacman (Arch Linux)
-zstyle ':fzf-tab:complete:pacman:*' fzf-preview \
-  'pacman -Si $word 2>/dev/null || pacman -Qi $word 2>/dev/null'
+zstyle ':fzf-tab:complete:pacman:*' fzf-preview '
+    [[ -z "$word" ]] && exit 0
+    pacman -Si "$word" 2>/dev/null || \
+    pacman -Qi "$word" 2>/dev/null || \
+    echo "Package: $word"
+'
 
 # Yay/Paru (AUR helpers)
-zstyle ':fzf-tab:complete:(yay|paru):*' fzf-preview \
-  'yay -Si $word 2>/dev/null || paru -Si $word 2>/dev/null || pacman -Si $word 2>/dev/null'
-
-# Apt (Debian/Ubuntu)
-zstyle ':fzf-tab:complete:apt:*' fzf-preview \
-  'apt-cache show $word 2>/dev/null'
-
-# DNF/YUM (Fedora/RHEL)
-zstyle ':fzf-tab:complete:(dnf|yum):*' fzf-preview \
-  'dnf info $word 2>/dev/null || yum info $word 2>/dev/null'
-
-#=============================================================================
-# DOCKER & CONTAINERS
-#=============================================================================
-
-# Docker images
-zstyle ':fzf-tab:complete:docker-image:*' fzf-preview \
-  'docker image inspect $word 2>/dev/null | bat --color=always -l json || docker images $word'
-
-# Docker containers
-zstyle ':fzf-tab:complete:docker-(run|exec|start|stop|rm):*' fzf-preview \
-  'docker inspect $word 2>/dev/null | bat --color=always -l json || docker ps -a --filter name=$word'
-
-# Docker compose
-zstyle ':fzf-tab:complete:docker-compose:*' fzf-preview \
-  'docker-compose config 2>/dev/null | bat --color=always -l yaml'
+zstyle ':fzf-tab:complete:(yay|paru):*' fzf-preview '
+    [[ -z "$word" ]] && exit 0
+    paru -Si "$word" 2>/dev/null || \
+    yay -Si "$word" 2>/dev/null || \
+    pacman -Si "$word" 2>/dev/null || \
+    echo "Package: $word"
+'
 
 #=============================================================================
 # ENVIRONMENT & VARIABLES
 #=============================================================================
 
-# Environment variables
-zstyle ':fzf-tab:complete:(-command-|-parameter-|-brace-parameter-|export|unset|expand):*' fzf-preview \
-  'echo ${(P)word} | bat --color=always -l bash --style=plain || echo ${(P)word}'
+# Environment variables - show value safely
+zstyle ':fzf-tab:complete:(-command-|-parameter-|-brace-parameter-|export|unset|expand):*' fzf-preview '
+    [[ -z "$word" ]] && exit 0
+    # Try to get the variable value
+    val="${(P)word}"
+    if [[ -n "$val" ]]; then
+        echo -e "\033[1;33mVariable:\033[0m $word"
+        echo -e "\033[1;36mValue:\033[0m"
+        echo "$val" | head -20
+    else
+        echo "Variable: $word (not set or empty)"
+    fi
+'
 
 # Man pages
-zstyle ':fzf-tab:complete:(man|tldr):*' fzf-preview \
-  'man $word 2>/dev/null | col -bx | bat --color=always -l man --style=grid || tldr $word 2>/dev/null'
+zstyle ':fzf-tab:complete:(man|tldr):*' fzf-preview '
+    [[ -z "$word" ]] && exit 0
+    man "$word" 2>/dev/null | col -bx | head -50 || \
+    tldr "$word" 2>/dev/null || \
+    echo "Manual: $word"
+'
 
 #=============================================================================
 # SSH & NETWORKING
 #=============================================================================
 
 # SSH hosts
-zstyle ':fzf-tab:complete:ssh:*' fzf-preview \
-  'echo "Host: $word" && grep -A 10 "^Host $word" ~/.ssh/config 2>/dev/null | bat --color=always -l sshconfig --style=plain'
+zstyle ':fzf-tab:complete:ssh:*' fzf-preview '
+    [[ -z "$word" ]] && exit 0
+    echo -e "\033[1;33mHost:\033[0m $word"
+    grep -A 10 "^Host[[:space:]]\+$word" ~/.ssh/config 2>/dev/null | head -12 || \
+    host "$word" 2>/dev/null || \
+    echo "SSH target: $word"
+'
 
-# Ping/networking
-zstyle ':fzf-tab:complete:(ping|curl|wget):*' fzf-preview \
-  'echo "Target: $word" && host $word 2>/dev/null || echo "Hostname/IP: $word"'
+# Networking commands
+zstyle ':fzf-tab:complete:(ping|curl|wget|nc|nmap):*' fzf-preview '
+    [[ -z "$word" ]] && exit 0
+    echo -e "\033[1;33mTarget:\033[0m $word"
+    host "$word" 2>/dev/null || dig +short "$word" 2>/dev/null || echo "$word"
+'
+
+#=============================================================================
+# DOCKER & CONTAINERS
+#=============================================================================
+
+# Docker images
+zstyle ':fzf-tab:complete:docker-(image|rmi|run|history|inspect|save|tag):*' fzf-preview '
+    [[ -z "$word" ]] && exit 0
+    docker image inspect "$word" 2>/dev/null | head -40 || \
+    docker images "$word" 2>/dev/null || \
+    echo "Image: $word"
+'
+
+# Docker containers
+zstyle ':fzf-tab:complete:docker-(exec|start|stop|rm|logs|attach|commit):*' fzf-preview '
+    [[ -z "$word" ]] && exit 0
+    docker inspect "$word" 2>/dev/null | head -40 || \
+    docker ps -a --filter "name=$word" 2>/dev/null || \
+    echo "Container: $word"
+'
 
 #=============================================================================
 # TMUX
 #=============================================================================
 
 # Tmux sessions
-zstyle ':fzf-tab:complete:tmux-(attach|switch-client):*' fzf-preview \
-  'tmux list-windows -t $word 2>/dev/null | head -20'
+zstyle ':fzf-tab:complete:tmux-(attach|switch-client|kill-session):*' fzf-preview '
+    [[ -z "$word" ]] && exit 0
+    tmux list-windows -t "$word" 2>/dev/null | head -15 || echo "Session: $word"
+'
 
 # Tmux windows
-zstyle ':fzf-tab:complete:tmux-select-window:*' fzf-preview \
-  'tmux list-panes -t $word 2>/dev/null'
+zstyle ':fzf-tab:complete:tmux-select-window:*' fzf-preview '
+    [[ -z "$word" ]] && exit 0
+    tmux list-panes -t "$word" 2>/dev/null || echo "Window: $word"
+'
 
 #=============================================================================
-# ARCHIVES & COMPRESSED FILES
+# ARCHIVES
 #=============================================================================
 
-# Tar/zip archives
-zstyle ':fzf-tab:complete:(tar|unzip|7z):*' fzf-preview \
-  'case ${realpath##*.} in
-    tar|tgz|tar.gz|tar.bz2|tar.xz) tar -tvf $realpath 2>/dev/null | head -100 ;;
-    zip) unzip -l $realpath 2>/dev/null | head -100 ;;
-    7z) 7z l $realpath 2>/dev/null | head -100 ;;
-    *) [[ -f $realpath ]] && { bat --color=always $realpath 2>/dev/null || head -n 200 $realpath 2>/dev/null; } ;;
-  esac'
+# Archive operations
+zstyle ':fzf-tab:complete:(tar|unzip|7z|unrar):*' fzf-preview '
+    target="${realpath:-$word}"
+    [[ -z "$target" ]] && exit 0
+    [[ ! -f "$target" ]] && exit 0
+
+    case "${target:l}" in
+        *.tar|*.tar.gz|*.tgz|*.tar.bz2|*.tbz2|*.tar.xz|*.txz)
+            tar -tvf "$target" 2>/dev/null | head -30
+            ;;
+        *.zip)
+            unzip -l "$target" 2>/dev/null | head -30
+            ;;
+        *.7z)
+            7z l "$target" 2>/dev/null | head -30
+            ;;
+        *.rar)
+            unrar l "$target" 2>/dev/null | head -30
+            ;;
+        *)
+            file "$target" 2>/dev/null
+            ;;
+    esac
+'
 
 #=============================================================================
-# EDITOR & FILE OPERATIONS
+# BUILTIN COMMAND COMPLETIONS (disable, enable, etc.)
 #=============================================================================
 
-# Nvim/vim - show file with syntax highlighting
-zstyle ':fzf-tab:complete:(nvim|vim|vi|nano|code):*' fzf-preview \
-  '[[ -f $realpath ]] && { bat --color=always --style=numbers,changes --line-range :200 $realpath 2>/dev/null || head -n 200 $realpath 2>/dev/null; } || [[ -d $realpath ]] && eza -1 --color=always --icons $realpath 2>/dev/null'
+# For builtins that take option names (like disable/enable)
+zstyle ':fzf-tab:complete:(disable|enable|setopt|unsetopt):*' fzf-preview '
+    [[ -z "$word" ]] && exit 0
+    # These are option/builtin names, not files
+    echo -e "\033[1;33mOption/Builtin:\033[0m $word"
+    # Try to get help info
+    if whence -f "$word" &>/dev/null; then
+        echo "Function"
+    elif whence -w "$word" &>/dev/null; then
+        whence -w "$word"
+    else
+        echo "Shell option or builtin"
+    fi
+'
 
-# Grep/rg/ag results
-zstyle ':fzf-tab:complete:(grep|rg|ag):*' fzf-preview \
-  '[[ -f {1} ]] && { bat --color=always --highlight-line {2} {1} 2>/dev/null || head -n 200 {1} 2>/dev/null; }'
+# Alias completion
+zstyle ':fzf-tab:complete:alias:*' fzf-preview '
+    [[ -z "$word" ]] && exit 0
+    alias "$word" 2>/dev/null || echo "Alias: $word"
+'
+
+# Function completion
+zstyle ':fzf-tab:complete:(which|whence|type|command):*' fzf-preview '
+    [[ -z "$word" ]] && exit 0
+    which "$word" 2>/dev/null || type "$word" 2>/dev/null || echo "Command: $word"
+'

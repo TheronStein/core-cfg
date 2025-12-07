@@ -133,5 +133,8 @@
 #=============================================================================
 # Any final setup that should happen after all other configs load
 
+# Note: systemctl completion color fix is now handled by
+# completions/_systemctl which wraps the system completion file
+
 # Ensure PATH doesn't have duplicates
 typeset -U PATH path

@@ -33,8 +33,6 @@ zinit light-mode for \
     zdharma-continuum/zinit-annex-patch-dl \
     zdharma-continuum/zinit-annex-rust
 
-
-
 #=============================================================================
 # PROMPT (instant prompt compatible)
 #=============================================================================
@@ -127,10 +125,6 @@ export ZSH_AUTOSUGGEST_BUFFER_MAX_SIZE=20
 export ZSH_AUTOSUGGEST_USE_ASYNC=1
 export ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE="fg=#666666,underline"
 
-# zsh-autocomplete
-zinit ice wait lucid as"program"
-zinit light marlonrichert/zsh-autocomplete
-
 # CONDITIONAL COMPLETION LOADER — only loads if binary exists (Nix-safe)
 # =============================================================================
 zinit_load_if_exists() {
@@ -139,10 +133,48 @@ zinit_load_if_exists() {
 }
 
 # =============================================================================
+# FZF-TAB LOADING (CRITICAL: Must load directly, not through zinit_load_if_exists)
+# fzf-tab is a plugin, not a binary command - the command check would always fail
+# =============================================================================
+# Load fzf-tab without 'wait' so completions are available immediately
+# The atload ice configures zstyles after the plugin initializes
+zinit ice lucid atload'
+    # Basic fzf-tab settings applied after plugin loads
+    zstyle ":fzf-tab:*" fzf-command fzf
+    zstyle ":fzf-tab:*" fzf-preview-window "right:60%:wrap:rounded"
+    zstyle ":fzf-tab:*" switch-group "," "."
+    zstyle ":fzf-tab:*" continuous-trigger "/"
+    zstyle ":fzf-tab:*" popup-min-size 80 20
+    zstyle ":fzf-tab:*" fzf-pad 4
+
+    # Apply theme colors if available
+    if [[ -n "${_FZF_THEME_COLORS:-}" ]]; then
+        zstyle ":fzf-tab:*" fzf-flags \
+            --height=60% \
+            --color="${_FZF_THEME_COLORS}" \
+            --bind="ctrl-/:toggle-preview" \
+            --bind="ctrl-a:select-all" \
+            --bind="ctrl-d:deselect-all"
+    else
+        zstyle ":fzf-tab:*" fzf-flags \
+            --height=60% \
+            --bind="ctrl-/:toggle-preview" \
+            --bind="ctrl-a:select-all" \
+            --bind="ctrl-d:deselect-all"
+    fi
+
+    # TMUX popup integration
+    if [[ -n "$TMUX" ]]; then
+        ftb-tmux-popup() { fzf-tmux -p 80%,80% "$@"; }
+        zstyle ":fzf-tab:*" fzf-command ftb-tmux-popup
+    fi
+'
+zinit light Aloxaf/fzf-tab
+
+# =============================================================================
 # PLUGIN LOADING (from 02-zinit.zsh)
 # =============================================================================
 zinit_load_if_exists fzf            junegunn/fzf
-zinit_load_if_exists fzf-tab        Aloxaf/fzf-tab
 zinit_load_if_exists kubectl        kubectl/kubectl
 zinit_load_if_exists helm           helm/helm
 zinit_load_if_exists gh             github/cli

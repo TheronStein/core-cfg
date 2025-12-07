@@ -1,6 +1,15 @@
 #!/usr/bin/env bash
-# Yazibar - Yazi Runner
-# Runs yazi with CWD synchronization and proper configuration
+# Yazibar - Yazi Runner with DDS Event Streaming
+# Runs yazi with --local-events for automatic sidebar synchronization
+#
+# ARCHITECTURE:
+# - Left sidebar: Streams hover/cd events via --local-events
+# - Events are processed by a background handler via named pipe (fifo)
+# - Handler sends reveal commands to right sidebar in real-time
+# - Right sidebar: Plain yazi that receives reveal commands via send-keys
+#
+# This design solves the limitation that Yazi plugins cannot auto-subscribe
+# to native events - we use --local-events instead.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/yazibar-utils.sh"
@@ -9,72 +18,70 @@ SIDE="${1:-left}"  # left or right
 START_DIR="${2:-$HOME}"
 
 # ============================================================================
-# CWD SYNCHRONIZATION
+# YAZI CONFIGURATION
 # ============================================================================
 
-# Function to update shell CWD via OSC 7 (called by yazi plugin)
-update_cwd() {
-    local new_dir="$1"
+# Set yazi config directory based on sidebar side
+# Use absolute path since CORE_CFG may not be set in all contexts
+CORE_CFG="${CORE_CFG:-$HOME/.core/.sys/cfg}"
+if [ "$SIDE" = "left" ]; then
+    export YAZI_CONFIG_HOME="${YAZI_CONFIG_HOME:-${CORE_CFG}/yazi/profiles/sidebar-left}"
+else
+    export YAZI_CONFIG_HOME="${YAZI_CONFIG_HOME:-${CORE_CFG}/yazi/profiles/sidebar-right}"
+fi
 
-    # Send OSC 7 escape sequence to update terminal's CWD
-    # Format: OSC 7 ; file://hostname/path ST
-    printf '\033]7;file://%s%s\033\\' "$(hostname)" "$new_dir"
-
-    # Also update tmux's pane_current_path
-    # Note: This might not work directly, tmux tracks CWD separately
-}
-
-export -f update_cwd
-
-# ============================================================================
-# YAZI HOOKS
-# ============================================================================
-
-# Yazi DDS event handler
-# This script is called by yazi when events occur (cd, hover, etc.)
-handle_yazi_event() {
-    local event_type="$1"
-    local event_data="$2"
-
-    case "$event_type" in
-        cd)
-            # Directory changed
-            update_cwd "$event_data"
-            debug_log "CWD changed to: $event_data"
-
-            # If this is left sidebar, sync to right
-            if [ "$SIDE" = "left" ]; then
-                set_tmux_option "@yazibar-current-dir" "$event_data"
-            fi
-            ;;
-        hover)
-            # File/dir hovered
-            if [ "$SIDE" = "left" ]; then
-                set_tmux_option "@yazibar-hovered-file" "$event_data"
-                debug_log "Hovered: $event_data"
-            fi
-            ;;
-    esac
-}
-
-export -f handle_yazi_event
-
-# ============================================================================
-# YAZI EXECUTION
-# ============================================================================
+# Export environment variables for yazibar-sync.yazi plugin (backwards compat)
+export YAZIBAR_SIDE="$SIDE"
+export YAZIBAR_PANE_ID="$TMUX_PANE"
 
 # Change to start directory
 cd "$START_DIR" || exit 1
 
-# Set yazi config directory
-export YAZI_CONFIG_HOME="${YAZI_CONFIG_HOME:-${CORE_CFG}/yazi/profiles/sidebar-left}"
+# ============================================================================
+# LEFT SIDEBAR: Run with DDS event streaming for sync
+# ============================================================================
+if [ "$SIDE" = "left" ]; then
+    # Get the right pane ID from tmux options (window-scoped)
+    WINDOW_ID=$(tmux display-message -p '#{window_id}')
+    RIGHT_PANE=$(tmux show-option -gqv "@yazibar-right-pane-id-${WINDOW_ID}")
 
-# Set yazibar side (used by yazi plugins)
-export YAZIBAR_SIDE="$SIDE"
+    if [ -n "$RIGHT_PANE" ] && pane_exists_globally "$RIGHT_PANE"; then
+        debug_log "Left sidebar: Starting with DDS event sync to $RIGHT_PANE"
 
-# Set pane ID for yazi to reference
-export YAZIBAR_PANE_ID="$TMUX_PANE"
+        # Create a named pipe for event processing
+        # This allows yazi to remain interactive while streaming events
+        FIFO="/tmp/yazibar_events_${TMUX_PANE//\%/}"
+        rm -f "$FIFO"
+        mkfifo "$FIFO"
 
-# Run yazi
-# Note: Yazi plugins will call handle_yazi_event via DDS or hooks
-exec yazi "$START_DIR" --cwd-file=/tmp/yazi_cwd --chooser-file=/tmp/yazi_choose"
+        # Start the DDS handler in background, reading from the fifo
+        "$SCRIPT_DIR/yazibar-dds-handler.sh" "$RIGHT_PANE" < "$FIFO" &
+        DDS_HANDLER_PID=$!
+
+        # Store handler PID for cleanup
+        set_tmux_option "@yazibar-dds-handler-pid-${WINDOW_ID}" "$DDS_HANDLER_PID"
+
+        debug_log "Started DDS handler PID: $DDS_HANDLER_PID"
+
+        # Run yazi with --local-events streaming hover and cd to the fifo
+        # The fifo allows yazi to run interactively while events stream to handler
+        yazi "$START_DIR" \
+            --local-events=hover,cd > "$FIFO" 2>/dev/null
+
+        # Cleanup when yazi exits
+        debug_log "Left sidebar exited, cleaning up DDS handler"
+        kill "$DDS_HANDLER_PID" 2>/dev/null
+        rm -f "$FIFO"
+        clear_tmux_option "@yazibar-dds-handler-pid-${WINDOW_ID}"
+    else
+        debug_log "Left sidebar: No right pane found ($RIGHT_PANE), running without sync"
+        # Run without event streaming if no right pane exists
+        exec yazi "$START_DIR"
+    fi
+else
+    # ============================================================================
+    # RIGHT SIDEBAR: Plain yazi that receives reveal commands via send-keys
+    # ============================================================================
+    debug_log "Right sidebar: Starting in preview mode"
+    exec yazi "$START_DIR"
+fi

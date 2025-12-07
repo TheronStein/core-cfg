@@ -59,8 +59,6 @@ fpath=(
   $fpath
 )
 
-
-
 #=============================================================================
 # DEFAULT APPLICATIONS
 #=============================================================================
@@ -88,17 +86,6 @@ export PERLDOC_PAGER="sh -c 'col -bx | bat -l man -p'"
 export PERLDOC_SRC_PAGER="sh -c 'col -bx | bat -l man -p'"
 export PERLTIDY="${XDG_CONFIG_HOME}/perltidy/perltidyrc"
 
-# export RTV_EDITOR="${EDITOR}"
-export SVN_EDITOR="${EDITOR}"
-export SUDO_EDITOR="${EDITOR}"
-# export RGV_EDITOR="$EDITOR $file +$line"
-
-export SYSTEMD_EDITOR=${EDITOR}
-export SYSTEMD_LESS=${LESS}
-if builtin command -v lesspipe.sh >/dev/null 2>&1; then
-  export LESSOPEN="|lesspipe.sh %s"
-fi
-
 if [[ -n "$NVIM_LISTEN_ADDRESS" ]]; then
   export VISUAL="nvr -cc split --remote-wait +'set bufhidden=wipe'"
   export EDITOR="nvr -cc split --remote-wait +'set bufhidden=wipe'"
@@ -112,6 +99,8 @@ export SVN_EDITOR="${EDITOR}"
 export SUDO_EDITOR="${EDITOR}"
 # export RGV_EDITOR="$EDITOR $file +$line"
 export SYSTEMD_EDITOR="${EDITOR}"
+# IMPORTANT: Keep colors enabled for interactive use, but this breaks completions
+# The fix is applied in completions config (see 02-zinit.zsh or completions setup)
 export SYSTEMD_COLORS=1
 export SYSTEMD_LOG_COLOR=1
 export SYSTEMD_LESS=${LESS}
@@ -355,15 +344,7 @@ validate_dir "$CORE_TOOLS"
 # export POETRY_VIRTUALENVS_IN_PROJECT=1
 # export POETRY_INSTALL_DEPENDENCIES=1
 
-export BUN_INSTALL="${CORE_TOOLS}/bun"
-export BUN_BIN="$BUN_INSTALL/bin"
-
-validate_dir "$BUN_INSTALL/bin"
-
-export DENO_INSTALL="${CORE_TOOLS}/deno"
-export DENO_BIN="$DENO_INSTALL/bin"
-
-validate_dir "$DENO_INSTALL/bin"
+# BUN and DENO are configured later in their dedicated sections
 
 # ]]]
 

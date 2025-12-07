@@ -188,19 +188,12 @@ function M.create_workspace(window, pane)
 					if current_workspace == "default" then
 						wezterm.log_info("[UNIFIED_WORKSPACE] Renaming default workspace to: " .. workspace_name)
 
-						-- Move all tabs from default to new workspace name
-						local tabs_moved = 0
-						for _, mux_win in ipairs(wezterm.mux.all_windows()) do
-							if mux_win:get_workspace() == "default" then
-								for _, tab in ipairs(mux_win:tabs()) do
-									tab:set_workspace(workspace_name)
-									tabs_moved = tabs_moved + 1
-								end
-							end
-						end
-
-						-- Switch to the renamed workspace
+						-- Switch to the new workspace name (this effectively renames it for the current window)
 						inner_win:perform_action(act.SwitchToWorkspace({ name = workspace_name }), inner_pane)
+
+						-- Count tabs in current window
+						local mux_window = inner_win:mux_window()
+						local tabs_moved = mux_window and #mux_window:tabs() or 0
 
 						inner_win:toast_notification(
 							"WezTerm",
@@ -298,17 +291,6 @@ function M.rename_workspace(window, pane)
 
 				-- Show icon picker
 				tab_rename.show_icon_set_menu(win, p, function(inner_win, inner_pane, full_title, icon, title)
-					-- Move all tabs from current workspace to new workspace
-					local tabs_moved = 0
-					for _, mux_win in ipairs(wezterm.mux.all_windows()) do
-						if mux_win:get_workspace() == current then
-							for _, tab in ipairs(mux_win:tabs()) do
-								tab:set_workspace(new_name)
-								tabs_moved = tabs_moved + 1
-							end
-						end
-					end
-
 					-- Store workspace icon
 					set_workspace_icon(new_name, icon or "")
 
@@ -317,8 +299,12 @@ function M.rename_workspace(window, pane)
 						wezterm.GLOBAL.workspace_icons[current] = nil
 					end
 
-					-- Switch to the new workspace
+					-- Switch to the new workspace name (this renames it for the current window)
 					inner_win:perform_action(act.SwitchToWorkspace({ name = new_name }), inner_pane)
+
+					-- Count tabs in current window
+					local mux_window = inner_win:mux_window()
+					local tabs_moved = mux_window and #mux_window:tabs() or 0
 
 					local display_name = (icon and icon ~= "") and (icon .. " " .. new_name) or new_name
 					local message = (current == "default")

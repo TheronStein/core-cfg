@@ -19,33 +19,16 @@ local M = {}
 
 -- Get list of all running WezTerm clients with workspace information
 -- Returns: table of { window_id, workspace, pane_count, tab_count }
+-- FIXED: Use native mux API instead of io.popen to avoid subprocess deadlock
 function M.get_running_clients()
-	local handle = io.popen("wezterm cli list --format json 2>/dev/null")
-	if not handle then
-		wezterm.log_error("[WORKSPACE_ISOLATION] Failed to execute wezterm cli list")
-		return {}
-	end
-
-	local output = handle:read("*all")
-	handle:close()
-
-	if not output or output == "" then
-		return {}
-	end
-
-	local success, panes = pcall(wezterm.json_parse, output)
-	if not success or not panes then
-		wezterm.log_error("[WORKSPACE_ISOLATION] Failed to parse wezterm cli output")
-		return {}
-	end
-
-	-- Aggregate by window_id and workspace
 	local clients = {}
 	local seen_windows = {}
 
-	for _, pane in ipairs(panes) do
-		local window_id = pane.window_id
-		local workspace = pane.workspace or "default"
+	-- Use wezterm.mux.all_windows() instead of spawning "wezterm cli list"
+	-- This is synchronous but executes within the same process (no deadlock)
+	for _, mux_win in ipairs(wezterm.mux.all_windows()) do
+		local window_id = mux_win:window_id()
+		local workspace = mux_win:get_workspace() or "default"
 
 		if not seen_windows[window_id] then
 			seen_windows[window_id] = true
@@ -74,33 +57,19 @@ function M.find_client_for_workspace(workspace_name)
 end
 
 -- Get statistics about a workspace (tab count, pane count, etc.)
+-- FIXED: Use native mux API instead of io.popen
 function M.get_workspace_stats(workspace_name)
-	local handle = io.popen("wezterm cli list --format json 2>/dev/null")
-	if not handle then
-		return { tab_count = 0, pane_count = 0 }
-	end
-
-	local output = handle:read("*all")
-	handle:close()
-
-	local success, panes = pcall(wezterm.json_parse, output)
-	if not success or not panes then
-		return { tab_count = 0, pane_count = 0 }
-	end
-
-	local tabs = {}
+	local tab_count = 0
 	local pane_count = 0
 
-	for _, pane in ipairs(panes) do
-		if pane.workspace == workspace_name then
-			pane_count = pane_count + 1
-			tabs[pane.tab_id] = true
+	-- Use mux API to iterate through windows and tabs
+	for _, mux_win in ipairs(wezterm.mux.all_windows()) do
+		if mux_win:get_workspace() == workspace_name then
+			for _, tab in ipairs(mux_win:tabs()) do
+				tab_count = tab_count + 1
+				pane_count = pane_count + #tab:panes()
+			end
 		end
-	end
-
-	local tab_count = 0
-	for _ in pairs(tabs) do
-		tab_count = tab_count + 1
 	end
 
 	return {
@@ -304,17 +273,12 @@ function M.get_active_workspace_names()
 	return workspaces
 end
 
--- Check if workspace isolation is available (wezterm cli is working)
+-- Check if workspace isolation is available
+-- FIXED: Use mux API instead of spawning subprocess
 function M.is_isolation_available()
-	local handle = io.popen("wezterm cli list 2>/dev/null")
-	if not handle then
-		return false
-	end
-
-	local output = handle:read("*all")
-	handle:close()
-
-	return output ~= nil and output ~= ""
+	-- Isolation is always available if we can access the mux
+	local success, windows = pcall(wezterm.mux.all_windows)
+	return success and windows ~= nil
 end
 
 return M

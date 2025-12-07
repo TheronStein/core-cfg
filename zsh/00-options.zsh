@@ -98,7 +98,7 @@ setopt LIST_TYPES                # Show type indicators in listings
 
 # Initialize completion
 autoload -Uz compinit
-compinit -d "${XDG_CACHE_HOME}/zsh/.zcompdump"
+compinit -d "${ZSH_CACHE_DIR}/.zcompdump"
 autoload -Uz bashcompinit && bashcompinit
 
 # Completion styling

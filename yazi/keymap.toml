@@ -361,7 +361,12 @@ keymap = [
   { on = [
     "e",
     "r",
-  ], run = "rename --cursor=before_ext", desc = "Rename selected file(s)" },
+  ], run = "rename", desc = "Rename selected file(s)" },
+
+  # { on = [
+  #   "e",
+  #   "r",
+  # ], run = "rename --cursor=before_ext", desc = "Rename selected file(s)" },
   { on = [
     "e",
     "_",
@@ -596,20 +601,62 @@ keymap = [
   ], run = "plugin simple-tag -- toggle-tag", desc = "Toggle a tag (press any key)" },
 
   # DISK OPERATIONS
-  { on = ["`", "`"], run = "plugin disk-ops", desc = "Disk operations menu" },
-  { on = ["`", "s"], run = "plugin disk-ops -- s", desc = "Disk scan (GDU/ncdu)" },
-  { on = ["`", "d"], run = "plugin disk-ops -- d", desc = "Find duplicates" },
-  { on = ["`", "l"], run = "plugin disk-ops -- l", desc = "Large files (>100M)" },
-  { on = ["`", "L"], run = "plugin disk-ops -- L", desc = "Large files (custom)" },
-  { on = ["`", "e"], run = "plugin disk-ops -- e", desc = "Empty directories" },
-  { on = ["`", "a"], run = "plugin disk-ops -- a", desc = "Search archives (rga)" },
-  { on = ["`", "A"], run = "plugin disk-ops -- A", desc = "Archive operations" },
-  { on = ["`", "c"], run = "plugin disk-ops -- c", desc = "Cloud operations (rclone)" },
-  { on = ["`", "t"], run = "plugin disk-ops -- t", desc = "Trash operations" },
-  { on = ["`", "w"], run = "plugin disk-ops -- w", desc = "Cleanup wizard" },
-  { on = ["`", "o"], run = "plugin disk-ops -- o", desc = "Disk overview" },
-  { on = ["`", "i"], run = "plugin disk-ops -- i", desc = "Inode check" },
-  { on = ["`", "p"], run = "plugin disk-ops -- p", desc = "Space suggestions" },
+  { on = [
+    "`",
+    "`",
+  ], run = "plugin disk-ops", desc = "Disk operations menu" },
+  { on = [
+    "`",
+    "s",
+  ], run = "plugin disk-ops -- s", desc = "Disk scan (GDU/ncdu)" },
+  { on = [
+    "`",
+    "d",
+  ], run = "plugin disk-ops -- d", desc = "Find duplicates" },
+  { on = [
+    "`",
+    "l",
+  ], run = "plugin disk-ops -- l", desc = "Large files (>100M)" },
+  { on = [
+    "`",
+    "L",
+  ], run = "plugin disk-ops -- L", desc = "Large files (custom)" },
+  { on = [
+    "`",
+    "e",
+  ], run = "plugin disk-ops -- e", desc = "Empty directories" },
+  { on = [
+    "`",
+    "a",
+  ], run = "plugin disk-ops -- a", desc = "Search archives (rga)" },
+  { on = [
+    "`",
+    "A",
+  ], run = "plugin disk-ops -- A", desc = "Archive operations" },
+  { on = [
+    "`",
+    "c",
+  ], run = "plugin disk-ops -- c", desc = "Cloud operations (rclone)" },
+  { on = [
+    "`",
+    "t",
+  ], run = "plugin disk-ops -- t", desc = "Trash operations" },
+  { on = [
+    "`",
+    "w",
+  ], run = "plugin disk-ops -- w", desc = "Cleanup wizard" },
+  { on = [
+    "`",
+    "o",
+  ], run = "plugin disk-ops -- o", desc = "Disk overview" },
+  { on = [
+    "`",
+    "i",
+  ], run = "plugin disk-ops -- i", desc = "Inode check" },
+  { on = [
+    "`",
+    "p",
+  ], run = "plugin disk-ops -- p", desc = "Space suggestions" },
 
   # Toggle tag(s) with value from input box.
   # A tag hint window and an input box will show up.

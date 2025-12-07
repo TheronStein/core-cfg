@@ -81,6 +81,8 @@ function M.setup()
 	-- Load reload system (for hot-reloading config)
 	require("binds.reload").setup()
 	require("core.cheatsheet").setup()
+	require("mods.figlet").setup()
+
 	-- -- Load UI enhancements (notifications, global help, lualine extensions)
 	-- local ok, _ = pcall(function()
 	-- 	-- Initialize notification system

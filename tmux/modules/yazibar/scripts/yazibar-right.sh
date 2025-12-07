@@ -26,7 +26,7 @@ check_left_sidebar() {
         fi
 
         local left_pane=$(get_left_pane)
-        if [ -z "$left_pane" ] || ! pane_exists "$left_pane"; then
+        if [ -z "$left_pane" ] || ! pane_exists_globally "$left_pane"; then
             display_error "Left sidebar pane not found"
             return 1
         fi
@@ -60,6 +60,9 @@ create_right_sidebar() {
     # Store current pane to return focus
     local current_pane=$(get_current_pane)
 
+    # Set guard flag to prevent recursive hook execution
+    tmux set-option -gq @layout-restore-in-progress 1
+
     # Create right split (full height, after current pane)
     local new_pane_id=$(tmux split-window -fh -l "$width" -c "$start_dir" -P -F "#{pane_id}" "
         # Set pane title
@@ -82,13 +85,17 @@ create_right_sidebar() {
         debug_log "Locked pane width: $new_pane_id = $width"
     fi
 
-    # Enable input synchronization
-    "$SCRIPT_DIR/yazibar-sync.sh" enable
+    # Clear guard flag now that sidebar is fully created
+    tmux set-option -gu @layout-restore-in-progress
 
-    # Return to previous pane
+    # Return to previous pane immediately
     tmux select-pane -t "$current_pane"
 
-    display_info "Right sidebar enabled"
+    # Note: Sync is NOT auto-enabled here to avoid restart issues
+    # User should toggle left sidebar (Alt+f twice) to activate DDS sync
+    # Or manually enable: ~/.core/.sys/cfg/tmux/modules/yazibar/scripts/yazibar-sync.sh enable
+
+    display_info "Right sidebar enabled - toggle left sidebar to activate sync"
     debug_log "Created right sidebar: $new_pane_id"
 }
 
@@ -104,7 +111,7 @@ destroy_right_sidebar() {
         return 1
     fi
 
-    if ! pane_exists "$right_pane"; then
+    if ! pane_exists_globally "$right_pane"; then
         debug_log "Right sidebar pane doesn't exist, clearing state"
         clear_right_pane
         set_right_enabled "0"
@@ -139,7 +146,7 @@ destroy_right_sidebar() {
 # ============================================================================
 
 toggle_right_sidebar() {
-    if is_right_enabled && pane_exists "$(get_right_pane)"; then
+    if is_right_enabled && pane_exists_globally "$(get_right_pane)"; then
         destroy_right_sidebar
     else
         create_right_sidebar
@@ -149,13 +156,13 @@ toggle_right_sidebar() {
 focus_right_sidebar() {
     local right_pane=$(get_right_pane)
 
-    if [ -z "$right_pane" ] || ! pane_exists "$right_pane"; then
+    if [ -z "$right_pane" ] || ! pane_exists_globally "$right_pane"; then
         # Sidebar doesn't exist, create it
         create_right_sidebar
         right_pane=$(get_right_pane)
     fi
 
-    if [ -n "$right_pane" ] && pane_exists "$right_pane"; then
+    if [ -n "$right_pane" ] && pane_exists_globally "$right_pane"; then
         tmux select-pane -t "$right_pane"
     fi
 }
@@ -165,7 +172,7 @@ ensure_right_sidebar() {
     if is_right_enabled; then
         local right_pane=$(get_right_pane)
 
-        if [ -z "$right_pane" ] || ! pane_exists "$right_pane"; then
+        if [ -z "$right_pane" ] || ! pane_exists_globally "$right_pane"; then
             debug_log "Right sidebar missing, recreating"
             create_right_sidebar
         fi
@@ -175,7 +182,7 @@ ensure_right_sidebar() {
 # Auto-disable right sidebar if left is disabled
 check_dependency() {
     if is_right_enabled && [ "$(get_tmux_option "@yazibar-right-needs-left" "1")" = "1" ]; then
-        if ! is_left_enabled || ! pane_exists "$(get_left_pane)"; then
+        if ! is_left_enabled || ! pane_exists_globally "$(get_left_pane)"; then
             debug_log "Left sidebar gone, disabling right sidebar"
             destroy_right_sidebar
         fi
@@ -190,7 +197,7 @@ resize_right_sidebar() {
     local new_width="$1"
     local right_pane=$(get_right_pane)
 
-    if [ -z "$right_pane" ] || ! pane_exists "$right_pane"; then
+    if [ -z "$right_pane" ] || ! pane_exists_globally "$right_pane"; then
         display_error "Right sidebar not active"
         return 1
     fi
@@ -222,7 +229,7 @@ status_right() {
     echo "Pane ID: ${right_pane:-"none"}"
 
     if [ -n "$right_pane" ]; then
-        if pane_exists "$right_pane"; then
+        if pane_exists_globally "$right_pane"; then
             echo "Pane exists: YES"
             echo "Width: $(get_pane_width "$right_pane")"
             echo "Current path: $(tmux display-message -p -t "$right_pane" '#{pane_current_path}')"

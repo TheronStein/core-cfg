@@ -32,6 +32,9 @@ create_left_sidebar() {
     # Store current pane to return focus
     local current_pane=$(get_current_pane)
 
+    # Set guard flag to prevent recursive hook execution
+    tmux set-option -gq @layout-restore-in-progress 1
+
     # Create left split (full height, before current pane)
     local new_pane_id=$(tmux split-window -fhb -l "$width" -c "$start_dir" -P -F "#{pane_id}" "
         # Set pane title
@@ -60,6 +63,9 @@ create_left_sidebar() {
         debug_log "Locked pane width: $new_pane_id = $width"
     fi
 
+    # Clear guard flag now that sidebar is fully created
+    tmux set-option -gu @layout-restore-in-progress
+
     # Return to previous pane
     tmux select-pane -t "$current_pane"
 
@@ -79,7 +85,7 @@ destroy_left_sidebar() {
         return 1
     fi
 
-    if ! pane_exists "$left_pane"; then
+    if ! pane_exists_globally "$left_pane"; then
         debug_log "Left sidebar pane doesn't exist, clearing state"
         clear_left_pane
         set_left_enabled "0"
@@ -116,7 +122,7 @@ destroy_left_sidebar() {
 # ============================================================================
 
 toggle_left_sidebar() {
-    if is_left_enabled && pane_exists "$(get_left_pane)"; then
+    if is_left_enabled && pane_exists_globally "$(get_left_pane)"; then
         destroy_left_sidebar
     else
         create_left_sidebar
@@ -126,13 +132,13 @@ toggle_left_sidebar() {
 focus_left_sidebar() {
     local left_pane=$(get_left_pane)
 
-    if [ -z "$left_pane" ] || ! pane_exists "$left_pane"; then
+    if [ -z "$left_pane" ] || ! pane_exists_globally "$left_pane"; then
         # Sidebar doesn't exist, create it
         create_left_sidebar
         left_pane=$(get_left_pane)
     fi
 
-    if [ -n "$left_pane" ] && pane_exists "$left_pane"; then
+    if [ -n "$left_pane" ] && pane_exists_globally "$left_pane"; then
         tmux select-pane -t "$left_pane"
     fi
 }
@@ -142,7 +148,7 @@ ensure_left_sidebar() {
     if is_left_enabled; then
         local left_pane=$(get_left_pane)
 
-        if [ -z "$left_pane" ] || ! pane_exists "$left_pane"; then
+        if [ -z "$left_pane" ] || ! pane_exists_globally "$left_pane"; then
             debug_log "Left sidebar missing, recreating"
             create_left_sidebar
         fi
@@ -157,7 +163,7 @@ resize_left_sidebar() {
     local new_width="$1"
     local left_pane=$(get_left_pane)
 
-    if [ -z "$left_pane" ] || ! pane_exists "$left_pane"; then
+    if [ -z "$left_pane" ] || ! pane_exists_globally "$left_pane"; then
         display_error "Left sidebar not active"
         return 1
     fi
@@ -189,7 +195,7 @@ status_left() {
     echo "Pane ID: ${left_pane:-"none"}"
 
     if [ -n "$left_pane" ]; then
-        if pane_exists "$left_pane"; then
+        if pane_exists_globally "$left_pane"; then
             echo "Pane exists: YES"
             echo "Width: $(get_pane_width "$left_pane")"
             echo "Current path: $(tmux display-message -p -t "$left_pane" '#{pane_current_path}')"
