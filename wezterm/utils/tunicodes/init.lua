@@ -1,5 +1,5 @@
-local hooks = require 'plugins/tunicodes/src/hooks'
+local hooks = require("utils.tunicodes.hooks")
 
 return {
-	DefaultAction = hooks.Interactive,
+  DefaultAction = hooks.Interactive,
 }

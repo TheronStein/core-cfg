@@ -1,8 +1,12 @@
 plugins/yazi	/home/theron/.core/.proj/plugins	p,y
 omarchy	/home/theron/.core/.sys/env/.ref/omarchy	0
 nvim	/home/theron/.core/.sys/cfg/nvim/lua	c,n
+local-core	/home/theron/.local/core	g,l
+lmburns-zsh	/home/theron/.core/.ref/lmburns/.config/zsh	l,z
+keymaps	/home/theron/.core/.sys/cfg/yazi/keymaps	1
 icons	/usr/share/icons	i,c
 env	/home/theron/.core/.sys/env	c,e
 desk	/home/theron/.core/.sys/env/desktop	c,d
 core-themes	/home/theron/.core/.sys/env/themes	c,t
 core-cfg	/home/theron/.core/.sys/cfg	c,f
+bin	/home/theron/.core/.sys/bin	c,b

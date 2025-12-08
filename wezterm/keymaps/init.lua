@@ -14,6 +14,8 @@ M.key_groups = {
 	"keymaps.mods.alt",
 	"keymaps.mods.leader",
 	"keymaps.mods.context", -- Context-aware keybindings for WezTerm/tmux toggle
+	"keymaps.modes.ctrl",  -- CRITICAL: Load ctrl mode key table definitions
+	"keymaps.modes.alt",   -- CRITICAL: Load alt mode key table definitions
 	"keymaps.modes.resize",
 	"keymaps.modes.panes",
 	"keymaps.modes.pane-selection",

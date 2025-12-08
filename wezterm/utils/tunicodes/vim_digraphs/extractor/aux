@@ -1,0 +1,112 @@
+#!/usr/bin/env ruby
+
+# convert (n)vim digraph list output to machine readable formats
+
+require 'json'
+require 'open3'
+require 'optparse'
+
+valid_output_formats = ["json", "lua"]
+
+def find_first_executable (executables)
+	executables.each do |exe|
+		stdout, stderr, status = Open3.capture3(*["which", "--", exe])
+		if status.success?
+			return stdout.strip
+		end
+	end
+	nil
+end
+
+def get_raw_digraphs (candidates: nil, fragile_path:)
+	candidate_exes = candidates || ["nvim", "vim"]
+	vim_executable = find_first_executable(candidate_exes)
+	# Rationale for this number can be found in ./docs/notes.md
+	columns = 18
+	cmd = [
+		vim_executable,
+		"--headless",
+		"-c",
+		"set columns=#{columns} | redir! > #{fragile_path} | silent! digraphs | redir END | quit",
+	]
+	stdout, stderr, status = Open3.capture3(*cmd)
+	status.success?
+end
+
+def clean_digraphs (stream)
+	vimpattern = /s*(\S+)\s+(?:(\S+)\s+)?(\d+)\s*/
+	results = {}
+	stream.each_line do |line|
+		next if line.strip.empty?
+		values = line.strip.split(/\s+/).reject(&:empty?)
+		first = values.first
+		last  = values.last.to_i
+		results[first] = last
+	end
+	results
+end
+
+def output_lua (results)
+	out = ""
+	results.each do |key, value|
+		key = JSON.generate(key)
+		codepoint = value.to_i
+		item = "\t[#{key}]=#{codepoint},\n"
+		out << item
+	end
+	"local Digraphs={\n#{out}}\n\nreturn {\n\tDigraphs = Digraphs,\n}\n"
+end
+
+def output_json (results)
+	JSON.generate(results)
+end
+
+def available_output_formats = {
+	"lua" => method(:output_lua),
+	"json" => method(:output_json),
+}
+def handle_output (format, results)
+	result = available_output_formats[format.downcase].call(results)
+	STDOUT.write(result)
+	STDOUT.flush
+end
+
+def get_args ()
+	options = {}
+	argv=ARGV.dup
+	parser = OptionParser.new do |opts|
+		opts.banner = "Usage: #{__FILE__} [options]"
+		opts.on "-oNAME", "--output=NAME", "Pick the output format" do |name|
+			options[:name] = name.downcase
+		end
+		opts.on "-h" "--help", "Displays help" do
+			puts opts
+			exit
+		end
+	end.parse!(argv)
+	options
+end
+
+def main
+	opts = get_args
+	has_valid_name_key = opts.key?(:name) && available_output_formats.has_key?(opts[:name])
+	unless has_valid_name_key
+		puts "Invalid or no key supplied"
+		exit 1
+	end
+	# For vimscript reasons, just to be extra safe
+	# use a minimal name here,
+	# no relative navigations or anything
+	tmpfile = ".digraphs.tmp.txt"
+	ok = get_raw_digraphs fragile_path: "#{tmpfile}"
+	unless ok
+		abort "Failed to extract digraphs"
+	end
+	impure_dump = File.read(tmpfile)
+	purified_digraphs = clean_digraphs impure_dump
+	handle_output opts[:name], purified_digraphs
+end
+
+if __FILE__ == $0
+	main
+end

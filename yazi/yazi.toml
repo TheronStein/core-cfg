@@ -239,26 +239,33 @@ sort_translit = false
 # # Plugin configuration - inherits from symlinked init.lua
 # [plugin]
 #
-# # ━━━ PRELOADERS - Load metadata in background (MAX 32 total with fetchers!) ━━━
-# prepend_preloaders = [
-#   # Media files - consolidated
-#   { mime = "{audio,video,image}/*", run = "mediainfo" }, # All media metadata
-#   { mime = "audio/*", run = "exifaudio" },               # Audio-specific details
-#
-#   # Data/Database files - consolidated patterns
-#   { name = "*.{csv,tsv,json,jsonl,parquet,arrow,txt}", run = "duckdb", multi = false },
-#   { name = "*.{db,sqlite,sqlite3,duckdb}", run = "duckdb", multi = false },
-#   { name = "*.{xlsx,xls,ods}", run = "duckdb", multi = false },
-#
-#   # 3D model files - consolidated patterns
-#   { name = "*.{3mf,obj,pts,ply,stl,step,stp}", run = "f3d-preview" },
-#   { name = "*.{fbx,gltf,glb}", run = "f3d-preview" },
-# ]
+# ━━━ PRELOADERS - Load metadata in background (MAX 32 total with fetchers!) ━━━
+prepend_preloaders = [
+  #   # Media files - consolidated
+  #   { mime = "{audio,video,image}/*", run = "mediainfo" }, # All media metadata
+  #   { mime = "audio/*", run = "exifaudio" },               # Audio-specific details
+  #
+  { name = "*.blend", run = "blender-preview" },
+  { name = "*.blend1", run = "blender-preview" },
+  # Data/Database files - consolidated patterns
+  { name = "*.{csv,tsv,json,jsonl,parquet,arrow,txt}", run = "duckdb", multi = false },
+  { name = "*.{db,sqlite,sqlite3,duckdb}", run = "duckdb", multi = false },
+  { name = "*.{xlsx,xls,ods}", run = "duckdb", multi = false },
+  #
+  # 3D model files - consolidated patterns
+  { name = "*.{3mf,obj,pts,ply,stl,step,stp}", run = "f3d-preview" },
+  { name = "*.{fbx,gltf,glb}", run = "f3d-preview" },
+]
 #
 # ━━━ PREVIEWERS - What actually displays ━━━
 prepend_previewers = [
   { name = "*/", run = "mux eza_tree_1 eza_tree_2 eza_tree_3 eza_tree_4" },
-
+  { name = "*.blend", run = "blender-preview" },
+  { name = "*.blend1", run = "blender-preview" },
+  { name = "*.{csv,tsv,json,jsonl,parquet,arrow,txt}", run = "duckdb", multi = false },
+  { name = "*.{db,sqlite,sqlite3,duckdb}", run = "duckdb", multi = false },
+  { name = "*.{xlsx,xls,ods}", run = "duckdb", multi = false },
+  #
   # # Code/text files with syntax highlighting (uses rich-preview with fallback to bat/code)
   # { mime = "text/*", run = "rich-preview" },
 ]

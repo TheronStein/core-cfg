@@ -9,7 +9,7 @@ function M.setup()
 	})
 
 	wk.add({
-		{ "<M-w>", "<C-y>", desc = "windows (disabled default)" },
+		-- { "<M-w>", "<C-y>", desc = "windows (disabled default)" },
 		{ "<M-e>", "<C-e>", desc = "windows (disabled default)" },
 		-- Window resizing with Meta+Shift+w/s/a/d
 		{ "<M-S-w>", "<cmd>resize +2<cr>", desc = "Increase height" },

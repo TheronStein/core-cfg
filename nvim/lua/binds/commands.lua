@@ -3,25 +3,14 @@ local wk = require("which-key")
 
 function M.setup()
 	-- fzf-lua command search
-	vim.keymap.set("n", "<leader>:", function()
+	vim.keymap.set("n", "<localleader>sc", function()
 		require("fzf-lua").commands()
 	end, { desc = "Search Commands" })
-
-	vim.keymap.set("n", "<leader>sc", function()
-		require("fzf-lua").commands()
-	end, { desc = "Search Commands" })
-
-	-- Map Ctrl-P in command-line mode to open fzf-lua command search
-	vim.keymap.set("c", "<C-p>", function()
-		vim.cmd("stopinsert")
-		require("fzf-lua").commands()
-	end, { desc = "Search Commands (cmdline)" })
 
 	wk.add({
-		{ "<leader>f", group = "Fzf" },
-		{ "<leader>fc", desc = "Command History" },
-		{ "<leader>ec", desc = "System Config Browser" },
-		{ "<leader>fc", require("fzf-lua").commands(), desc = "Command History" },
+		{ "<localleader>s", group = "Search" },
+		{ "<localleader>sh", desc = "Command History" },
+		{ "<localleader>sc", desc = "System Config Browser" },
 		mode = "n",
 		noremap = true,
 		silent = true,

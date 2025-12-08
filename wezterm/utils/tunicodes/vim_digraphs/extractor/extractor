@@ -1,0 +1,6 @@
+#!/bin/sh
+
+# Generates digraphs from neovim or vim
+# and puts it in the correct place
+
+./aux --output=lua > ../digraphs.lua

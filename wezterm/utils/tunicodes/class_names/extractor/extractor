@@ -1,0 +1,6 @@
+#!/bin/sh
+
+# Puts the glyph mappings in the correct place.
+# Manual extraction required: see `./README.md`.
+
+./aux --output=lua > ../mappings.lua

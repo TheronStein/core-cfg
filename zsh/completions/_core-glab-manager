@@ -1,0 +1,51 @@
+# =============================================================================
+# fzf tab completion for gitlab-manager / gm
+# =============================================================================
+_core-gitlab-manager() {
+  local curcontext="$curcontext" state line
+  typeset -A opt_args
+
+  _arguments -C \
+    '1: :->command' \
+    '*: :->args'
+
+  case $state in
+    command)
+      local -a commands
+      commands=(
+        'init:Create repo + remote'
+        'push:Push branch (fzf if many)'
+        'status:Show repo info'
+        'branch:Manage branches (create|delete|list)'
+        'tag:Manage tags (create|delete|list)'
+        'group:Change default GitLab group'
+        'remote:Show gitlab remote'
+      )
+      _describe 'command' commands
+      ;;
+    args)
+      case $line[1] in
+        branch)
+          _arguments '1: :((create\:"Create new branch" delete\:"Delete branch" list\:"List branches"))'
+          ;;
+        tag)
+          _arguments '1: :((create\:"Create new tag" delete\:"Delete tag" list\:"List tags"))'
+          ;;
+        init)
+          _arguments \
+            '1:repo name: :_files -/ -g "*(/)"' \
+            '2:description:'
+          ;;
+      esac
+      ;;
+  esac
+}
+
+# Register the completion function for both names
+compdef _core-gitlab-manager core-gitlab-manager
+compdef _core-gitlab-manager core-repo
+compdef _core-gitlab-manager clab
+
+# Optional: supercharged **CTRL-T / CTRL-R / ** with fzf for files/history/cd
+export FZF_CTRL_T_OPTS="--preview '[[ \$(file --mime {}) =~ binary ]] && echo {} is a binary file || bat --style=numbers --color=always {} 2>/dev/null | head -300'"
+export FZF_ALT_C_OPTS="--preview 'eza --tree --color=always {} | head -200'"

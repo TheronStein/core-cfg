@@ -3,7 +3,7 @@ tmux display-menu -x W -y S \
   "Back" Tab "run-shell '$TMUX_MENUS/main-menu.sh'" \
   "" \
   "󰾱 Neomutt Email" e "run-shell '$TMUX_CONF/modules/popups/neomutt.sh'" \
-  "SMS Messaging" m "run-shell '$TMUX_CONF/modules/popups/smstui.sh'" \
+  "󰓷 SMS Messaging" m "run-shell '$TMUX_CONF/modules/popups/smstui.sh'" \
   " Documents" d "run-shell '$TMUX_CONF/modules/popups/notes.sh'" \
   "" \
   " File Explorer" f "run-shell -b 'tmux display-popup -E -w 90% -h 90% -x C -y C -T \" Yazi File Manager \" -b rounded \"yazi\"'" \

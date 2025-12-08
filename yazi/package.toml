@@ -10,7 +10,7 @@ hash = "498bda3e06d793f79fe1df7b28fc14a1"
 
 [[plugin.deps]]
 use = "yazi-rs/plugins:git"
-rev = "eaf6920"
+rev = "19dc890"
 hash = "94081eed9bc9fe176715c33b0db55d35"
 
 [[plugin.deps]]
@@ -45,7 +45,7 @@ hash = "7394430ba473dce1023721622438bf3d"
 
 [[plugin.deps]]
 use = "yazi-rs/plugins:chmod"
-rev = "eaf6920"
+rev = "19dc890"
 hash = "5b2eb0cc2050cec1e4de83cfa51a5b90"
 
 [[plugin.deps]]
@@ -55,7 +55,7 @@ hash = "3de26efded35814ba3e55e28f1c389a4"
 
 [[plugin.deps]]
 use = "yazi-rs/plugins:vcs-files"
-rev = "eaf6920"
+rev = "19dc890"
 hash = "4ee57085277d616acfa0ef1fef37dc00"
 
 [[plugin.deps]]
@@ -70,17 +70,17 @@ hash = "b58a6786383df06dc16fc6dbd1876d31"
 
 [[plugin.deps]]
 use = "yazi-rs/plugins:diff"
-rev = "eaf6920"
+rev = "19dc890"
 hash = "82376c3381ae915fd799d40f4dd4c6cd"
 
 [[plugin.deps]]
 use = "yazi-rs/plugins:mount"
-rev = "eaf6920"
+rev = "19dc890"
 hash = "4fccaaf10c36dc2466e2438a386ff017"
 
 [[plugin.deps]]
 use = "yazi-rs/plugins:smart-enter"
-rev = "eaf6920"
+rev = "19dc890"
 hash = "56fdabc96fc1f4d53c96eb884b02a5be"
 
 [[plugin.deps]]
@@ -90,33 +90,33 @@ hash = "4761fffb60a12d37096c34a356380cdf"
 
 [[plugin.deps]]
 use = "yazi-rs/plugins:piper"
-rev = "eaf6920"
-hash = "64713dcd74daf9ec644883a5895e5d1"
+rev = "19dc890"
+hash = "b26d542e75151835d7bc885f6dda74cb"
 
 [[plugin.deps]]
 use = "yazi-rs/plugins:smart-paste"
-rev = "eaf6920"
+rev = "19dc890"
 hash = "75fd60b2df7115e0a6ca31a6a804d320"
 
 [[plugin.deps]]
 use = "yazi-rs/plugins:smart-filter"
-rev = "eaf6920"
+rev = "19dc890"
 hash = "bcda8eeb3f4013bae156aecabfc745e8"
 
 [[plugin.deps]]
 use = "yazi-rs/plugins:jump-to-char"
-rev = "eaf6920"
+rev = "19dc890"
 hash = "ce67445ebb1bf3d97b8e44f50904b2c5"
 
 [[plugin.deps]]
 use = "boydaihungst/mediainfo"
-rev = "1099409"
-hash = "77e78e16578e8f5a37475c04d8324619"
+rev = "af8bdf4"
+hash = "43fa632820cc91919c4e713652140b48"
 
 [[plugin.deps]]
 use = "boydaihungst/simple-tag"
-rev = "466aa5a"
-hash = "4f0819d5270161b94ed694016011f607"
+rev = "08860fc"
+hash = "26c75098f36345fc945cb6a092ab7a9b"
 
 [[plugin.deps]]
 use = "Ape/reflink"
@@ -140,17 +140,17 @@ hash = "6e5722354a7685def0316b9c4f70e773"
 
 [[plugin.deps]]
 use = "yazi-rs/plugins:mime-ext"
-rev = "eaf6920"
+rev = "19dc890"
 hash = "4c49c446328c4553a4ccab7facc10b21"
 
 [[plugin.deps]]
 use = "yazi-rs/plugins:zoom"
-rev = "eaf6920"
+rev = "19dc890"
 hash = "9dee2bf990ea941ccf67df74bca45468"
 
 [[plugin.deps]]
 use = "yazi-rs/plugins:types"
-rev = "eaf6920"
+rev = "19dc890"
 hash = "1e047e1b13b5e3fc6ab1f5d0d04a14e2"
 
 [[plugin.deps]]
@@ -175,8 +175,8 @@ hash = "59ab6275308202d17e3b5383d03ce5b4"
 
 [[plugin.deps]]
 use = "uhs-robert/recycle-bin"
-rev = "1762676"
-hash = "c77042b4296544a9edb4849338056039"
+rev = "53ad17c"
+hash = "80221fe740a6f251d35845d29391bea7"
 
 [[plugin.deps]]
 use = "boydaihungst/restore"
@@ -195,8 +195,8 @@ hash = "2e744ac2938468fd4244beca1e022c4f"
 
 [[plugin.deps]]
 use = "uhs-robert/sshfs"
-rev = "ea0b089"
-hash = "14c5b354b75e954a0b18a7e0706ac5f9"
+rev = "75a025c"
+hash = "e1cebecfee70daef1f97aa083209340c"
 
 [[plugin.deps]]
 use = "boydaihungst/simple-mtpfs"
@@ -220,8 +220,8 @@ hash = "87b9233a74325e95011670ed20bbd0d4"
 
 [[plugin.deps]]
 use = "boydaihungst/thunar-bulk-rename"
-rev = "159c62a"
-hash = "3a8c45cd04a095a97c256e19ffea0cf3"
+rev = "75e9eaa"
+hash = "c9def7878c94aa9b2171965c13f986c2"
 
 [[plugin.deps]]
 use = "ourongxing/fast-enter"
@@ -255,12 +255,12 @@ hash = "9888b4708cb9fb7ecdac610f57d0389e"
 
 [[plugin.deps]]
 use = "yazi-rs/plugins:fzf"
-rev = "eaf6920"
+rev = "19dc890"
 hash = "99aa06d3014798d86001c324468d497f"
 
 [[plugin.deps]]
 use = "yazi-rs/plugins:zoxide"
-rev = "eaf6920"
+rev = "19dc890"
 hash = "99aa06d3014798d86001c324468d497f"
 
 [[plugin.deps]]
@@ -277,11 +277,6 @@ hash = "248ffdf21c7006cf32960624db2db586"
 use = "peterfication/mux"
 rev = "266233e"
 hash = "1963dda85333e5e2cb6ff5d7d5a6ad4e"
-
-[[plugin.deps]]
-use = "TheronStein/disk-ops"
-rev = "7f887b4"
-hash = "a2464b450cc6ab83fc64ea65bc9c01ae"
 
 [[plugin.deps]]
 use = "TheronStein/nvim-image-paste"
@@ -302,6 +297,21 @@ hash = "accbb96bd320adcf025bbd7931eefd13"
 use = "TheronStein/fuse-archive"
 rev = "42819aa"
 hash = "18d22fd9a45a5de087c292a24042ee97"
+
+[[plugin.deps]]
+use = "TheronStein/disk-ops"
+rev = "5441786"
+hash = "d072d87bd64edfea7d3e90d77a441acd"
+
+[[plugin.deps]]
+use = "walldmtd/blender-preview"
+rev = "5d824cb"
+hash = "cf3f2d8fab12595e6f09a6cca4734bf4"
+
+[[plugin.deps]]
+use = "TheronStein/fzf-tabs"
+rev = "9b863b9"
+hash = "4d505efd0ec97e8365013794ff10f9f7"
 
 [[flavor.deps]]
 use = "yazi-rs/flavors:catppuccin-mocha"

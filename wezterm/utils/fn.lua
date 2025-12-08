@@ -22,13 +22,7 @@ local oexec, ogetenv = os.execute, os.getenv
 
 --~~ {{{2 string
 local schar, sfind, sformat, sgsub, smatch, ssub, srep =
-  string.char,
-  string.find,
-  string.format,
-  string.gsub,
-  string.match,
-  string.sub,
-  string.rep
+  string.char, string.find, string.format, string.gsub, string.match, string.sub, string.rep
 --~~ }}}
 
 --~~ {{{2 table
@@ -40,7 +34,7 @@ local tconcat, tremove, tunpack = table.concat, table.remove, unpack or table.un
 
 --~ {{{1 requires
 
-local wt = require "wezterm"
+local wt = require("wezterm")
 
 ---@type table, string, function, table, string, function, string, function
 local G, wt_cfg_dir, wt_col_width, wt_gui, wt_home, wt_hostname, wt_triple, wt_truncate_rx =
@@ -61,7 +55,7 @@ end
 ---@diagnostic disable-next-line: undefined-field
 local CACHE = wt.GLOBAL.cache
 
-local Icon, Logger = require "utils.class.icon", require "utils.class.logger"
+local Icon, Logger = require("utils.class.icon")("utils.class.logger")
 --~ }}}
 
 ---@class Utils.Fn
@@ -289,7 +283,7 @@ M.fs = {}
 ---@package
 ---
 ---Class logger
-M.fs.log = require("utils.class.logger"):new "Utils.Fn.FileSystem"
+M.fs.log = require("utils.class.logger"):new("Utils.Fn.FileSystem")
 
 ---@package
 M.fs.target_triple = M.g.memoize("target-triple", function()
@@ -324,7 +318,7 @@ end)
 ---end
 ---~~~
 M.fs.platform = M.g.memoize("platform", function()
-  local triple = M.fs.target_triple()  -- Call the memoized function
+  local triple = M.fs.target_triple() -- Call the memoized function
   local is_win = sfind(triple, "windows") ~= nil
   local is_linux = sfind(triple, "linux") ~= nil
   local is_mac = sfind(triple, "apple") ~= nil
@@ -346,7 +340,7 @@ M.fs.is_win = M.g.memoize("is-win", M.fs.platform().is_win)
 ---
 ---@return string home normalized home directory path.
 M.fs.home = M.g.memoize("home", function()
-  return (sgsub((ogetenv "USERPROFILE" or ogetenv "HOME" or wt_home or ""), "\\", "/"))
+  return (sgsub((ogetenv("USERPROFILE") or ogetenv("HOME") or wt_home or ""), "\\", "/"))
 end) --~~ }}}
 
 ---Path separator based on the platform.
@@ -527,7 +521,7 @@ M.fs.ls_dir = function(directory)
   local tempfile = M.fs.pathconcat("/tmp", filename)
   if M.fs.is_win then
     cmd = 'cmd /C "dir %s /B /S > %s"'
-    tempfile = M.fs.pathconcat(ogetenv "TEMP", filename)
+    tempfile = M.fs.pathconcat(ogetenv("TEMP"), filename)
   end
   cmd = sformat(cmd, directory, tempfile)
 
@@ -541,7 +535,7 @@ M.fs.ls_dir = function(directory)
   else
     local success = oexec(cmd)
     if not success then
-      return M.fs.log:error "[ls_dir] Unable to create temp file!"
+      return M.fs.log:error("[ls_dir] Unable to create temp file!")
     end
     file = ioopen(tempfile, "r")
     if file then
@@ -589,7 +583,7 @@ M.key = {
 ---@package
 ---
 ---Class logger
-M.key.log = require("utils.class.logger"):new "Utils.Keymap"
+M.key.log = require("utils.class.logger"):new("Utils.Keymap")
 
 --~~ {{{2 M.key.__check(lhs: string?, rhs: (string|table)?, tbl: table?)
 
@@ -605,7 +599,7 @@ M.key.__check = function(lhs, rhs, tbl)
   elseif not rhs then
     return M.key.log:error("cannot map %s to a nil action!", lhs)
   elseif not tbl then
-    return M.key.log:error "cannot add keymaps! No table given"
+    return M.key.log:error("cannot add keymaps! No table given")
   end
 end --~~ }}}
 
@@ -699,7 +693,7 @@ M.key.map = function(lhs, rhs, tbl)
 
   local k = keys[#keys]
   if modifiers[k] then
-    return M.key.log:error "keymap cannot end with modifier!"
+    return M.key.log:error("keymap cannot end with modifier!")
   else
     keys[#keys] = nil
   end
@@ -1024,7 +1018,7 @@ end --~~ }}}
 M.color = {}
 
 ---@package
-M.color.log = Logger:new "Utils.Fn.Color"
+M.color.log = Logger:new("Utils.Fn.Color")
 
 --~~ {{{2 M.color.get_schemes() -> table[]
 
@@ -1117,7 +1111,7 @@ M.color.set_tab_button = function(Config, theme)
     local style = theme.tab_bar[state]
     local sep_bg, sep_fg = style.bg_color, theme.tab_bar.background
 
-    local bl = require("utils.class.layout"):new "ButtonLayout"
+    local bl = require("utils.class.layout"):new("ButtonLayout")
     local attributes = {
       style.intensity
         or (style.italic and "Italic")

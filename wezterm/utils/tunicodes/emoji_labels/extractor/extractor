@@ -1,0 +1,3 @@
+#!/bin/sh
+
+go run main.go --output=lua > ../emoji_map.lua

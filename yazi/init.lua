@@ -18,7 +18,7 @@ end
 -- [[[ Logging Setup
 
 error_log = os.getenv("YAZI_CONFIG_HOME") .. ".data/logs/plugin_errors.log"
-plugin_log = os.getenv("YAZI_CONFIG_HOME") .. ".data/plugins.log"
+plugin_log = os.getenv("YAZI_CONFIG_HOME") .. ".data/logs/plugins.log"
 
 local plugin_prefix = "[" .. "[PLUGIN]" .. "]"
 local status_prefix = "[" .. "[STATUS]" .. "]"
@@ -41,7 +41,7 @@ local warn_prefix = "[" .. "[WARN]" .. "] "
 local debug_prefix = "[" .. "[DEBUG]" .. "]"
 
 -- local ya = require("yazi.api")
--- local Status = require("yazi.ui.status")
+-- local Status = require("yazi.ui.Status")
 
 -- ]]] End Logging Setup
 
@@ -262,7 +262,8 @@ local function detect_image_protocol()
 				return ""
 			end
 		end, 3300, Status.LEFT)
-		return "ueberzug" -- WezTerm imgcat protocol
+		-- WezTerm imgcat protocol
+		return "chafa"
 	end
 
 	-- Tmux detection (not WezTerm)
@@ -529,6 +530,39 @@ if full_border then
 	})
 end
 
+-- Defer setup to ensure cx is available
+require("fzf-tabs").setup({
+	-- Save method: "manual" or "automatic"
+	save_method = "manual",
+
+	-- Auto-save interval in minutes (only for "automatic" mode)
+	interval_minutes = 5,
+
+	-- Skip quit prompts for unsaved changes
+	ignore_prompt = false,
+
+	-- Notification settings for each action type
+	notifications = {
+		create = true,
+		delete = true,
+		rename = true,
+		switch = true,
+		save = true,
+	},
+
+	-- Pre-configured tab group templates (optional)
+	-- templates = {
+	-- 	-- Example template structure:
+	-- 	-- {
+	-- 	--   name = "dev-setup",
+	-- 	--   tabs = {
+	-- 	--     { name = "Projects", path = "~/projects" },
+	-- 	--     { name = "Dotfiles", path = "~/.config" },
+	-- 	--   }
+	-- 	-- }
+	-- },
+})
+
 -- Lazy Git
 safe_require_checked("lazygit")
 
@@ -607,7 +641,7 @@ safe_require_checked("thumbnail")
 -- ═══════════════════════════════════════════════════════════════
 
 -- Yazibar Sync - Mirrors navigation to right sidebar (for dual sidebar setup)
-safe_require_checked("yazibar-sync")
+-- safe_require_checked("yazibar-sync")
 
 safe_require_checked("kdeconnect-send")
 -- safe_require_checked("kdeconnect-mount")
@@ -671,7 +705,6 @@ safe_require_checked("diff")
 -- 			args = {
 -- 				'cd "$1" && LS_COLORS="ex=32" eza --oneline --tree --level 3 --color=always --icons=always --group-directories-first --no-quotes .',
 -- 			},
--- 		},
 -- 		eza_tree_4 = {
 -- 			previewer = "piper",
 -- 			args = {
@@ -686,13 +719,106 @@ safe_require_checked("diff")
 -- ═══════════════════════════════════════════════════════════════
 
 -- Load yatline and its components
-safe_require_checked("yatline")
-safe_require_checked("yatline-githead")
-safe_require_checked("yatline-hostname-username")
-safe_require_checked("yatline-tab-path")
 
--- Load simple-status as fallback
-safe_require_checked("simple-status")
+-- safe_require_checked("yatline-githead")
+-- safe_require_checked("yatline-tab-path")
+-- require("yatline-hostname-username"):setup({
+-- 	show_hostname = true,
+-- 	show_username = true,
+-- 	separator = "@",
+-- })
+-- - local yatline = safe_require_checked("yatline")
+-- if yatline then
+-- 	yatline:setup({
+-- 		--theme = my_theme,
+-- 		section_separator = { open = "", close = "" },
+-- 		part_separator = { open = "", close = "" },
+-- 		inverse_separator = { open = "", close = "" },
+--
+-- 		style_a = {
+-- 			fg = "black",
+-- 			bg_mode = {
+-- 				normal = "white",
+-- 				select = "brightyellow",
+-- 				un_set = "brightred",
+-- 			},
+-- 		},
+-- 		style_b = { bg = "brightblack", fg = "brightwhite" },
+-- 		style_c = { bg = "black", fg = "brightwhite" },
+--
+-- 		permissions_t_fg = "green",
+-- 		permissions_r_fg = "yellow",
+-- 		permissions_w_fg = "red",
+-- 		permissions_x_fg = "cyan",
+-- 		permissions_s_fg = "white",
+--
+-- 		tab_width = 20,
+-- 		tab_use_inverse = false,
+--
+-- 		selected = { icon = "󰻭", fg = "yellow" },
+-- 		copied = { icon = "", fg = "green" },
+-- 		cut = { icon = "", fg = "red" },
+--
+-- 		total = { icon = "󰮍", fg = "yellow" },
+-- 		succ = { icon = "", fg = "green" },
+-- 		fail = { icon = "", fg = "red" },
+-- 		found = { icon = "󰮕", fg = "blue" },
+-- 		processed = { icon = "󰐍", fg = "green" },
+--
+-- 		show_background = true,
+--
+-- 		display_header_line = true,
+-- 		display_status_line = true,
+--
+-- 		component_positions = { "header", "tab", "status" },
+--
+-- 		header_line = {
+-- 			left = {
+-- 				section_a = {
+-- 					{ type = "line", custom = false, name = "tabs", params = { "left" } },
+-- 				},
+-- 				section_b = {},
+-- 				section_c = {},
+-- 			},
+-- 			right = {
+-- 				section_a = {
+-- 					{ type = "string", custom = false, name = "date", params = { "%A, %d %B %Y" } },
+-- 				},
+-- 				section_b = {
+-- 					{ type = "string", custom = false, name = "date", params = { "%X" } },
+-- 				},
+-- 				section_c = {},
+-- 			},
+-- 		},
+--
+-- 		status_line = {
+-- 			left = {
+-- 				section_a = {
+-- 					{ type = "string", custom = false, name = "tab_mode" },
+-- 				},
+-- 				section_b = {
+-- 					{ type = "string", custom = false, name = "hovered_size" },
+-- 				},
+-- 				section_c = {
+-- 					{ type = "string", custom = false, name = "hovered_path" },
+-- 					{ type = "coloreds", custom = false, name = "count" },
+-- 				},
+-- 			},
+-- 			right = {
+-- 				section_a = {
+-- 					{ type = "string", custom = false, name = "cursor_position" },
+-- 				},
+-- 				section_b = {
+-- 					{ type = "string", custom = false, name = "cursor_percentage" },
+-- 				},
+-- 				section_c = {
+-- 					{ type = "string", custom = false, name = "hovered_file_extension", params = { true } },
+-- 					{ type = "coloreds", custom = false, name = "permissions" },
+-- 				},
+-- 			},
+-- 		},
+-- 	})
+-- end
 
 local pref_by_location = safe_require_checked("pref-by-location")
 -- pref_by_location:setup({
@@ -740,6 +866,16 @@ local pref_by_location = safe_require_checked("pref-by-location")
 -- ═══════════════════════════════════════════════════════════════
 -- INITIALIZATION COMPLETE
 -- ═══════════════════════════════════════════════════════════════
+
+local function log_debug_plugin(msg)
+	local f = io.open(plugin_log, "a")
+	if f then
+		f:write(os.date("%Y-%m-%d %H:%M:%S") .. " - " .. tostring(msg) .. "\n")
+		f:close()
+	end
+end
+local yatline = safe_require_checked("yatline")
+log_debug_plugin("Yatline loaded: " .. tostring(yatline ~= nil))
 
 -- Log successful initialization
 local success_log =

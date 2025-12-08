@@ -1,34 +1,23 @@
 #!/usr/bin/env bash
-# Opens file(s) in existing Neovim session or creates new one
-# Supports opening multiple files at once
+# Script to open files in the parent nvim instance without closing yazi
 
-FILES=("$@")
+# Get the nvim server address from environment (set by the yazi-sidebar module)
+NVIM_SERVER="${NVIM_SIDEBAR_SERVER:-$NVIM}"
 
-# Get current pane's command
-PANE_CMD=$(tmux display-message -p '#{pane_current_command}')
-
-if [[ "$PANE_CMD" == "nvim" ]]; then
-    # Send files to existing Neovim
-    # First file with :e, remaining with :badd
-    FIRST_FILE="${FILES[0]}"
-    tmux send-keys Escape ":e $(printf '%q' "$FIRST_FILE")" Enter
-    for ((i=1; i<${#FILES[@]}; i++)); do
-        tmux send-keys ":badd $(printf '%q' "${FILES[$i]}")" Enter
-    done
-else
-    # Check if Neovim is running in any pane in current window
-    NVIM_PANE=$(tmux list-panes -F '#{pane_id} #{pane_current_command}' | grep nvim | head -1 | cut -d' ' -f1)
-
-    if [[ -n "$NVIM_PANE" ]]; then
-        # Switch to Neovim pane and open files
-        tmux select-pane -t "$NVIM_PANE"
-        FIRST_FILE="${FILES[0]}"
-        tmux send-keys -t "$NVIM_PANE" Escape ":e $(printf '%q' "$FIRST_FILE")" Enter
-        for ((i=1; i<${#FILES[@]}; i++)); do
-            tmux send-keys -t "$NVIM_PANE" ":badd $(printf '%q' "${FILES[$i]}")" Enter
-        done
-    else
-        # Open new Neovim instance in current pane with all files
-        nvim "${FILES[@]}"
-    fi
+# If we have files to open
+if [ -n "$1" ]; then
+	# Try to use nvim remote if available
+	if [ -n "$NVIM_SERVER" ]; then
+		# Send edit command to the nvim instance
+		nvim --server "$NVIM_SERVER" --remote "$@" 2>/dev/null || {
+			# Fallback: write to chooser file
+			echo "$@" >> "${YAZI_CHOOSER_FILE:-/tmp/yazi-chooser}"
+		}
+	else
+		# Fallback: write to chooser file
+		echo "$@" >> "${YAZI_CHOOSER_FILE:-/tmp/yazi-chooser}"
+	fi
 fi
+
+# Don't quit yazi - return success
+exit 0

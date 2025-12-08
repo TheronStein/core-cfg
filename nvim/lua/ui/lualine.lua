@@ -1,8 +1,21 @@
 local function keymap()
-  if vim.opt.iminsert:get() > 0 and vim.b.keymap_name then
-    return "⌨ " .. vim.b.keymap_name
+  local ok, result = pcall(function()
+    if vim.opt.iminsert:get() > 0 and vim.b.keymap_name then
+      local name = tostring(vim.b.keymap_name)
+      -- Limit length to avoid statusline issues
+      if #name > 20 then
+        name = name:sub(1, 17) .. "..."
+      end
+      return "⌨ " .. name
+    end
+    return ""
+  end)
+
+  if ok then
+    return result
+  else
+    return ""
   end
-  return ""
 end
 --
 -- local function window()
@@ -152,7 +165,7 @@ return {
             statusline = 1000,
             tabline = 1000,
             winbar = 1000,
-            refresh_time = 16, -- ~60fps
+            refresh_time = 100, -- Reduced from 16 to prevent error spam
             events = {
               "WinEnter",
               "BufEnter",
@@ -161,8 +174,8 @@ return {
               "FileChangedShellPost",
               "VimResized",
               "Filetype",
-              "CursorMoved",
-              "CursorMovedI",
+              -- "CursorMoved",  -- Temporarily disabled to debug E539
+              -- "CursorMovedI", -- Temporarily disabled to debug E539
               "ModeChanged",
             },
           },
@@ -187,9 +200,10 @@ return {
             extended.lsp_clients,
             extended.copilot_status,
             extended.file_size,
-            "encoding",
-            "fileformat",
-            "filetype"
+            -- Temporarily commented out to debug E539 error
+            -- "encoding",
+            -- "fileformat",
+            -- "filetype"
           },
           lualine_y = {
             extended.indent_info,
@@ -219,22 +233,23 @@ return {
           lualine_y = {},
           lualine_z = {},
         },
-        winbar = {
-          lualine_a = {},
-          lualine_b = {},
-          lualine_c = {},
-          lualine_x = {},
-          lualine_y = {},
-          lualine_z = { "filename" }, -- Buffer title in top right
-        },
-        inactive_winbar = {
-          lualine_a = {},
-          lualine_b = {},
-          lualine_c = {},
-          lualine_x = {},
-          lualine_y = {},
-          lualine_z = { "filename" }, -- Buffer title in top right (inactive)
-        },
+        -- Temporarily disabled winbar to debug E539 error
+        -- winbar = {
+        --   lualine_a = {},
+        --   lualine_b = {},
+        --   lualine_c = {},
+        --   lualine_x = {},
+        --   lualine_y = {},
+        --   lualine_z = { "filename" }, -- Buffer title in top right
+        -- },
+        -- inactive_winbar = {
+        --   lualine_a = {},
+        --   lualine_b = {},
+        --   lualine_c = {},
+        --   lualine_x = {},
+        --   lualine_y = {},
+        --   lualine_z = { "filename" }, -- Buffer title in top right (inactive)
+        -- },
         extensions = {},
       })
     end,
