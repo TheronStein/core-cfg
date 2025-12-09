@@ -1,61 +1,77 @@
 #compdef lslocks
+# ------------------------------------------------------------------------------
+# Copyright (c) 2025 Github zsh-users - https://github.com/zsh-users
+#
+# Permission is hereby granted, free of charge, to any person obtaining
+# a copy of this software and associated documentation files (the
+# "Software"), to deal in the Software without restriction, including
+# without limitation the rights to use, copy, modify, merge, publish,
+# distribute, sublicense, and/or sell copies of the Software, and to
+# permit persons to whom the Software is furnished to do so, subject to
+# the following conditions:
+#
+# The above copyright notice and this permission notice shall be included
+# in all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+# OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+# OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+# ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+# OTHER DEALINGS IN THE SOFTWARE.
+# ------------------------------------------------------------------------------
+# Description
+# -----------
+#
+#  Completion script for lslocks v2.41 (https://github.com/util-linux/util-linux)
+#
+# ------------------------------------------------------------------------------
+# Authors
+# -------
+#
+#  * Shohei Yoshida (https://github.com/syohex) <syohex@gmail.com>
+#
+# ------------------------------------------------------------------------------
 
-#===========================================================================
-#    @author: Lucas Burns <burnsac@me.com> [lmburns]                       #
-#   @created: 2023-08-06                                                   #
-#===========================================================================
-
-autoload -U is-at-least
-
-_lslocks_cols() {
-  local -a lslocks_cols; lslocks_cols=(
-     COMMAND:"command of the process holding the lock"
-         PID:"pid of the process holding the lock"
-        TYPE:"type of lock"
-        SIZE:"size of the lock"
-       INODE:"inode number"
-     MAJ:MIN:"minor device number"
-        MODE:"access mode"
-           M:"M state of the lock: 0 (none), 1 (set)"
-       START:"starting byte offset of the lock"
-         END:"offset of the lock"
-        PATH:"path of the locked file"
-     BLOCKER:"blocker of the process blocking the lock"
+(( $+functions[_lslocks_output_columns] )) ||
+_lslocks_output_columns() {
+  local -a columns=(
+    "COMMAND[command of the process holding the lock]"
+    "PID[PID of the process holding the lock]"
+    "TYPE[kind of lock]"
+    "SIZE[size of the locks]"
+    "INODE[inode number]"
+    "MAJ\\:MIN[major:minor device number]"
+    "MODE[lock access mode]"
+    "M[mandatory state of the lock: 0 (none), 1 (set)]"
+    "START[relative byte offset of the lock]"
+    "END[ending offset of the lock]"
+    "PATH[path of the locked file]"
+    "BLOCKER[PID of the process blocking the lock]"
+    "HOLDERS[holders of the lock]"
   )
-  _describe -t lslocks-columns "columns" lslocks_cols
+
+  _values -s ',' column $columns
 }
 
-_lslocks() {
-  local curcontext="$curcontext" state line context
-  local -a args argopts
-  local -i ret=1
+_arguments \
+  '(- *)'{-h,--help}'[display this help]' \
+  '(- *)'{-V,--version}'[display version]' \
+  '(-b --bytes)'{-b,--bytes}'[print SIZE in bytes rather]' \
+  '(-J --json)'{-J,--json}'[use the JSON output format]' \
+  '(-i --noinaccessible)'{-i,--noinaccessible}'[ignore locks without read permissions]' \
+  '(-o --output)'{-o,--output=-}'[output columns]:columns:_lslocks_output_columns' \
+  '(-o --output --output-all)--output-all[output all columns]' \
+  '(-p --pid)'{-p,--pid}'[display only locks held by this process]:pid:_pids' \
+  '(-r --raw)'{-r,--raw}'[use the raw output format]' \
+  '(-u --notruncate)'{-u,--notruncate}'[do not truncate text in columns]' \
+  '(- *)'{-H,--list-columns}'[list the available columns]'
 
-  if is-at-least 5.2; then
-    argopts=(-s -S -C)
-  else
-    argopts=(-s -C)
-  fi
-
-  args=(
-    {-b,--bytes}'[print SIZE in bytes rather than in human readable format]'
-    {-J,--json}'[use JSON output format]'
-    {-i,--noinaccessible}'[ignore locks without read permissions]'
-    {-n,--noheadings}'[dont print headings]'
-    {-o,--output=}'[define which output columns to use]:columns:_lslocks_cols'
-    '--output-all[output all columns]'
-    {-p,--pid=}'[display only locks held by this process]:pid:_pids'
-    {-r,--raw}'[use the raw output format]'
-    {-u,--notruncate}'[dont truncate text in columns]'
-    {-h,--help}'[display this help]'
-    {-V,--version}'[display version]'
-    '(: * -)'{-h,--help}'[display help message]'
-    '(: * -)'{-v,--version}'[display version information]'
-    "*::: :->flameshot" \
-  )
-
-  _arguments "$argopts[@]" $args && ret=0
-
-  return ret
-}
-
-_lslocks "$@"
+# Local Variables:
+# mode: Shell-Script
+# sh-indentation: 2
+# indent-tabs-mode: nil
+# sh-basic-offset: 2
+# End:
+# vim: ft=zsh sw=2 ts=2 et

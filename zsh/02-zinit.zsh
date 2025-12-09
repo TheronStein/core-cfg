@@ -48,13 +48,20 @@ source "$HOME/.core/.sys/cfg/zsh/functions/widgets/fzf-preview"
 source "${CORE_CFG}/zsh/integrations/fzf.zsh"                                 
 # Core zsh completions
 zinit wait lucid for blockf zsh-users/zsh-completions
-zinit ice wait lucid as"program"; zinit light marlonrichert/zsh-autocomplete
+# NOTE: zsh-autocomplete disabled due to fundamental conflicts with our setup:
+# 1. It requires being loaded BEFORE compinit (we call compinit in 00-options.zsh)
+# 2. It requires NO other compinit calls (conflicts with our completion config)
+# 3. It conflicts with fzf-tab (both try to handle completion display)
+# The built-in completion system + fzf-tab provides excellent functionality.
+# zinit ice wait lucid; zinit light marlonrichert/zsh-autocomplete
 # zman — your beautiful man page browser (pure function)
 
 # Universal binary installer + smart completion extractor
+# Binaries → ~/.local/bin (via ZPFX symlinks)
+# Completions → ~/.core/.sys/cfg/zsh/completions
 zbin() {
   local repo="$1" bin="${2:-${1##*/}}" ver="${3:-latest}"
-  
+
   # Skip zoxide — it generates its own completion at runtime
   [[ "$repo" == "ajeetdsouza/zoxide" ]] && {
     zinit ice from"gh-r" as"null" \
@@ -64,14 +71,19 @@ zbin() {
     zinit light "$repo"
     return
   }
-  
-  # All other tools: extract binary, symlink to polaris/bin, extract completions
+
+  # All other tools: extract binary to $ZPFX/bin, extract completions to ZSH_CORE
+  local comp_dest="${ZSH_CORE}/completions"
   zinit ice from"gh-r" as"null" \
       ver"$ver" \
-      mv"$bin* -> $bin" sbin"**/$bin" \
-      atclone'[[ -f completions/_'${bin}' ]] && cp completions/_'${bin}' ~/.zsh/completions/ ||
-              [[ -f **/(_|'${bin}')(.N) ]] && cp **/(_|'${bin}')(.N) ~/.zsh/completions/_'$bin' || true' \
-      atpull'%atclone' \
+      mv"$bin* -> $bin" sbin"**//$bin -> ${HOME}/.local/bin/$bin" \
+      atclone"
+        mkdir -p ${comp_dest};
+        [[ -f completions/_${bin} ]] && cp completions/_${bin} ${comp_dest}/ ||
+        [[ -f **/_${bin}(|.zsh)(.N) ]] && cp **/_${bin}(|.zsh)(.N) ${comp_dest}/_${bin} ||
+        [[ -f ${bin}.zsh ]] && cp ${bin}.zsh ${comp_dest}/_${bin} || true
+      " \
+      atpull"%atclone" \
       lucid wait"0"
   zinit light "$repo"
 }
@@ -141,7 +153,7 @@ zinit_load_if_exists() {
 zinit ice lucid atload'
     # Basic fzf-tab settings applied after plugin loads
     zstyle ":fzf-tab:*" fzf-command fzf
-    zstyle ":fzf-tab:*" fzf-preview-window "right:60%:wrap:rounded"
+    zstyle ":fzf-tab:*" fzf-preview-window "top:75%:wrap:rounded"
     zstyle ":fzf-tab:*" switch-group "," "."
     zstyle ":fzf-tab:*" continuous-trigger "/"
     zstyle ":fzf-tab:*" popup-min-size 80 20
@@ -150,15 +162,15 @@ zinit ice lucid atload'
     # Apply theme colors if available
     if [[ -n "${_FZF_THEME_COLORS:-}" ]]; then
         zstyle ":fzf-tab:*" fzf-flags \
-            --height=60% \
+            --height=90% \
             --color="${_FZF_THEME_COLORS}" \
-            --bind="ctrl-/:toggle-preview" \
+            --bind="ctrl-/:toggle-down" \
             --bind="ctrl-a:select-all" \
             --bind="ctrl-d:deselect-all"
     else
         zstyle ":fzf-tab:*" fzf-flags \
-            --height=60% \
-            --bind="ctrl-/:toggle-preview" \
+            --height=90% \
+            --bind="ctrl-/:toggle-down" \
             --bind="ctrl-a:select-all" \
             --bind="ctrl-d:deselect-all"
     fi

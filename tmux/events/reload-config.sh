@@ -5,8 +5,8 @@ CONFIG_PATH="${HOME}/.core/cfg/tmux/tmux.conf"
 
 # Check if config exists
 if [ ! -f "$CONFIG_PATH" ]; then
-    tmux display-message "Error: Config not found at $CONFIG_PATH"
-    exit 1
+  tmux display-message "Error: Config not found at $CONFIG_PATH"
+  exit 1
 fi
 
 # Source the config

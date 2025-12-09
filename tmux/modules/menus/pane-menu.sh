@@ -6,8 +6,8 @@ tmux display-menu -x W -y S \
   "Back" Tab "run-shell '$TMUX_MENUS/main-menu.sh'" \
   "" \
   "Kill Pane" x "kill-pane" \
-  "Vertical Split" v "run-shell '$TMUX_CONF/events/vsplit.sh'" \
-  "Horizontal Split" d "run-shell '$TMUX_CONF/events/hsplit.sh'" \
+  "Vertical Split" v "run-shell '$TMUX_CONF/events/split.sh v'" \
+  "Horizontal Split" d "run-shell '$TMUX_CONF/events/split.sh h'" \
   "" \
   "Swap with selected" q "display-panes { swapp -t '%%' }" \
   "Rotate Clockwise" r "rotate-window" \

@@ -442,15 +442,15 @@ alias dc-git='clean-git-repos'
 alias dc-all='clean-pkg-cache && clean-system-cruft && clean-empty'
 
 # NEW: Enhanced function aliases
-alias dc-scan='disk-scan'           # GDU popup scan
-alias dc-overview='disk-overview'   # Quick disk summary
-alias dc-wizard='clean-wizard'      # Interactive cleanup wizard
-alias dc-inodes='check-inodes'      # Inode usage checker
-alias dc-search='search-archives'   # Search inside archives
-alias dc-trends='storage-log show'  # Storage trends viewer
+alias dc-scan='disk-scan'            # GDU popup scan
+alias dc-overview='disk-overview'    # Quick disk summary
+alias dc-wizard='clean-wizard'       # Interactive cleanup wizard
+alias dc-inodes='check-inodes'       # Inode usage checker
+alias dc-search='search-archives'    # Search inside archives
+alias dc-trends='storage-log show'   # Storage trends viewer
 alias dc-suggest='space-suggestions' # Quick space recovery tips
 alias dc-dedupe='dedupe-interactive' # Interactive duplicate finder
-alias dc-menu='disk-menu-enhanced'  # Enhanced disk menu
+alias dc-menu='disk-menu-enhanced'   # Enhanced disk menu
 
 # Tool shortcuts with sensible defaults
 alias gdu-home='gdu ~'
@@ -472,7 +472,7 @@ alias dupes-home='rmlint --types=duplicates --progress ~'
 
 # Storage info
 alias dfh='df -h'
-alias dfi='df -i'  # Inode usage
+alias dfi='df -i' # Inode usage
 
 # Trash operations (only if not already defined)
 if ! alias trash >/dev/null 2>&1; then
@@ -494,8 +494,10 @@ alias journal-clean='sudo journalctl --vacuum-time=2weeks'
 
 # Package cache info (Arch-specific)
 if command -v paccache &>/dev/null; then
-    alias pkg-cache-size='du -sh /var/cache/pacman/pkg'
-    alias pkg-cache-clean='paccache -r'
-    alias pkg-orphans='paru -Qtdq'
-    alias pkg-orphans-remove='paru -Rns $(paru -Qtdq)'
+  alias pkg-cache-size='du -sh /var/cache/pacman/pkg'
+  alias pkg-cache-clean='paccache -r'
+  alias pkg-orphans='paru -Qtdq'
+  alias pkg-orphans-remove='paru -Rns $(paru -Qtdq)'
 fi
+
+alias disk-ws='source ~/.core/.sys/cfg-disk-cleaning-tools/scripts/disk-cleaning-workspace.tmux'

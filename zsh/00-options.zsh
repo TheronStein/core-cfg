@@ -2,6 +2,22 @@
 # Core ZSH options and settings - configures shell behavior, history, and completions
 
 #=============================================================================
+# FPATH SETUP (MUST BE BEFORE COMPINIT)
+#=============================================================================
+# Add completion directories to fpath BEFORE compinit is called
+typeset -U fpath FPATH
+
+# Use ZDOTDIR (already set in .zshenv) instead of ZSH_CORE
+fpath=(
+  "${ZDOTDIR}/completions"
+  "${ZDOTDIR}/functions"
+  "${XDG_DATA_HOME}/zinit/completions"
+  "${XDG_DATA_HOME}/zsh/site-functions"
+  /usr/share/zsh/site-functions
+  $fpath
+)
+
+#=============================================================================
 # HISTORY CONFIGURATION
 #=============================================================================
 HISTFILE="${XDG_STATE_HOME}/zsh/history"

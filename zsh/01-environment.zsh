@@ -50,14 +50,8 @@ typeset -U path PATH
 typeset -U fpath FPATH
 typeset -U manpath MANPATH
 
-# Add custom function paths
-fpath=(
-  "$ZSH_CORE/functions"
-  "$ZSH_CORE/completions"
-  "${XDG_DATA_HOME}/zinit/completions"
-  "${XDG_DATA_HOME}/zsh/site-functions"
-  $fpath
-)
+# Note: fpath is now set in 00-options.zsh BEFORE compinit
+# This ensures completions are available when the completion system initializes
 
 #=============================================================================
 # DEFAULT APPLICATIONS
