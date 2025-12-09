@@ -12,8 +12,8 @@ om() {
 tmux display-menu -x C -y C -T "#[fg=#e0af68,bold] Main Menu " \
   "󰒓 Config Management" c "$(om config-management.sh)" \
   " Zoom Toggle" z "resize-pane -Z" \
-  " Vertical Split" v "run-shell '$TMUX_CONF/events/vsplit.sh'" \
-  " Horizontal Split" d "run-shell '$TMUX_CONF/events/hsplit.sh'" \
+  " Vertical Split" v "run-shell '$TMUX_CONF/events/split.sh v'" \
+  " Horizontal Split" d "run-shell '$TMUX_CONF/events/split.sh h'" \
   "" \
   "󰂮 Pane Management" a "$(om mux/pane-menu.sh)" \
   "󰖯 Window Management" w "$(om mux/window-menu.sh)" \

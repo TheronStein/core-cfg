@@ -1,43 +1,16 @@
+# Source shared library for core tmux operations
+if [ -f "$TMUX_CONF/modules/lib/tmux-core.sh" ]; then
+    source "$TMUX_CONF/modules/lib/tmux-core.sh"
+fi
+if [ -f "$TMUX_CONF/modules/lib/tmux-panes.sh" ]; then
+    source "$TMUX_CONF/modules/lib/tmux-panes.sh"
+fi
+
 debug() {
   echo "$1" >&2
 }
 
-# Get Tmux option value, if not set, use default value
-# checks for local, then global options
-#
-# Usage
-# get_tmux_option <option> <default_value>
-get_tmux_option() {
-  local option="$1"
-  local default_value="$2"
-  local option_value=$(tmux show-option -qv "$option")
-
-  if [ -z "$option_value" ]; then
-    option_value=$(tmux show-option -gqv "$option")
-  fi
-
-  if [ -z "$option_value" ]; then
-    echo "$default_value"
-  else
-    echo "$option_value"
-  fi
-}
-
-# Set Tmux option value
-#
-# Usage
-# set_tmux_option <option> <value>
-set_tmux_option() {
-  local option=$1
-  local value=$2
-  tmux set-option -gq "$option" "$value"
-}
-
-# Get the current pane's path
-get_current_pane_path() {
-  local current_pane_path=$(tmux display-message -p -F "#{pane_current_path}")
-  echo "$current_pane_path"
-}
+# Note: get_current_pane_path is now provided by modules/lib/tmux-panes.sh
 
 # Get the workspace directory from the current pane's path
 # This function will check parent directories for a .devcontainer directory,

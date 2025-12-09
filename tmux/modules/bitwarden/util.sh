@@ -1,5 +1,13 @@
 #!/usr/bin/env bash
 
+# Source shared library for core tmux operations
+if [ -f "$TMUX_CONF/modules/lib/tmux-core.sh" ]; then
+    source "$TMUX_CONF/modules/lib/tmux-core.sh"
+fi
+if [ -f "$TMUX_CONF/modules/lib/tmux-display.sh" ]; then
+    source "$TMUX_CONF/modules/lib/tmux-display.sh"
+fi
+
 # Copy text to the clipboard
 cp_to_clipboard() {
   if [[ "$(uname)" == "Darwin" ]] && is_binary_exist "pbcopy"; then
@@ -23,21 +31,9 @@ is_binary_exist() {
   return $?
 }
 
-# Get tmux option
-get_tmux_option() {
-  local option="$1"
-  local default_value="$2"
-  local option_value
-  option_value=$(tmux show-option -gqv "$option")
+# Note: get_tmux_option is now provided by modules/lib/tmux-core.sh
 
-  if [[ -z "$option_value" ]]; then
-    echo "$default_value"
-  else
-    echo "$option_value"
-  fi
-}
-
-# Display tmux message in status bar
+# Display tmux message in status bar (module-specific wrapper)
 display_tmux_message() {
   local message=$1
   tmux display-message "tmux-bitwarden: $message"

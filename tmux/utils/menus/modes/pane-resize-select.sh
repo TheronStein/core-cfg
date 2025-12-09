@@ -1,1 +1,0 @@
-../mux/pane-resize-select.sh
