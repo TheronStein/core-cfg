@@ -1,11 +1,8 @@
 #!/usr/bin/env bash
 
-get_tmux_option() {
-  local option="$1"
-  local default_value="$2"
-  tmux show-option -gqv "$option" || echo "$default_value"
-}
+# Source shared library for core tmux operations
+if [ -f "$TMUX_CONF/modules/lib/tmux-core.sh" ]; then
+    source "$TMUX_CONF/modules/lib/tmux-core.sh"
+fi
 
-set_tmux_option() {
-  tmux set-option -g "$1" "$2"
-}
+# Note: get_tmux_option and set_tmux_option are now provided by modules/lib/tmux-core.sh
