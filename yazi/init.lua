@@ -1,3 +1,10 @@
+-- DEBUG: Write at very start of init.lua
+local _dbg = io.open("/tmp/yazi-init-debug.log", "a")
+if _dbg then
+	_dbg:write(os.date() .. " - init.lua STARTED\n")
+	_dbg:close()
+end
+
 -- ╭─────────────────────────────────────────────────────────╮
 -- │                    YAZI INIT.LUA                        │
 -- │     Complete plugin configuration with error handling   │
@@ -17,8 +24,13 @@ end
 
 -- [[[ Logging Setup
 
-error_log = os.getenv("YAZI_CONFIG_HOME") .. ".data/logs/plugin_errors.log"
-plugin_log = os.getenv("YAZI_CONFIG_HOME") .. ".data/logs/plugins.log"
+local config_home = os.getenv("YAZI_CONFIG_HOME") or os.getenv("HOME") .. "/.config/yazi"
+error_log = config_home .. "/.data/logs/plugin_errors.log"
+plugin_log = config_home .. "/.data/logs/plugins.log"
+
+-- Ensure log directory exists
+local log_dir = config_home .. "/.data/logs"
+os.execute("mkdir -p " .. log_dir)
 
 local plugin_prefix = "[" .. "[PLUGIN]" .. "]"
 local status_prefix = "[" .. "[STATUS]" .. "]"
@@ -76,16 +88,25 @@ end
 -- [[[ Plugin Safe Require
 
 -- Safe require with error logging
+-- local function safe_require(module_name)
+-- 	local success, result = pcall(require, module_name)
+-- 	if not success then
+-- 		local error_msg =
+-- 			log_message(plugin_prefix, error_prefix, module_name, "Failed to load. [OUTPUT]: " .. tostring(result))
+-- 		local file = io.open(plugin_log, "a")
+-- 		if file then
+-- 			file:write(error_msg)
+-- 			file:close()
+-- 		end
+-- 		return nil
+-- 	end
+-- 	return result
+-- end
+-- Safe require with error logging
 local function safe_require(module_name)
 	local success, result = pcall(require, module_name)
 	if not success then
-		local error_msg =
-			log_message(plugin_prefix, error_prefix, module_name, "Failed to load. [OUTPUT]: " .. tostring(result))
-		local file = io.open(plugin_log, "a")
-		if file then
-			file:write(error_msg)
-			file:close()
-		end
+		log_message(plugin_prefix, error_prefix, module_name, "Failed to load. [OUTPUT]: " .. tostring(result))
 		return nil
 	end
 	return result
@@ -149,8 +170,9 @@ local function dir_exists(path)
 		end
 		return false
 	end
-	local attr = lfs.attributes(path)
-	return attr and attr.mode == "directory"
+	-- local attr = lfs.attributes(path)
+	-- return attr and attr.mode == "directory"
+	return true
 end
 
 local function validate_key_mapping(keymap)
@@ -241,115 +263,143 @@ local context = detect_context()
 -- IMAGE PROTOCOL DETECTION AND CONFIGURATION
 -- ═══════════════════════════════════════════════════════════════
 
+-- local function detect_image_protocol()
+-- 	local term = os.getenv("TERM") or ""
+-- 	local term_program = os.getenv("TERM_PROGRAM") or ""
+--
+-- 	-- WezTerm detection
+-- 	if term:match("wezterm") or os.getenv("WEZTERM_EXECUTABLE") then
+-- 		-- Log successful initialization
+-- 		local success_log = string.format("[%s]  (context: %s)\n", os.date("%Y-%m-%d %H:%M:%S"), "Wezterm")
+-- 		local file = io.open(plugin_log, "a")
+-- 		if file then
+-- 			file:write(success_log)
+-- 			file:close()
+-- 		end
+-- 		Status:children_add(function(self)
+-- 			local h = self._current.hovered
+-- 			if h and h.link_to then
+-- 				return " -> " .. tostring(h.link_to)
+-- 			else
+-- 				return ""
+-- 			end
+-- 		end, 3300, Status.LEFT)
+-- 		-- WezTerm imgcat protocol
+-- 		return "chafa"
+-- 	end
+--
+-- 	-- Tmux detection (not WezTerm)
+-- 	if os.getenv("TMUX") then
+-- 		-- Log successful initialization
+-- 		local success_log = string.format("[%s]  (context: %s)\n", os.date("%Y-%m-%d %H:%M:%S"), "TMUX")
+-- 		local file = io.open(error_log, "a")
+-- 		if file then
+-- 			file:write(success_log)
+-- 			file:close()
+-- 		end
+-- 		Status:children_add(function(self)
+-- 			local h = self._current.hovered
+-- 			if h and h.link_to then
+-- 				return " -> " .. tostring(h.link_to)
+-- 			else
+-- 				return ""
+-- 			end
+-- 		end, 3300, Status.LEFT)
+-- 		return "ueberzug"
+-- 	end
+--
+-- 	-- Tmux detection (not WezTerm)
+-- 	if os.getenv("NVIM") then
+-- 		-- Log successful initialization
+-- 		local success_log = string.format("[%s]  (context: %s)\n", os.date("%Y-%m-%d %H:%M:%S"), "NVIM")
+-- 		local file = io.open(error_log, "a")
+-- 		if file then
+-- 			file:write(success_log)
+-- 			file:close()
+-- 		end
+-- 		Status:children_add(function(self)
+-- 			local h = self._current.hovered
+-- 			if h and h.link_to then
+-- 				return " -> " .. tostring(h.link_to)
+-- 			else
+-- 				return ""
+-- 			end
+-- 		end, 3300, Status.LEFT)
+-- 		return "ueberzug"
+-- 	end
+--
+-- 	-- Kitty detection
+-- 	if term:match("kitty") or os.getenv("KITTY_WINDOW_ID") then
+-- 		-- Log successful initialization
+-- 		local success_log = string.format("[%s]  (context: %s)\n", os.date("%Y-%m-%d %H:%M:%S"), "Kitty")
+-- 		local file = io.open(error_log, "a")
+-- 		if file then
+-- 			file:write(success_log)
+-- 			file:close()
+-- 		end
+-- 		Status:children_add(function(self)
+-- 			local h = self._current.hovered
+-- 			if h and h.link_to then
+-- 				return " -> " .. tostring(h.link_to)
+-- 			else
+-- 				return ""
+-- 			end
+-- 		end, 3300, Status.LEFT)
+-- 		return "kitty"
+-- 	end
+--
+-- 	-- Log successful initialization
+-- 	local success_log = string.format("[%s]  (context: %s)\n", os.date("%Y-%m-%d %H:%M:%S"), "N/A")
+-- 	local file = io.open(error_log, "a")
+-- 	if file then
+-- 		file:write(success_log)
+-- 		file:close()
+-- 	end
+-- 	Status:children_add(function(self)
+-- 		local h = self._current.hovered
+-- 		if h and h.link_to then
+-- 			return " -> " .. tostring(h.link_to)
+-- 		else
+-- 			return ""
+-- 		end
+-- 	end, 3300, Status.LEFT)
+--
+-- 	-- Default to ueberzug
+-- 	return "ueberzug"
+-- end
+--
+-- -- Set the detected image protocol (this was missing!)
+-- local protocol = detect_image_protocol()
 local function detect_image_protocol()
 	local term = os.getenv("TERM") or ""
 	local term_program = os.getenv("TERM_PROGRAM") or ""
+	local protocol = "ueberzug" -- default
 
 	-- WezTerm detection
 	if term:match("wezterm") or os.getenv("WEZTERM_EXECUTABLE") then
-		-- Log successful initialization
-		local success_log = string.format("[%s]  (context: %s)\n", os.date("%Y-%m-%d %H:%M:%S"), "Wezterm")
-		local file = io.open(plugin_log, "a")
-		if file then
-			file:write(success_log)
-			file:close()
-		end
-		Status:children_add(function(self)
-			local h = self._current.hovered
-			if h and h.link_to then
-				return " -> " .. tostring(h.link_to)
-			else
-				return ""
-			end
-		end, 3300, Status.LEFT)
-		-- WezTerm imgcat protocol
-		return "chafa"
-	end
-
+		log_message(yazi_prefix, info_prefix, "Image Protocol", "Detected WezTerm")
+		protocol = "chafa"
 	-- Tmux detection (not WezTerm)
-	if os.getenv("TMUX") then
-		-- Log successful initialization
-		local success_log = string.format("[%s]  (context: %s)\n", os.date("%Y-%m-%d %H:%M:%S"), "TMUX")
-		local file = io.open(error_log, "a")
-		if file then
-			file:write(success_log)
-			file:close()
-		end
-		Status:children_add(function(self)
-			local h = self._current.hovered
-			if h and h.link_to then
-				return " -> " .. tostring(h.link_to)
-			else
-				return ""
-			end
-		end, 3300, Status.LEFT)
-		return "ueberzug"
-	end
-
-	-- Tmux detection (not WezTerm)
-	if os.getenv("NVIM") then
-		-- Log successful initialization
-		local success_log = string.format("[%s]  (context: %s)\n", os.date("%Y-%m-%d %H:%M:%S"), "NVIM")
-		local file = io.open(error_log, "a")
-		if file then
-			file:write(success_log)
-			file:close()
-		end
-		Status:children_add(function(self)
-			local h = self._current.hovered
-			if h and h.link_to then
-				return " -> " .. tostring(h.link_to)
-			else
-				return ""
-			end
-		end, 3300, Status.LEFT)
-		return "ueberzug"
-	end
-
+	elseif os.getenv("TMUX") then
+		log_message(yazi_prefix, info_prefix, "Image Protocol", "Detected TMUX")
+		protocol = "ueberzug"
+	-- Neovim detection
+	elseif os.getenv("NVIM") then
+		log_message(yazi_prefix, info_prefix, "Image Protocol", "Detected NVIM")
+		protocol = "ueberzug"
 	-- Kitty detection
-	if term:match("kitty") or os.getenv("KITTY_WINDOW_ID") then
-		-- Log successful initialization
-		local success_log = string.format("[%s]  (context: %s)\n", os.date("%Y-%m-%d %H:%M:%S"), "Kitty")
-		local file = io.open(error_log, "a")
-		if file then
-			file:write(success_log)
-			file:close()
-		end
-		Status:children_add(function(self)
-			local h = self._current.hovered
-			if h and h.link_to then
-				return " -> " .. tostring(h.link_to)
-			else
-				return ""
-			end
-		end, 3300, Status.LEFT)
-		return "kitty"
+	elseif term:match("kitty") or os.getenv("KITTY_WINDOW_ID") then
+		log_message(yazi_prefix, info_prefix, "Image Protocol", "Detected Kitty")
+		protocol = "kitty"
+	else
+		log_message(yazi_prefix, info_prefix, "Image Protocol", "Using default (ueberzug)")
 	end
 
-	-- Log successful initialization
-	local success_log = string.format("[%s]  (context: %s)\n", os.date("%Y-%m-%d %H:%M:%S"), "N/A")
-	local file = io.open(error_log, "a")
-	if file then
-		file:write(success_log)
-		file:close()
-	end
-	Status:children_add(function(self)
-		local h = self._current.hovered
-		if h and h.link_to then
-			return " -> " .. tostring(h.link_to)
-		else
-			return ""
-		end
-	end, 3300, Status.LEFT)
-
-	-- Default to ueberzug
-	return "ueberzug"
+	return protocol
 end
 
--- Set the detected image protocol (this was missing!)
+-- Set the detected image protocol
 local protocol = detect_image_protocol()
--- Note: The protocol is now set in yazi.toml [image] section
--- This detection is kept for future dynamic configuration if needed
 
 -- ]]] End Image Protocol Detection
 
@@ -530,38 +580,40 @@ if full_border then
 	})
 end
 
+local fzf_tabs = safe_require_checked("fzf-tabs")
 -- Defer setup to ensure cx is available
-require("fzf-tabs").setup({
-	-- Save method: "manual" or "automatic"
-	save_method = "manual",
+if fzf_tabs then
+	fzf_tabs:setup({
+		-- Save method: "manual" or "automatic"
+		save_method = "manual",
+		-- Auto-save interval in minutes (only for "automatic" mode)
+		interval_minutes = 5,
 
-	-- Auto-save interval in minutes (only for "automatic" mode)
-	interval_minutes = 5,
+		-- Skip quit prompts for unsaved changes
+		ignore_prompt = false,
 
-	-- Skip quit prompts for unsaved changes
-	ignore_prompt = false,
+		-- Notification settings for each action type
+		notifications = {
+			create = true,
+			delete = true,
+			rename = true,
+			switch = true,
+			save = true,
+		},
 
-	-- Notification settings for each action type
-	notifications = {
-		create = true,
-		delete = true,
-		rename = true,
-		switch = true,
-		save = true,
-	},
-
-	-- Pre-configured tab group templates (optional)
-	-- templates = {
-	-- 	-- Example template structure:
-	-- 	-- {
-	-- 	--   name = "dev-setup",
-	-- 	--   tabs = {
-	-- 	--     { name = "Projects", path = "~/projects" },
-	-- 	--     { name = "Dotfiles", path = "~/.config" },
-	-- 	--   }
-	-- 	-- }
-	-- },
-})
+		-- Pre-configured tab group templates (optional)
+		-- templates = {
+		-- 	-- Example template structure:
+		-- 	-- {
+		-- 	--   name = "dev-setup",
+		-- 	--   tabs = {
+		-- 	--     { name = "Projects", path = "~/projects" },
+		-- 	--     { name = "Dotfiles", path = "~/.config" },
+		-- 	--   }
+		-- 	-- }
+		-- },
+	})
+end
 
 -- Lazy Git
 safe_require_checked("lazygit")
@@ -720,106 +772,13 @@ safe_require_checked("diff")
 
 -- Load yatline and its components
 
--- safe_require_checked("yatline-githead")
--- safe_require_checked("yatline-tab-path")
--- require("yatline-hostname-username"):setup({
--- 	show_hostname = true,
--- 	show_username = true,
--- 	separator = "@",
--- })
--- - local yatline = safe_require_checked("yatline")
--- if yatline then
--- 	yatline:setup({
--- 		--theme = my_theme,
--- 		section_separator = { open = "", close = "" },
--- 		part_separator = { open = "", close = "" },
--- 		inverse_separator = { open = "", close = "" },
 --
--- 		style_a = {
--- 			fg = "black",
--- 			bg_mode = {
--- 				normal = "white",
--- 				select = "brightyellow",
--- 				un_set = "brightred",
--- 			},
--- 		},
--- 		style_b = { bg = "brightblack", fg = "brightwhite" },
--- 		style_c = { bg = "black", fg = "brightwhite" },
+-- require("yatline"):setup({
+-- 	section_separator = { open = "", close = "" },
 --
--- 		permissions_t_fg = "green",
--- 		permissions_r_fg = "yellow",
--- 		permissions_w_fg = "red",
--- 		permissions_x_fg = "cyan",
--- 		permissions_s_fg = "white",
+-- 	part_separator = { open = "", close = "" },
+-- 	inverse_separator = { open = "", close = "" },
 --
--- 		tab_width = 20,
--- 		tab_use_inverse = false,
---
--- 		selected = { icon = "󰻭", fg = "yellow" },
--- 		copied = { icon = "", fg = "green" },
--- 		cut = { icon = "", fg = "red" },
---
--- 		total = { icon = "󰮍", fg = "yellow" },
--- 		succ = { icon = "", fg = "green" },
--- 		fail = { icon = "", fg = "red" },
--- 		found = { icon = "󰮕", fg = "blue" },
--- 		processed = { icon = "󰐍", fg = "green" },
---
--- 		show_background = true,
---
--- 		display_header_line = true,
--- 		display_status_line = true,
---
--- 		component_positions = { "header", "tab", "status" },
---
--- 		header_line = {
--- 			left = {
--- 				section_a = {
--- 					{ type = "line", custom = false, name = "tabs", params = { "left" } },
--- 				},
--- 				section_b = {},
--- 				section_c = {},
--- 			},
--- 			right = {
--- 				section_a = {
--- 					{ type = "string", custom = false, name = "date", params = { "%A, %d %B %Y" } },
--- 				},
--- 				section_b = {
--- 					{ type = "string", custom = false, name = "date", params = { "%X" } },
--- 				},
--- 				section_c = {},
--- 			},
--- 		},
---
--- 		status_line = {
--- 			left = {
--- 				section_a = {
--- 					{ type = "string", custom = false, name = "tab_mode" },
--- 				},
--- 				section_b = {
--- 					{ type = "string", custom = false, name = "hovered_size" },
--- 				},
--- 				section_c = {
--- 					{ type = "string", custom = false, name = "hovered_path" },
--- 					{ type = "coloreds", custom = false, name = "count" },
--- 				},
--- 			},
--- 			right = {
--- 				section_a = {
--- 					{ type = "string", custom = false, name = "cursor_position" },
--- 				},
--- 				section_b = {
--- 					{ type = "string", custom = false, name = "cursor_percentage" },
--- 				},
--- 				section_c = {
--- 					{ type = "string", custom = false, name = "hovered_file_extension", params = { true } },
--- 					{ type = "coloreds", custom = false, name = "permissions" },
--- 				},
--- 			},
--- 		},
--- 	})
--- end
-
 local pref_by_location = safe_require_checked("pref-by-location")
 -- pref_by_location:setup({
 -- 	-- Disable this plugin completely.
@@ -867,6 +826,33 @@ local pref_by_location = safe_require_checked("pref-by-location")
 -- INITIALIZATION COMPLETE
 -- ═══════════════════════════════════════════════════════════════
 
+-- local function log_debug_plugin(msg)
+-- 	local f = io.open(plugin_log, "a")
+-- 	if f then
+-- 		f:write(os.date("%Y-%m-%d %H:%M:%S") .. " - " .. tostring(msg) .. "\n")
+-- 		f:close()
+-- 	end
+-- end
+-- local yatline = safe_require_checked("yatline")
+-- log_debug_plugin("Yatline loaded: " .. tostring(yatline ~= nil))
+--
+-- -- Log successful initialization
+-- local success_log =
+-- 	string.format("[%s] Yazi init.lua loaded successfully (context: %s)\n", os.date("%Y-%m-%d %H:%M:%S"), context)
+-- local file = io.open(error_log, "a")
+-- if file then
+-- 	file:write(success_log)
+-- 	file:close()
+-- end
+-- Status:children_add(function(self)
+-- 	local h = self._current.hovered
+-- 	if h and h.link_to then
+-- 		return " -> " .. tostring(h.link_to)
+-- 	else
+-- 		return ""
+-- 	end
+-- end, 3300, Status.LEFT)
+--
 local function log_debug_plugin(msg)
 	local f = io.open(plugin_log, "a")
 	if f then
@@ -874,27 +860,162 @@ local function log_debug_plugin(msg)
 		f:close()
 	end
 end
+
 local yatline = safe_require_checked("yatline")
+-- Debug: write to file to check if yatline loaded
+local f = io.open("/tmp/yatline-debug.log", "a")
+if f then
+	f:write(os.date("%Y-%m-%d %H:%M:%S") .. " - init.lua: yatline loaded = " .. tostring(yatline ~= nil) .. "\n")
+	f:close()
+end
+if not yatline then
+	-- Fallback: try direct require
+	local ok, yl = pcall(require, "yatline")
+	f = io.open("/tmp/yatline-debug.log", "a")
+	if f then
+		f:write(
+			os.date("%Y-%m-%d %H:%M:%S")
+				.. " - init.lua: direct require ok="
+				.. tostring(ok)
+				.. ", result="
+				.. tostring(yl)
+				.. "\n"
+		)
+		f:close()
+	end
+	if ok then
+		yatline = yl
+	end
+end
+if not yatline then
+	f = io.open("/tmp/yatline-debug.log", "a")
+	if f then
+		f:write(os.date("%Y-%m-%d %H:%M:%S") .. " - init.lua: YATLINE FAILED TO LOAD, skipping setup\n")
+		f:close()
+	end
+	return
+end
+-- yatline:setup()
+yatline:setup({
+	-- Or a custom function for full control:
+
+	tab_name_format = "index:basename",
+
+	--theme = my_theme,
+	section_separator = { open = "", close = "" },
+	part_separator = { open = "", close = "" },
+	inverse_separator = { open = "", close = "" },
+	style_a = {
+		fg = "black",
+		bg_mode = {
+			normal = "#7aa2f7",
+			select = "#e0af68",
+			un_set = "#f7768e",
+		},
+	},
+	style_b = { bg = "#3b4261", fg = "#c0caf5" },
+	style_c = { bg = "#1a1b26", fg = "#a9b1d6" },
+
+	permissions_t_fg = "#9ece6a",
+	permissions_r_fg = "#e0af68",
+	permissions_w_fg = "#f7768e",
+	permissions_x_fg = "#7dcfff",
+	permissions_s_fg = "#c0caf5",
+
+	tab_width = 20,
+
+	selected = { icon = "󰻭", fg = "#e0af68" },
+	copied = { icon = "", fg = "#9ece6a" },
+	cut = { icon = "", fg = "#f7768e" },
+
+	total = { icon = "󰮍", fg = "#e0af68" },
+	succ = { icon = "", fg = "#9ece6a" },
+	fail = { icon = "", fg = "#f7768e" },
+	found = { icon = "󰮕", fg = "#7aa2f7" },
+	processed = { icon = "󰐍", fg = "#9ece6a" },
+
+	show_background = true,
+
+	display_header_line = true,
+	display_status_line = true,
+
+	component_positions = { "header", "tabs", "tab", "status" },
+
+	header_line = {
+		left = {
+			section_a = {
+				{ type = "line", custom = false, name = "tabs", params = { "left" } },
+			},
+			section_b = {},
+			section_c = {},
+		},
+		right = {
+			section_a = {
+				-- { type = "coloreds", custom = false, name = "githead" },
+			},
+			section_b = {
+				-- { type = "coloreds", custom = false, name = "count" },
+			},
+			section_c = {
+				{ type = "string", custom = false, name = "tab_path" },
+				-- { type = "coloreds", custom = false, name = "count" },
+				-- { type = "coloreds", custom = false, name = "hostname_username" },
+			},
+		},
+	},
+
+	status_line = {
+		left = {
+			section_a = {
+				{ type = "string", custom = false, name = "tab_mode" },
+			},
+			section_b = {
+				{ type = "string", custom = false, name = "hovered_size" },
+			},
+			section_c = {
+				{ type = "string", custom = false, name = "hovered_name" },
+			},
+		},
+		right = {
+			section_a = {
+				{ type = "string", custom = false, name = "cursor_position" },
+			},
+			section_b = {
+				{ type = "string", custom = false, name = "cursor_percentage" },
+			},
+			section_c = {
+				{ type = "coloreds", custom = false, name = "permissions" },
+			},
+		},
+	},
+})
+--
 log_debug_plugin("Yatline loaded: " .. tostring(yatline ~= nil))
 
 -- Log successful initialization
-local success_log =
-	string.format("[%s] Yazi init.lua loaded successfully (context: %s)\n", os.date("%Y-%m-%d %H:%M:%S"), context)
-local file = io.open(error_log, "a")
-if file then
-	file:write(success_log)
-	file:close()
-end
+log_message(yazi_prefix, info_prefix, "init.lua", "Loaded successfully (context: " .. context .. ")")
+
+-- Add symlink display to status line (only once at the end)
+-- local Status = require("yazi.ui.status")
+-- if Status then
+-- 	Status:children_add(function(self)
+-- 		local h = self._current.hovered
+-- 		if h and h.link_to then
+-- 			return " -> " .. tostring(h.link_to)
+-- 		else
+-- 			return ""
+-- 		end
+-- 	end, 3300, Status.LEFT)
+-- end
 Status:children_add(function(self)
 	local h = self._current.hovered
 	if h and h.link_to then
-		return " -> " .. tostring(h.link_to)
+		return ui.Span(" -> " .. tostring(h.link_to)):fg("cyan")
 	else
 		return ""
 	end
 end, 3300, Status.LEFT)
 
---
 -- [[plugin.deps]]
 -- use = "yazi-rs/plugins:toggle-pane"
 -- rev = "d1c8baa"

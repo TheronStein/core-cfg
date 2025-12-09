@@ -19,11 +19,6 @@ rev = "d0da104"
 hash = "68603fdd1dcaf415227e2c77a9317947"
 
 [[plugin.deps]]
-use = "imsi32/yatline"
-rev = "88bd1c5"
-hash = "981acbe9b758b1af3a8154c932bb936d"
-
-[[plugin.deps]]
 use = "pirafrank/what-size"
 rev = "d896656"
 hash = "62251f94eb67648d42cdfcfb8be0fad2"
@@ -115,8 +110,8 @@ hash = "43fa632820cc91919c4e713652140b48"
 
 [[plugin.deps]]
 use = "boydaihungst/simple-tag"
-rev = "08860fc"
-hash = "26c75098f36345fc945cb6a092ab7a9b"
+rev = "c78e3ff"
+hash = "4c5b7f528a759ca3f2f3937d8a5dbb64"
 
 [[plugin.deps]]
 use = "Ape/reflink"
@@ -310,23 +305,28 @@ hash = "cf3f2d8fab12595e6f09a6cca4734bf4"
 
 [[plugin.deps]]
 use = "TheronStein/fzf-tabs"
-rev = "9b863b9"
-hash = "4d505efd0ec97e8365013794ff10f9f7"
+rev = "aa5ca46"
+hash = "13802f90aeae746183f23e7b66473164"
+
+[[plugin.deps]]
+use = "TheronStein/yatline"
+rev = "d7df260"
+hash = "5a3111107b2f0dec7847f8fcff7806ef"
 
 [[flavor.deps]]
 use = "yazi-rs/flavors:catppuccin-mocha"
-rev = "3edeb49"
-hash = "76b921b2d734331854d4a55b59a21388"
+rev = "ffe6e3a"
+hash = "b951d27afe197d154f6da9683b46c5f8"
 
 [[flavor.deps]]
 use = "yazi-rs/flavors:catppuccin-frappe"
-rev = "3edeb49"
-hash = "69cd81ca19a1039352ef981fc4cf1b63"
+rev = "ffe6e3a"
+hash = "6f261f00e5235001b8d6bcd7464d3077"
 
 [[flavor.deps]]
 use = "yazi-rs/flavors:catppuccin-macchiato"
-rev = "3edeb49"
-hash = "7ea1785ea4535f3ee0e45cc579794935"
+rev = "ffe6e3a"
+hash = "b069dba45e199684b16fa12d385642ed"
 
 [[flavor.deps]]
 use = "dangooddd/kanagawa"

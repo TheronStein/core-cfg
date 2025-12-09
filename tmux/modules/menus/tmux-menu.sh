@@ -7,7 +7,9 @@ PARENT_MENU=$("$MENU_NAV" get "$(basename "$0")" "main-menu.sh")
 tmux display-menu -x C -y C -T "#[fg=#73daca,bold]󰙀 TMUX Management " \
   "󰑓 Reload Configuration" r "source-file '$TMUX_CONF/tmux.conf' ; display 'Tmux config reloaded'" \
   "" \
-  "󰒲 Sessions" s "run-shell '$TMUX_MENUS/tmux/session-menu.sh'" \
+  "Save State" s "run-shell '$TMUX_CONF/plugins/tmux-resurrect/scripts/save.sh && tmux display-message \"Session saved at \$(date +%H:%M:%S)\"'" \
+  "Restore Session" r "run-shell '$TMUX_CONF/scripts/utils/restore-session.sh'" \
+  "󰒲 Sessions" S "run-shell '$TMUX_MENUS/tmux/session-menu.sh'" \
   "󰒫 Kill Server" K "confirm-before -p 'Kill tmux server? (y/n)' 'kill-server'" \
   "" \
   " Plugins" p "run-shell '$TMUX_MENUS/tmux/plugin-menu.sh'" \

@@ -1,0 +1,12 @@
+# Ghostty dropdown terminal configuration
+# This config is used for the dropdown scratchpad terminal
+
+# Use default config as base
+config-file = /home/theron/.config/ghostty/config
+
+# Custom window title to identify dropdown
+title = dropdown-terminal
+
+# Window decorations
+gtk-titlebar = false
+window-decoration = false

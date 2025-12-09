@@ -1,0 +1,16 @@
+tab {
+  stty 1.2.3-arch2\P>|ghostty 1.2.3-arch2
+  padding: 4px 8px; /* Reduce padding for compactness */
+  background-color: #2a2a2a;
+  color: #dddddd;
+  border: 1px solid #444444;
+}
+tab:checked {
+  /* Active tab */
+  background-color: #3a3a3a;
+  font-weight: bold;
+}
+tab button {
+  /* Close button */
+  color: #ff0000; /* Red close icon */
+}
