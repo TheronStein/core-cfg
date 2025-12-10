@@ -1,6 +1,6 @@
 -- ╓────────────────────────────────────────────────────────────╖
--- ║ Keybindings Initialization                                ║
--- ║ Load all keybinding modules                               ║
+-- ║ Keybindings Initialization                                 ║
+-- ║ Load all keybinding modules                                ║
 -- ╙────────────────────────────────────────────────────────────╜
 
 local M = {}
@@ -9,9 +9,10 @@ local wk = require("which-key")
 local map = vim.keymap.set
 
 function M.setup()
-	-- vim.api.notify()
 	require("binds.which-key").setup()
-	-- Smart close: close buffer if it’s “safe”, otherwise close window/tab
+
+	--- [[[ buffer close smartly
+
 	map("n", "q", function()
 		local bufnr = vim.api.nvim_get_current_buf()
 		local buftype = vim.bo[bufnr].buftype
@@ -57,31 +58,38 @@ function M.setup()
 		end
 	end, { desc = "Smart close" })
 
-	--require("mods.tmux-vim-navigation").setup()
-	--nav.setup()
+	--- ]]]
 
-	--local clipb = require("mods.clipboard")
-	--clipb.setup()
-
+	--- [[[ Marks for visual mode
 	wk.add({
 		{ "v", "mVv", { silent = true }, desc = "Set mark V before visual mode" },
 		{ "V", "mVV", { silent = true }, desc = "Set mark V before visual line mode" },
 		-- { "<Tab>", "<C-t>", desc = "Indent in insert mode", mode = { "i" } },
 		-- { "<S-Tab>", "<C-d>", desc = "Unindent in insert mode", mode = { "i" } },
 	})
+	--- ]]]
+
+	-- [[[ Bind modules loading
 	require("binds.clipboard").setup()
 	require("binds.tmux-vim-navigation").setup()
-	-- require("core.config").setup()
-	-- require("keymaps.tmux-wezterm").setup()
 	require("binds.window").setup()
 	require("binds.editing").setup()
 	require("binds.search").setup()
 	require("binds.tabs-buffers").setup()
 	require("binds.notifications").setup()
-	-- Load reload system (for hot-reloading config)
 	require("binds.reload").setup()
+	require("binds.ai")
+	-- require("binds.tmux-wezterm").setup()
+	-- ]]]
+
+	-- [[[ Load custom modules
 	require("core.cheatsheet").setup()
+	-- require("core.config").setup()
 	require("mods.figlet").setup()
+	require("mods.commentbox-picker").setup()
+	-- ]]]
+
+	-- [[[ Outdated UI enhancements loading (notifications, global help, lualine extensions)
 
 	-- -- Load UI enhancements (notifications, global help, lualine extensions)
 	-- local ok, _ = pcall(function()
@@ -102,8 +110,7 @@ function M.setup()
 	-- if not ok then
 	-- 	vim.notify("Failed to load UI enhancements", vim.log.levels.WARN)
 	-- end
-
-	require("binds.ai")
+	-- ]]
 end
 
 return M

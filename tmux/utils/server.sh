@@ -32,6 +32,11 @@ determine_server_name() {
   return $SERVER_NAME
 }
 
+server_running() {
+  local server="$1"
+  tmux -L "$server" list-sessions &>/dev/null
+}
+
 main() {
   case "$ARG1" in
     get-server-name)

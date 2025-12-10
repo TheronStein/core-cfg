@@ -10,9 +10,9 @@ opt.shiftwidth = 2 -- 2 spaces for indent width
 opt.expandtab = true -- Convert tabs to spaces
 opt.autoindent = true -- Copy indent from current line
 
-vim.opt.clipboard = "unnamedplus"
-vim.o.exrc = true -- Allow local .nvim.lua/.nvimrc
-vim.o.secure = true -- Sandbox: No shell cmds in untrusted dirs
+opt.clipboard = "unnamedplus"
+opt.exrc = true -- Allow local .nvim.lua/.nvimrc
+opt.secure = true -- Sandbox: No shell cmds in untrusted dirs
 
 -- Search
 opt.ignorecase = true -- Case-insensitive search
@@ -38,7 +38,11 @@ opt.undodir = vim.fn.stdpath("data") .. "/undo" -- Undo file directory
 -- Splits
 opt.splitright = true -- New vertical splits go right
 opt.splitbelow = true -- New horizontal splits go below
-
+opt.modeline = true
+opt.modelines = 10 -- Check first/last 5 lines
+opt.foldmethod = "marker" -- Use markers for folding
+opt.foldmarker = "[[[,]]]" -- Custom fold markers
+opt.modelines = 5 -- Check first/last 5 lines
 -- Quit behavior
 opt.hidden = true -- Hide buffers instead of closing them
 opt.confirm = true -- Confirm before quitting with unsaved changes

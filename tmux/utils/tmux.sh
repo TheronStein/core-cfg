@@ -3,16 +3,31 @@
 VERSION="$1"
 UNSUPPORTED_MSG="$2"
 
-get_tmux_option() {
-  local option=$1
-  local default_value=$2
-  local option_value=$(tmux show-option -gqv "$option")
-  if [ -z "$option_value" ]; then
-    echo "$default_value"
+tmux_version_int() {
+  local tmux_version_string=$(tmux -V)
+  echo "$(get_digits_from_string "$tmux_version_string")"
+}
+
+unsupported_version_message() {
+  if [ -n "$UNSUPPORTED_MSG" ]; then
+    echo "$UNSUPPORTED_MSG"
   else
-    echo "$option_value"
+    echo "Error, Tmux version unsupported! Please install Tmux version $VERSION or greater!"
   fi
 }
+
+exit_if_unsupported_version() {
+  local current_version="$1"
+  local supported_version="$2"
+  if [ "$current_version" -lt "$supported_version" ]; then
+    display_message "$(unsupported_version_message)"
+    exit 1
+  fi
+}
+
+# ============================================================================
+# DISPLAY HELPERS
+# ============================================================================
 
 # Ensures a message is displayed for 5 seconds in tmux prompt.
 # Does not override the 'display-time' tmux option.
@@ -39,57 +54,30 @@ display_message() {
   tmux set-option -gq display-time "$saved_display_time"
 }
 
-# this is used to get "clean" integer version number. Examples:
-# `tmux 1.9` => `19`
-# `1.9a`     => `19`
-get_digits_from_string() {
-  local string="$1"
-  local only_digits="$(echo "$string" | tr -dC '[:digit:]')"
-  echo "$only_digits"
+display_error() {
+  display_message "ERROR: $1" 5000
 }
 
-tmux_version_int() {
-  local tmux_version_string=$(tmux -V)
-  echo "$(get_digits_from_string "$tmux_version_string")"
-}
-
-unsupported_version_message() {
-  if [ -n "$UNSUPPORTED_MSG" ]; then
-    echo "$UNSUPPORTED_MSG"
-  else
-    echo "Error, Tmux version unsupported! Please install Tmux version $VERSION or greater!"
-  fi
-}
-
-exit_if_unsupported_version() {
-  local current_version="$1"
-  local supported_version="$2"
-  if [ "$current_version" -lt "$supported_version" ]; then
-    display_message "$(unsupported_version_message)"
-    exit 1
-  fi
+display_info() {
+  display_message "$1" 2000
 }
 
 get_tmux_option() {
-  local option=$1
-  local default_value=$2
-  local option_value=$(tmux show-option -gqv "$option")
-  local old_option_value=$(tmux show-option -gqv "${option//treemux/sidenvimtree}")
-  if [ -z "$option_value" ]; then
-    if [ -z "$old_option_value" ]; then
-      echo "$default_value"
-    else
-      echo "$old_option_value"
-    fi
-  else
-    echo "$option_value"
-  fi
+  local option="$1"
+  local default="$2"
+  local value=$(tmux show-option -gqv "$option")
+  echo "${value:-$default}"
 }
 
 set_tmux_option() {
-  local option=$1
-  local value=$2
+  local option="$1"
+  local value="$2"
   tmux set-option -gq "$option" "$value"
+}
+
+clear_tmux_option() {
+  local option="$1"
+  tmux set-option -guq "$option"
 }
 
 stored_key_vars() {

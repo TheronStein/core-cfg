@@ -14,6 +14,7 @@ require("autocmds")
 -- require("keymaps.lsp-diagnostic")
 -- require("autocmds") -- Load autocommands
 
+-- [[[ Outdated core/sys/cfg loader
 -- Load modules
 -- In your main init.lua or lazy.nvim setup
 -- Only load cfg folders that live directly under lua/plugins/ or lua/core/
@@ -27,3 +28,4 @@ require("autocmds")
 --     vim.notify("core/sys/cfg not found anywhere", vim.log.levels.WARN)
 --   end)
 -- end
+-- ]]]
