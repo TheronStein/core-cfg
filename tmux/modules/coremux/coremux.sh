@@ -1,5 +1,13 @@
 #!/usr/bin/env bash
 
+# Source shared library for core tmux operations
+if [ -f "$TMUX_CONF/modules/lib/tmux-core.sh" ]; then
+    source "$TMUX_CONF/modules/lib/tmux-core.sh"
+fi
+if [ -f "$TMUX_CONF/modules/lib/tmux-sessions.sh" ]; then
+    source "$TMUX_CONF/modules/lib/tmux-sessions.sh"
+fi
+
 readonly DEFAULT_FIND_PATH="$HOME/.core"
 readonly DEFAULT_SHOW_NTH="-2,-1"
 readonly DEFAULT_MAX_DEPTH="2"
@@ -24,10 +32,12 @@ home_replacer=""
 fzf_tmux_options=${FZF_TMUX_OPTS:-"$DEFAULT_FZF_TMUX_OPTIONS"}
 [[ "$HOME" =~ ^[a-zA-Z0-9_/.@-]+$ ]] && home_replacer="s|^$HOME/|~/|"
 
-# Cache tmux options for performance
+# Cache tmux options for performance (coremux-specific optimization)
 TMUX_OPTIONS=$(tmux show-options -g | grep "^@coremux-")
 
-get_tmux_option() {
+# Coremux-specific get_tmux_option with caching
+# Falls back to shared library function if cache miss
+coremux_get_tmux_option() {
   local option="$1"
   local default="$2"
   local value
@@ -36,7 +46,16 @@ get_tmux_option() {
     value=$(echo "$TMUX_OPTIONS" | grep "^$option " | cut -d' ' -f2- | tr -d '"')
   fi
 
-  echo "${value:-$default}"
+  if [[ -z "$value" ]]; then
+    get_tmux_option "$option" "$default"
+  else
+    echo "$value"
+  fi
+}
+
+# Use coremux-specific version internally
+get_tmux_option() {
+  coremux_get_tmux_option "$@"
 }
 
 find_path=$(get_tmux_option "@tea-find-path" "$DEFAULT_FIND_PATH")
