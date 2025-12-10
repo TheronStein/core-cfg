@@ -1133,6 +1133,8 @@ keymap = [
 
   { on = "{", run = "tab_swap -1", desc = "Swap current tab with previous tab" },
   { on = "}", run = "tab_swap 1", desc = "Swap current tab with next tab" },
+  # { on = "<C-S-q>", run = "tab_swap -1", desc = "Swap current tab with previous tab" },
+  # { on = "<C-S-e>", run = "tab_swap 1", desc = "Swap current tab with next tab" },
   # Alternative: Maximize preview (simpler, no plugin needed)
   { on = "<C-p>", run = "plugin zoom", desc = "Maximize/restore preview" },
 

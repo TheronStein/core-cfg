@@ -42,10 +42,19 @@ theme = TokyoNight Moon
 # resize-overlay-duration = 4s 200msggG
 confirm-close-surface = false
 window-save-state = "always"
-keybind = ctrl+enter=unbind
+keybind = ctrl+shift+e=text:\x1b[69;5u
+keybind = ctrl+shift+q=text:\x1b[81;5u
+keybind = ctrl+enter=text:\x1b[13;5u
+# keybind = ctrl+shift+e=ignore
+# keybind = ctrl+shift+q=ignore
+# keybind = ctrl+enter=ignore
 keybind = ctrl+shift+r=reload_config
 keybind = ctrl+shift+page_up=move_tab:1
 keybind = ctrl+shift+page_down=move_tab:-1
+keybind = ctrl+shift+a=goto_split:left
+keybind = ctrl+shift+d=goto_split:right
+keybind = ctrl+shift+w=goto_split:up
+keybind = ctrl+shift+s=goto_split:down
 keybind = ctrl+shift+arrow_left=goto_split:left
 keybind = ctrl+shift+arrow_right=goto_split:right
 keybind = ctrl+shift+arrow_up=goto_split:up

@@ -1,7 +1,8 @@
 -- ~/.config/nvim/lua/plugins/yazi.lua
 -- Simple yazi configuration that works naturally with tabs
 return {
-	"mikavilpas/yazi.nvim",
+	dir = "/home/theron/.core/.proj/plugins/nvim/yazi.nvim", -- Use local development version
+	name = "yazi.nvim",
 	event = "VeryLazy",
 	dependencies = { "nvim-lua/plenary.nvim" },
 	keys = {
@@ -10,9 +11,8 @@ return {
 		{ "<leader>ed", "<cmd>Yazi cwd<cr>", desc = "Open yazi (working directory)" },
 		{ "<leader>es", "<cmd>Yazi toggle<cr>", desc = "Resume last yazi session" },
 
-		-- Dual-pane mode (navigator + preview)
-		{ "<leader>ey", "<cmd>YaziDualPane<cr>", desc = "Toggle yazi dual-pane (navigator + preview)" },
-		{ "<leader>eY", "<cmd>YaziSidebarSync<cr>", desc = "Toggle dual-pane auto-sync" },
+		{ "<leader>eq", "<cmd>YaziLeftBar<cr>", desc = "Open yazi left sidebar" },
+		{ "<leader>ep", "<cmd>YaziSinglePane<cr>", desc = "Open yazi single pane" },
 	},
 	opts = {
 		-- Disable open_multiple_tabs to reduce startup overhead
@@ -26,13 +26,13 @@ return {
 		-- log_level = vim.log.levels.DEBUG,
 		keymaps = {
 			show_help = "<f1>",
-			open_file_in_vertical_split = "ov",
-			open_file_in_horizontal_split = "od",
-			open_file_in_tab = "c<tab>",
+			open_file_in_vertical_split = "<C-v>",
+			open_file_in_horizontal_split = "<C-d>",
+			open_file_in_tab = "<C-t>",
 			grep_in_directory = "<c-g>",
-			send_to_quickfix_list = "sq",
-			change_working_directory = "cd",
-			open_and_pick_window = "ow",
+			send_to_quickfix_list = "<C-s>",
+			change_working_directory = "<C-d>",
+			open_and_pick_window = "<C-p>",
 			cycle_open_buffers = "<tab>",
 			integrations = {
 				--- What should be done when the user wants to grep in a directory
@@ -53,8 +53,8 @@ return {
 		vim.g.loaded_netrwPlugin = 1
 	end,
 	-- Force latest: ignore versions, always use main branch head
-	version = false,
-	branch = "main",
+	-- version = false,
+	-- branch = "main",
 }
 -- return {
 -- 	"mikavilpas/yazi.nvim",
