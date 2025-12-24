@@ -67,68 +67,35 @@ local function get_colors(theme)
 		end
 	end
 
-	return {
-		-- Normal/default mode - blue/lavender (ansi[5])
-		normal_mode = {
-			a = { fg = background, bg = colors.ansi[5] },
-			b = { fg = colors.ansi[5], bg = surface },
+	-- Import the unified mode color map to ensure consistency
+	-- MODE_COLOR_MAP now contains direct hex color values
+	local mode_color_map = require("modules.utils.mode_colors").MODE_COLOR_MAP
+
+	-- Build mode themes using the SAME colors as border colors
+	-- This ensures tabline and borders always use matching colors
+	local mode_themes = {}
+	for mode_name, hex_color in pairs(mode_color_map) do
+		mode_themes[mode_name] = {
+			a = { fg = background, bg = hex_color },
+			b = { fg = hex_color, bg = surface },
 			c = { fg = colors.foreground, bg = background },
-		},
-		-- Wezterm context mode (same as normal)
-		wezterm_mode = {
-			a = { fg = background, bg = colors.ansi[5] },
-			b = { fg = colors.ansi[5], bg = surface },
-			c = { fg = colors.foreground, bg = background },
-		},
-		-- Tmux context mode - cyan/teal (ansi[7])
-		tmux_mode = {
-			a = { fg = background, bg = colors.ansi[7] },
-			b = { fg = colors.ansi[7], bg = surface },
-			c = { fg = colors.foreground, bg = background },
-		},
-		-- Leader mode - red (ansi[2])
-		leader_mode = {
-			a = { fg = background, bg = colors.ansi[2] },
-			b = { fg = colors.ansi[2], bg = surface },
-			c = { fg = colors.foreground, bg = background },
-		},
-		-- Pane navigation mode - green (ansi[3])
-		pane_mode = {
-			a = { fg = background, bg = colors.ansi[3] },
-			b = { fg = colors.ansi[3], bg = surface },
-			c = { fg = colors.foreground, bg = background },
-		},
-		-- Resize mode - yellow/peach (ansi[4])
-		resize_mode = {
-			a = { fg = background, bg = colors.ansi[4] },
-			b = { fg = colors.ansi[4], bg = surface },
-			c = { fg = colors.foreground, bg = background },
-		},
-		-- Copy mode - yellow/peach (ansi[4])
-		copy_mode = {
-			a = { fg = background, bg = colors.ansi[4] },
-			b = { fg = colors.ansi[4], bg = surface },
-			c = { fg = colors.foreground, bg = background },
-		},
-		-- Search mode - green (ansi[3])
-		search_mode = {
-			a = { fg = background, bg = colors.ansi[3] },
-			b = { fg = colors.ansi[3], bg = surface },
-			c = { fg = colors.foreground, bg = background },
-		},
-		-- Selection mode - blue (ansi[5])
-		pane_selection_mode = {
-			a = { fg = background, bg = colors.ansi[5] },
-			b = { fg = colors.ansi[5], bg = surface },
-			c = { fg = colors.foreground, bg = background },
-		},
-		tab = {
-			active = { fg = colors.ansi[5], bg = surface },
-			inactive = { fg = colors.foreground, bg = background },
-			inactive_hover = { fg = colors.ansi[6], bg = surface },
-		},
-		colors = colors,
+		}
+	end
+
+	-- Add special "normal_mode" alias for compatibility
+	mode_themes.normal_mode = mode_themes.wezterm_mode
+
+	-- Add tab colors
+	mode_themes.tab = {
+		active = { fg = colors.ansi[5], bg = surface },
+		inactive = { fg = colors.foreground, bg = background },
+		inactive_hover = { fg = colors.ansi[6], bg = surface },
 	}
+
+	-- Add raw color scheme reference
+	mode_themes.colors = colors
+
+	return mode_themes
 end
 
 local function set_component_opts(user_opts)

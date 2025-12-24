@@ -66,8 +66,8 @@ function M.setup(config)
       key = "p",
       mods = "LEADER",
       action = wezterm.action_callback(function(window, pane)
-        -- Set border color for pane mode
-        mode_colors.set_mode_border(window, "PANE")
+        -- Set border color BEFORE entering pane mode
+        mode_colors.enter_mode(window, "pane_mode")
         window:perform_action(
           wezterm.action.ActivateKeyTable({
             name = "pane_mode",

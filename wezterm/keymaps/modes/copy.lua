@@ -71,8 +71,7 @@ function M.setup(config)
 					}),
 					pane
 				)
-				-- Sync border AFTER closing copy mode
-				mode_colors.sync_border_with_mode(window)
+				mode_colors.exit_mode(window)
 			end),
 		},
 		-- Copy and exit
@@ -88,8 +87,7 @@ function M.setup(config)
 					}),
 					pane
 				)
-				-- Sync border AFTER closing copy mode
-				mode_colors.sync_border_with_mode(window)
+				mode_colors.exit_mode(window)
 			end),
 		},
 
@@ -106,8 +104,7 @@ function M.setup(config)
 					}),
 					pane
 				)
-				-- Sync border AFTER closing copy mode
-				mode_colors.sync_border_with_mode(window)
+				mode_colors.exit_mode(window)
 			end),
 		},
 		-- Exit bindings
@@ -122,8 +119,7 @@ function M.setup(config)
 					}),
 					pane
 				)
-				-- Sync border AFTER closing copy mode
-				mode_colors.sync_border_with_mode(window)
+				mode_colors.exit_mode(window)
 			end),
 		},
 		{
@@ -137,8 +133,7 @@ function M.setup(config)
 					}),
 					pane
 				)
-				-- Sync border AFTER closing copy mode
-				mode_colors.sync_border_with_mode(window)
+				mode_colors.exit_mode(window)
 			end),
 		},
 		{
@@ -152,8 +147,7 @@ function M.setup(config)
 					}),
 					pane
 				)
-				-- Sync border AFTER closing copy mode
-				mode_colors.sync_border_with_mode(window)
+				mode_colors.exit_mode(window)
 			end),
 		},
 	}

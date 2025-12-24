@@ -10,7 +10,8 @@ function M.setup(config)
     {
       key = "Tab",
       action = wezterm.action_callback(function(window, pane)
-        -- Switch to pane mode
+        -- Set border BEFORE switching to pane mode
+        mode_colors.enter_mode(window, "pane_mode")
         window:perform_action(
           wezterm.action.ActivateKeyTable({
             name = "pane_mode",
@@ -19,8 +20,6 @@ function M.setup(config)
           }),
           pane
         )
-        -- Sync border AFTER switching key table
-        mode_colors.sync_border_with_mode(window)
       end),
     },
 
@@ -47,8 +46,7 @@ function M.setup(config)
       key = "Escape",
       action = wezterm.action_callback(function(window, pane)
         window:perform_action(wezterm.action.PopKeyTable, pane)
-        -- Sync border AFTER popping key table
-        mode_colors.sync_border_with_mode(window)
+        mode_colors.exit_mode(window)
       end),
     },
     {
@@ -56,17 +54,14 @@ function M.setup(config)
       mods = "CTRL",
       action = wezterm.action_callback(function(window, pane)
         window:perform_action(wezterm.action.PopKeyTable, pane)
-        -- Sync border AFTER popping key table
-        mode_colors.sync_border_with_mode(window)
+        mode_colors.exit_mode(window)
       end),
     },
-
     {
       key = "q",
       action = wezterm.action_callback(function(window, pane)
         window:perform_action(wezterm.action.PopKeyTable, pane)
-        -- Sync border AFTER popping key table
-        mode_colors.sync_border_with_mode(window)
+        mode_colors.exit_mode(window)
       end),
     },
   })

@@ -25,8 +25,11 @@ function M.toggle_context(window, pane)
 	local new_context = current == "wezterm" and "tmux" or "wezterm"
 	M.set_context(new_context)
 
-	-- Update status display
-	wezterm.emit("update-status", window, pane)
+	-- Update border and tabline colors to match new context
+	local ok, mode_colors = pcall(require, "keymaps.mode-colors")
+	if ok then
+		mode_colors.set_context(window, new_context)
+	end
 
 	-- Update tmux status bar by setting global environment variable
 	-- Tmux will read this and update its status bar colors

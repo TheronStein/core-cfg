@@ -249,33 +249,21 @@ function M.setup(config)
     { key = "x", mods = "LEADER", action = act.CloseCurrentPane({ confirm = false }) },
     -- Tab management
     { key = "c", mods = "LEADER", action = act.SpawnTab("CurrentPaneDomain") },
-    -- Copy mode with border color change
-    {
-      key = "`",
-      mods = "LEADER",
-      action = wezterm.action_callback(function(window, pane)
-        window:perform_action(act.ActivateCopyMode, pane)
-        -- Sync border AFTER entering copy mode
-        local ok, mode_colors = pcall(require, "keymaps.mode-colors")
-        if ok then
-          mode_colors.sync_border_with_mode(window)
-        end
-      end),
-    },
-    {
-      key = "/",
-      mods = "LEADER",
-      action = wezterm.action_callback(function(window, pane)
-        window:perform_action(act.Search("CurrentSelectionOrEmptyString"), pane)
-        -- Sync border AFTER entering search mode
-        local ok, mode_colors = pcall(require, "keymaps.mode-colors")
-        if ok then
-          mode_colors.sync_border_with_mode(window)
-        end
-      end),
-    },
+    -- Note: Copy mode (LEADER+` and LEADER+[) is defined in mods/context.lua with mode color support
+    -- Note: Search mode (LEADER+/) is defined below
 
-    { key = "P", mods = "LEADER|SHIFT", action = wezterm.action.PaneSelect },
+    {
+      key = "P",
+      mods = "LEADER|SHIFT",
+      action = wezterm.action_callback(function(window, pane)
+        -- Set border color BEFORE entering pane selection mode
+        local ok, mode_colors = pcall(require, "keymaps.mode-colors")
+        if ok then
+          mode_colors.enter_mode(window, "pane_selection_mode")
+        end
+        window:perform_action(wezterm.action.PaneSelect, pane)
+      end),
+    },
     -- Pane picker with arrows to swap positions
     { key = "r", mods = "LEADER", action = act.ReloadConfiguration },
 

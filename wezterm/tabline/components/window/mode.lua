@@ -1,27 +1,20 @@
 local wezterm = require("wezterm")
+local mode_colors = require("modules.utils.mode_colors")
 
 local M = {}
 
+-- Use the unified mode detection instead of duplicating logic
 function M.get(window)
-	-- Check if leader is active first
-	if window:leader_is_active() then
-		return "leader_mode"
+	-- Use GLOBAL state set by mode-colors.lua (single source of truth)
+	-- This ensures tabline always shows the same mode as the border color
+	local current_mode = wezterm.GLOBAL.current_mode
+
+	-- Fallback to detection if GLOBAL not set yet
+	if not current_mode then
+		current_mode = mode_colors.get_current_mode(window)
 	end
 
-	-- Check for special key table modes (copy, resize, etc.)
-	local key_table = window:active_key_table()
-	if key_table and key_table:find("_mode$") then
-		return key_table
-	end
-
-	-- Default: show context (TMUX or WEZTERM)
-	local context = wezterm.GLOBAL.leader_context or "wezterm"
-
-	if context == "tmux" then
-		return "tmux_mode"
-	else
-		return "wezterm_mode"
-	end
+	return current_mode
 end
 
 return {

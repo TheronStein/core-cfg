@@ -1,156 +1,153 @@
--- Centralized mode border color management
--- This module provides a single source of truth for border colors across all modes
--- Border colors are derived from the tabline theme to ensure visual consistency
--- The border color ALWAYS matches the current mode indicator in the status bar
+-- Mode State & Border Color Management
+-- Applies mode colors to BOTH pane borders AND tabline (via GLOBAL state)
+-- Single point of control for mode color transitions
+--
+-- This module:
+-- 1. Uses mode_colors constants (single source of truth)
+-- 2. Sets border color via config overrides
+-- 3. Sets GLOBAL state that tabline reads for its colors
+-- 4. Provides helpers for mode transitions
+--
+-- When you enter a mode, call enter_mode() - it sets BOTH border and tabline
+-- When you exit a mode, call exit_mode() - it syncs back to current state
 
 local wezterm = require("wezterm")
+local mode_colors_const = require("modules.utils.mode_colors")
+
 local M = {}
 
 -- ============================================================================
--- MODE DETECTION (mirrors tabline/components/window/mode.lua)
+-- APPLY MODE COLORS (BOTH BORDER + TABLINE)
 -- ============================================================================
 
--- Get the current mode - this is the single source of truth
--- Returns the mode name exactly as used in tabline theme (e.g., "wezterm_mode", "leader_mode")
-function M.get_current_mode(window)
-  -- 1. Leader key takes highest priority
-  if window:leader_is_active() then
-    return "leader_mode"
-  end
+-- Set both border color AND tabline state for a specific mode
+-- This is the SINGLE function that applies mode colors - use it everywhere
+function M.set_mode(window, mode_name)
+  -- Get the color for this mode
+  local color = mode_colors_const.get_color(mode_name)
 
-  -- 2. Check for active key table (copy_mode, resize_mode, pane_mode, search_mode, etc.)
-  local key_table = window:active_key_table()
-  if key_table then
-    -- Ensure it ends with _mode for consistency
-    if not key_table:find("_mode$") then
-      return key_table .. "_mode"
-    end
-    return key_table
-  end
-
-  -- 3. Default: context-based mode (wezterm or tmux)
-  local context = wezterm.GLOBAL.leader_context or "wezterm"
-  if context == "tmux" then
-    return "tmux_mode"
-  else
-    return "wezterm_mode"
-  end
-end
-
--- ============================================================================
--- THEME COLOR EXTRACTION
--- ============================================================================
-
--- Get the border color for a specific mode from the tabline theme
--- The color comes from the mode's 'a' section background (the mode indicator)
-function M.get_color_for_mode(mode_name)
-  local ok, tabline_config = pcall(require, "tabline.config")
-  if not ok or not tabline_config.theme then
-    -- Fallback colors if tabline not initialized
-    local fallbacks = {
-      wezterm_mode = "#b4befe",      -- blue/lavender
-      tmux_mode = "#94e2d5",         -- cyan/teal
-      leader_mode = "#f38ba8",       -- red
-      pane_mode = "#a6e3a1",         -- green
-      resize_mode = "#fab387",       -- peach/yellow
-      copy_mode = "#fab387",         -- peach/yellow
-      search_mode = "#a6e3a1",       -- green
-      pane_selection_mode = "#89b4fa", -- blue
-    }
-    return fallbacks[mode_name] or "#b4befe"
-  end
-
-  -- Get color from theme's 'a' section background for this mode
-  local theme = tabline_config.theme
-  if theme[mode_name] and theme[mode_name].a and theme[mode_name].a.bg then
-    return theme[mode_name].a.bg
-  end
-
-  -- Fallback to wezterm_mode color if mode not found in theme
-  if theme.wezterm_mode and theme.wezterm_mode.a and theme.wezterm_mode.a.bg then
-    return theme.wezterm_mode.a.bg
-  end
-
-  return "#b4befe"  -- Ultimate fallback
-end
-
--- ============================================================================
--- PUBLIC API
--- ============================================================================
-
--- Get the color for a specific mode
--- @param mode - Mode name (e.g., "leader_mode", "copy_mode", "wezterm_mode")
--- @return color hex string
-function M.get_color(mode)
-  -- Normalize mode name to include _mode suffix if needed
-  local mode_name = tostring(mode or "wezterm_mode")
-  if not mode_name:find("_mode$") then
-    mode_name = mode_name:lower() .. "_mode"
-  end
-  return M.get_color_for_mode(mode_name)
-end
-
--- Set border color for a specific mode
--- @param window - WezTerm window object
--- @param mode - Mode name (e.g., "pane_mode", "resize_mode", "leader_mode")
-function M.set_mode_border(window, mode)
-  -- Normalize mode name
-  local mode_name = tostring(mode or "wezterm_mode")
-  if not mode_name:find("_mode$") then
-    mode_name = mode_name:lower() .. "_mode"
-  end
-
-  local color = M.get_color_for_mode(mode_name)
-
-  -- Apply the border color
+  -- 1. Set pane border color
   local overrides = window:get_config_overrides() or {}
   overrides.colors = overrides.colors or {}
   overrides.colors.split = color
   window:set_config_overrides(overrides)
 
-  -- Store current mode in global for reference
-  wezterm.GLOBAL.current_border_mode = mode_name
+  -- 2. Set GLOBAL state that tabline reads
+  -- The tabline mode component reads wezterm.GLOBAL.current_mode to determine its color
+  wezterm.GLOBAL.current_mode = mode_name
+  wezterm.GLOBAL.current_border_color = color
+
+  -- 3. Update tracking so sync_mode_border doesn't redundantly call set_mode
+  wezterm.GLOBAL.last_mode_per_window = wezterm.GLOBAL.last_mode_per_window or {}
+  local window_id = tostring(window:window_id())
+  wezterm.GLOBAL.last_mode_per_window[window_id] = mode_name
+
+  -- 4. Directly update tabline to reflect the mode change immediately
+  -- This avoids recursion issues with update-status while ensuring instant feedback
+  local ok, tabline_component = pcall(require, "tabline.component")
+  if ok and tabline_component and tabline_component.set_status then
+    tabline_component.set_status(window)
+  end
 
   -- Debug logging
-  local ok, debug_config = pcall(require, "config.debug")
-  if ok and debug_config.is_enabled("debug_mode_borders") then
-    wezterm.log_info(string.format("[MODE-COLORS] Set border to %s for mode: %s", color, mode_name))
+  local ok2, debug_config = pcall(require, "config.debug")
+  if ok2 and debug_config.is_enabled("debug_mode_borders") then
+    wezterm.log_info(string.format("[MODE] Set mode to %s (color: %s)", mode_name, color))
   end
 end
 
--- Sync border color with current mode (call from update-status)
--- This is the main function that keeps borders in sync with the status bar
--- @param window - WezTerm window object
--- @return current mode name
-function M.sync_border_with_mode(window)
-  local current_mode = M.get_current_mode(window)
-  M.set_mode_border(window, current_mode)
+-- ============================================================================
+-- MODE TRANSITION HELPERS
+-- ============================================================================
+
+-- Enter a mode (sets border and tabline colors)
+function M.enter_mode(window, mode_name)
+  M.set_mode(window, mode_name)
+end
+
+-- Exit current mode and sync to actual state
+-- This detects what mode we should be in now (after exiting key table, etc.)
+function M.exit_mode(window)
+  -- Small delay to let key table pop complete, then sync
+  wezterm.time.call_after(0.01, function()
+    local current_mode = mode_colors_const.get_current_mode(window)
+    M.set_mode(window, current_mode)
+  end)
+end
+
+-- Sync to current detected mode (used by update-status as fallback)
+-- This is the ONLY place we "poll" - everything else is direct
+function M.sync_to_current_mode(window)
+  local current_mode = mode_colors_const.get_current_mode(window)
+  M.set_mode(window, current_mode)
   return current_mode
 end
 
--- Create an action callback that syncs border color immediately
--- This is used to trigger border updates on mode entry/exit without waiting for update-status
--- @param wrapped_action - Optional action to perform after syncing (can be nil for sync-only)
--- @return action_callback that syncs border then performs wrapped action
-function M.sync_and_perform(wrapped_action)
-  return wezterm.action_callback(function(window, pane)
-    -- Sync border color to match current mode
-    M.sync_border_with_mode(window)
+-- ============================================================================
+-- CONTEXT SWITCHING
+-- ============================================================================
 
-    -- Perform the wrapped action if provided
-    if wrapped_action then
-      window:perform_action(wrapped_action, pane)
+-- Set context and update colors if appropriate
+function M.set_context(window, context)
+  wezterm.GLOBAL.leader_context = context
+
+  -- If no key table is active and leader isn't active, update to context mode
+  if not window:active_key_table() and not window:leader_is_active() then
+    local mode = context == "tmux" and "tmux_mode" or "wezterm_mode"
+    M.set_mode(window, mode)
+  end
+end
+
+-- ============================================================================
+-- ACTION CREATORS
+-- ============================================================================
+
+-- Create an action that enters a mode with color update, then performs an action
+function M.enter_mode_action(mode_name, then_action)
+  return wezterm.action_callback(function(window, pane)
+    M.enter_mode(window, mode_name)
+    if then_action then
+      window:perform_action(then_action, pane)
     end
   end)
 end
 
--- Convenience function for resetting to default context mode
--- @param window - WezTerm window object
-function M.reset_border(window)
-  -- Don't reset to a hardcoded "normal" - detect the actual context mode
-  local context = wezterm.GLOBAL.leader_context or "wezterm"
-  local default_mode = context == "tmux" and "tmux_mode" or "wezterm_mode"
-  M.set_mode_border(window, default_mode)
+-- Create an action that exits mode and syncs colors
+function M.exit_mode_action(exit_action)
+  return wezterm.action_callback(function(window, pane)
+    if exit_action then
+      window:perform_action(exit_action, pane)
+    end
+    M.exit_mode(window)
+  end)
+end
+
+-- ============================================================================
+-- LEGACY API (for compatibility)
+-- ============================================================================
+
+function M.get_current_mode(window)
+  return mode_colors_const.get_current_mode(window)
+end
+
+function M.get_color(mode_name)
+  return mode_colors_const.get_color(mode_name)
+end
+
+function M.set_border(window, mode_name)
+  M.set_mode(window, mode_name)
+end
+
+function M.sync_border(window)
+  return M.sync_to_current_mode(window)
+end
+
+function M.sync_border_with_mode(window)
+  return M.sync_to_current_mode(window)
+end
+
+function M.invalidate_cache()
+  mode_colors_const.invalidate_cache()
 end
 
 return M

@@ -174,8 +174,12 @@ end
 -- ============================================================================
 -- MODE BORDER COLOR SYNC
 -- ============================================================================
--- This replaces the old leader-only tracking with full mode synchronization
--- The border color is ALWAYS synced with the current mode on every status update
+-- Syncs mode colors ONLY when the mode actually changes.
+-- This allows instant detection of leader key and other mode transitions
+-- while avoiding unnecessary set_mode calls.
+
+-- Initialize GLOBAL tracking if needed
+wezterm.GLOBAL.last_mode_per_window = wezterm.GLOBAL.last_mode_per_window or {}
 
 function sync_mode_border(window, pane)
 	local ok, mode_colors = pcall(require, "keymaps.mode-colors")
@@ -183,15 +187,25 @@ function sync_mode_border(window, pane)
 		return
 	end
 
-	-- sync_border_with_mode handles all mode detection:
-	-- - Leader key active → leader_mode color
-	-- - Key table active (pane_mode, resize_mode, copy_mode, etc.) → mode color
-	-- - Default context → wezterm_mode or tmux_mode color
-	local current_mode = mode_colors.sync_border_with_mode(window)
+	local ok2, mode_colors_const = pcall(require, "modules.utils.mode_colors")
+	if not ok2 then
+		return
+	end
 
-	-- Update global state for other systems that need to know current mode
-	-- current_mode is already the full mode name (e.g., "leader_mode", "pane_mode", "wezterm_mode")
-	wezterm.GLOBAL.current_mode = current_mode
+	local window_id = tostring(window:window_id())
+
+	-- Detect current mode (cheap boolean/string checks)
+	local current_mode = mode_colors_const.get_current_mode(window)
+
+	-- Only call set_mode if mode actually changed from what update-status last saw
+	-- Note: set_mode also updates GLOBAL.current_mode, so we check against that too
+	local last_synced = wezterm.GLOBAL.last_mode_per_window[window_id]
+	if last_synced ~= current_mode then
+		wezterm.GLOBAL.last_mode_per_window[window_id] = current_mode
+		mode_colors.set_mode(window, current_mode)
+	end
+
+	-- Update global state for other systems
 	wezterm.GLOBAL.leader_active = window:leader_is_active()
 end
 

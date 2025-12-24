@@ -173,19 +173,79 @@ function M.setup(config)
 		--  │                   Copy Mode                             │
 		--  ╰─────────────────────────────────────────────────────────╯
 
-		-- Enter copy mode
+		-- Enter copy mode with mode color
 		-- tmux: [
 		{
 			key = "[",
 			mods = "LEADER",
-			action = context_manager.context_action("[", act.ActivateCopyMode),
+			action = wezterm.action_callback(function(window, pane)
+				-- Set mode color BEFORE entering copy mode
+				local ok, mode_colors = pcall(require, "keymaps.mode-colors")
+				if ok then
+					mode_colors.enter_mode(window, "copy_mode")
+				end
+				-- Use context-aware action for tmux compatibility
+				local context = context_manager.get_context()
+				if context == "tmux" then
+					window:perform_action(wezterm.action.Multiple({
+						wezterm.action.SendKey({ key = "Space", mods = "CTRL" }),
+						wezterm.action.SendKey({ key = "[" }),
+					}), pane)
+				else
+					window:perform_action(act.ActivateCopyMode, pane)
+				end
+			end),
 		},
 
 		-- Alternative copy mode binding
 		{
 			key = "`",
 			mods = "LEADER",
-			action = context_manager.context_action("[", act.ActivateCopyMode),
+			action = wezterm.action_callback(function(window, pane)
+				-- Set mode color BEFORE entering copy mode
+				local ok, mode_colors = pcall(require, "keymaps.mode-colors")
+				if ok then
+					mode_colors.enter_mode(window, "copy_mode")
+				end
+				-- Use context-aware action for tmux compatibility
+				local context = context_manager.get_context()
+				if context == "tmux" then
+					window:perform_action(wezterm.action.Multiple({
+						wezterm.action.SendKey({ key = "Space", mods = "CTRL" }),
+						wezterm.action.SendKey({ key = "[" }),
+					}), pane)
+				else
+					window:perform_action(act.ActivateCopyMode, pane)
+				end
+			end),
+		},
+
+		--  ╭─────────────────────────────────────────────────────────╮
+		--  │                   Search Mode                           │
+		--  ╰─────────────────────────────────────────────────────────╯
+
+		-- Enter search mode
+		-- tmux: /
+		{
+			key = "/",
+			mods = "LEADER",
+			action = wezterm.action_callback(function(window, pane)
+				-- Set mode color BEFORE entering search mode
+				local ok, mode_colors = pcall(require, "keymaps.mode-colors")
+				if ok then
+					mode_colors.enter_mode(window, "search_mode")
+				end
+				-- Use context-aware action for tmux compatibility
+				local context = context_manager.get_context()
+				if context == "tmux" then
+					window:perform_action(wezterm.action.Multiple({
+						wezterm.action.SendKey({ key = "Space", mods = "CTRL" }),
+						wezterm.action.SendKey({ key = "/" }),
+					}), pane)
+				else
+					window:perform_action(act.Search("CurrentSelectionOrEmptyString"), pane)
+				end
+			end),
 		},
 	}
 

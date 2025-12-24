@@ -29,6 +29,31 @@ local tabline_a, tabline_b, tabline_c, tabline_x, tabline_y, tabline_z = {}, {},
 local function create_attributes(window)
   local current_mode = mode.get(window)
   local colors = config.theme[current_mode]
+
+  -- Get the ACTUAL mode color directly from mode_colors module
+  -- This ensures the tabline mode background ALWAYS matches the border color
+  local mode_colors_module = require("modules.utils.mode_colors")
+  local actual_mode_color = mode_colors_module.get_color(current_mode)
+
+  -- Override the cached theme colors with the actual mode color
+  if colors then
+    colors = util.deep_copy(colors)
+    colors.a = colors.a or {}
+    colors.a.bg = actual_mode_color
+    colors.b = colors.b or {}
+    colors.b.fg = actual_mode_color
+  else
+    -- Fallback if theme not found for this mode
+    local scheme_colors = config.theme.colors or {}
+    local background = scheme_colors.background or "#1e1e2e"
+    local surface = scheme_colors.cursor and scheme_colors.cursor.bg or "#313244"
+    colors = {
+      a = { fg = background, bg = actual_mode_color },
+      b = { fg = actual_mode_color, bg = surface },
+      c = { fg = scheme_colors.foreground or "#cdd6f4", bg = background },
+    }
+  end
+
   for _, ext in pairs(extension.extensions) do
     if ext.theme then
       colors = util.deep_extend(util.deep_copy(colors), ext.theme)

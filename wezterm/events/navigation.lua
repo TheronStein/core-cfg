@@ -81,8 +81,11 @@ end
 -- ============================================================================
 -- KEY EVENT (DEBUG/LOGGING)
 -- ============================================================================
+-- Note: WezTerm doesn't have a native "key-event" for leader activation.
+-- Leader mode detection is handled by the update-status event handler
+-- which polls window:leader_is_active() on every status update.
 
--- Custom logging function for key events
+-- Custom logging function for key events (if debug event is implemented)
 local function log_key_event(event_data)
 	-- Only log if debug mode is enabled
 	local debug_config = require("config.debug")
@@ -96,21 +99,6 @@ local function log_key_event(event_data)
 			)
 		)
 	end
-end
-
-function M.handle_key_event(window, pane, key, mods, event)
-	log_key_event({ key = key, mods = mods, event = event })
-
-	-- Sync border color immediately when leader key state changes
-	-- This ensures leader mode border color appears instantly
-	if window:leader_is_active() then
-		local ok, mode_colors = pcall(require, "keymaps.mode-colors")
-		if ok then
-			mode_colors.sync_border_with_mode(window)
-		end
-	end
-
-	return true -- Allow the event to propagate
 end
 
 -- ============================================================================
@@ -127,10 +115,8 @@ function M.setup()
 		return M.handle_open_uri(window, pane, uri)
 	end)
 
-	-- Key event (for debugging/logging)
-	wezterm.on("key-event", function(window, pane, key, mods, event)
-		return M.handle_key_event(window, pane, key, mods, event)
-	end)
+	-- Note: Leader mode detection is handled by the update-status event
+	-- in events/update-status.lua via sync_mode_border()
 
 	wezterm.log_info("[EVENT] Navigation handlers initialized")
 end

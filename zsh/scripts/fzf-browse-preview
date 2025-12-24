@@ -1,0 +1,171 @@
+#!/usr/bin/env zsh
+# Preview script for fzf-browse
+# Usage: fzf-browse-preview <target> <current_dir>
+
+local target="$1"
+local dir="${2:-.}"
+
+# Colors
+local C=$'\033[1;36m'
+local M=$'\033[1;35m'
+local G=$'\033[1;32m'
+local Y=$'\033[1;33m'
+local B=$'\033[1;34m'
+local D=$'\033[0;90m'
+local W=$'\033[1;37m'
+local R=$'\033[0m'
+
+# Clean up target (strip eza icons - they appear at start)
+# eza icons are Unicode followed by space
+target=$(echo "$target" | sed 's/^[[:space:]]*//; s/[[:space:]]*$//')
+
+# For vertical view with details, extract just the filename (last field)
+if [[ "$target" == *" "* ]]; then
+    target=$(echo "$target" | awk '{print $NF}')
+fi
+
+# Build full path
+local full_path
+if [[ "$target" == /* ]]; then
+    full_path="$target"
+else
+    full_path="$dir/$target"
+fi
+
+# Resolve symlinks for display
+local resolved=""
+if [[ -L "$full_path" ]]; then
+    resolved=" -> $(readlink "$full_path")"
+fi
+
+# Directory preview
+if [[ -d "$full_path" ]]; then
+    echo ""
+    echo "  ${M}╔════════════════════════════════════════════════════════════════╗${R}"
+    echo "  ${M}║${R}  ${B}DIRECTORY${R}                                                     ${M}║${R}"
+    echo "  ${M}╚════════════════════════════════════════════════════════════════╝${R}"
+    echo ""
+    echo "  ${C}$full_path${D}$resolved${R}"
+    echo ""
+    echo "  ${D}────────────────────────────────────────────────────────────────${R}"
+    echo ""
+
+    # Show directory contents
+    if command -v eza &>/dev/null; then
+        eza --icons --color=always -la --sort=name --group-directories-first \
+            --no-permissions --no-user --time-style=relative "$full_path" 2>/dev/null | head -25 | sed 's/^/  /'
+    else
+        ls -lAh --color=always "$full_path" 2>/dev/null | head -25 | sed 's/^/  /'
+    fi
+
+    echo ""
+    echo "  ${D}────────────────────────────────────────────────────────────────${R}"
+
+    # Stats
+    local total=$(find "$full_path" -maxdepth 1 2>/dev/null | wc -l)
+    local dirs=$(find "$full_path" -maxdepth 1 -type d 2>/dev/null | wc -l)
+    local files=$(find "$full_path" -maxdepth 1 -type f 2>/dev/null | wc -l)
+    local size=$(du -sh "$full_path" 2>/dev/null | cut -f1)
+
+    echo ""
+    echo "  ${D}Dirs:${R} ${C}$((dirs-1))${R}  ${D}Files:${R} ${G}$files${R}  ${D}Size:${R} ${Y}$size${R}"
+
+# File preview
+elif [[ -f "$full_path" ]]; then
+    echo ""
+    echo "  ${G}╔════════════════════════════════════════════════════════════════╗${R}"
+    echo "  ${G}║${R}  ${W}FILE${R}                                                          ${G}║${R}"
+    echo "  ${G}╚════════════════════════════════════════════════════════════════╝${R}"
+    echo ""
+    echo "  ${C}$full_path${D}$resolved${R}"
+    echo ""
+
+    # File info
+    local size=$(du -h "$full_path" 2>/dev/null | cut -f1)
+    local modified=$(stat -c '%y' "$full_path" 2>/dev/null | cut -d'.' -f1)
+    local mime=$(file -b --mime-type "$full_path" 2>/dev/null)
+
+    echo "  ${D}Size:${R} ${Y}$size${R}  ${D}Modified:${R} $modified"
+    echo "  ${D}Type:${R} $mime"
+    echo ""
+    echo "  ${D}────────────────────────────────────────────────────────────────${R}"
+    echo ""
+
+    # Content preview based on type
+    case "$mime" in
+        text/*|application/json|application/javascript|application/xml|application/x-shellscript)
+            if command -v bat &>/dev/null; then
+                bat --style=numbers,changes --color=always --line-range=:40 "$full_path" 2>/dev/null | sed 's/^/  /'
+            else
+                head -40 "$full_path" | nl -ba | sed 's/^/  /'
+            fi
+            ;;
+        image/*)
+            echo "  ${Y}[Image Preview]${R}"
+            echo ""
+            if command -v chafa &>/dev/null; then
+                chafa -s 50x25 "$full_path" 2>/dev/null | sed 's/^/  /'
+            elif command -v viu &>/dev/null; then
+                viu -w 50 "$full_path" 2>/dev/null | sed 's/^/  /'
+            else
+                echo "  ${D}(Install chafa or viu for image preview)${R}"
+            fi
+            ;;
+        application/pdf)
+            echo "  ${Y}[PDF Document]${R}"
+            echo ""
+            if command -v pdftotext &>/dev/null; then
+                pdftotext -l 2 "$full_path" - 2>/dev/null | head -35 | sed 's/^/  /'
+            else
+                echo "  ${D}(Install poppler for PDF preview)${R}"
+            fi
+            ;;
+        application/zip|application/x-tar|application/gzip|application/x-xz)
+            echo "  ${Y}[Archive Contents]${R}"
+            echo ""
+            case "$full_path" in
+                *.zip) unzip -l "$full_path" 2>/dev/null | head -30 | sed 's/^/  /' ;;
+                *.tar.gz|*.tgz) tar -tzf "$full_path" 2>/dev/null | head -30 | sed 's/^/  /' ;;
+                *.tar.xz) tar -tJf "$full_path" 2>/dev/null | head -30 | sed 's/^/  /' ;;
+                *.tar) tar -tf "$full_path" 2>/dev/null | head -30 | sed 's/^/  /' ;;
+                *) echo "  ${D}(Unknown archive format)${R}" ;;
+            esac
+            ;;
+        audio/*|video/*)
+            echo "  ${Y}[Media File]${R}"
+            echo ""
+            if command -v mediainfo &>/dev/null; then
+                mediainfo "$full_path" 2>/dev/null | head -25 | sed 's/^/  /'
+            elif command -v ffprobe &>/dev/null; then
+                ffprobe -hide_banner "$full_path" 2>&1 | head -20 | sed 's/^/  /'
+            else
+                echo "  ${D}(Install mediainfo or ffprobe for media info)${R}"
+            fi
+            ;;
+        *)
+            echo "  ${D}[Binary file - hex dump]${R}"
+            echo ""
+            hexdump -C "$full_path" 2>/dev/null | head -20 | sed 's/^/  /'
+            ;;
+    esac
+
+# Symlink that points to nothing
+elif [[ -L "$full_path" ]]; then
+    echo ""
+    echo "  ${Y}╔════════════════════════════════════════════════════════════════╗${R}"
+    echo "  ${Y}║${R}  ${Y}BROKEN SYMLINK${R}                                                ${Y}║${R}"
+    echo "  ${Y}╚════════════════════════════════════════════════════════════════╝${R}"
+    echo ""
+    echo "  ${C}$full_path${R}"
+    echo "  ${D}->  ${R}$(readlink "$full_path") ${Y}(broken)${R}"
+
+# Not found
+else
+    echo ""
+    echo "  ${D}╔════════════════════════════════════════════════════════════════╗${R}"
+    echo "  ${D}║${R}  ${D}NOT FOUND${R}                                                     ${D}║${R}"
+    echo "  ${D}╚════════════════════════════════════════════════════════════════╝${R}"
+    echo ""
+    echo "  ${D}Path: $full_path${R}"
+    echo "  ${D}Target: $target${R}"
+fi
