@@ -29,8 +29,26 @@ function M.setup(config)
 		{ key = "DownArrow", mods = "NONE", action = act.CopyMode("NextMatch") },
 		{ key = "Enter", mods = "NONE", action = act.CopyMode("AcceptPattern") },
 		-- Exit search mode
-		{ key = "Escape", mods = "NONE", action = act.CopyMode("Close") },
-		{ key = "c", mods = "CTRL", action = act.CopyMode("Close") },
+		{
+			key = "Escape",
+			mods = "NONE",
+			action = wezterm.action_callback(function(window, pane)
+				window:perform_action(act.CopyMode("Close"), pane)
+				-- Sync border AFTER closing search mode
+				local mode_colors = require("keymaps.mode-colors")
+				mode_colors.sync_border_with_mode(window)
+			end),
+		},
+		{
+			key = "c",
+			mods = "CTRL",
+			action = wezterm.action_callback(function(window, pane)
+				window:perform_action(act.CopyMode("Close"), pane)
+				-- Sync border AFTER closing search mode
+				local mode_colors = require("keymaps.mode-colors")
+				mode_colors.sync_border_with_mode(window)
+			end),
+		},
 	}
 end
 

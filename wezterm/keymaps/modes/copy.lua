@@ -1,5 +1,6 @@
 local wezterm = require("wezterm")
 local act = wezterm.action
+local mode_colors = require("keymaps.mode-colors")
 
 local M = {}
 
@@ -54,8 +55,6 @@ function M.setup(config)
 		{ key = "?", mods = "SHIFT", action = act.CopyMode("EditPattern") },
 
 		-- Jump commands
-		-- { key = "Enter", mods = "NONE", action = act.CopyMode("MoveToStartOfNextLine") },
-		-- { key = "n", mods = "ALT", action = act.CopyMode("MoveToStartOfNextLine") },
 		{ key = "n", mods = "NONE", action = act.CopyMode({ JumpForward = { prev_char = true } }) },
 		{ key = "N", mods = "NONE", action = act.CopyMode({ JumpBackward = { prev_char = true } }) },
 
@@ -63,64 +62,101 @@ function M.setup(config)
 		{
 			key = "y",
 			mods = "NONE",
-			action = act.Multiple({
-				{ CopyTo = "ClipboardAndPrimarySelection" },
-				"ScrollToBottom",
-				{ CopyMode = "Close" },
-			}),
+			action = wezterm.action_callback(function(window, pane)
+				window:perform_action(
+					act.Multiple({
+						{ CopyTo = "ClipboardAndPrimarySelection" },
+						"ScrollToBottom",
+						{ CopyMode = "Close" },
+					}),
+					pane
+				)
+				-- Sync border AFTER closing copy mode
+				mode_colors.sync_border_with_mode(window)
+			end),
 		},
 		-- Copy and exit
 		{
 			key = "Enter",
 			mods = "NONE",
-			action = act.Multiple({
-				{ CopyTo = "ClipboardAndPrimarySelection" },
-				"ScrollToBottom",
-				{ CopyMode = "Close" },
-			}),
+			action = wezterm.action_callback(function(window, pane)
+				window:perform_action(
+					act.Multiple({
+						{ CopyTo = "ClipboardAndPrimarySelection" },
+						"ScrollToBottom",
+						{ CopyMode = "Close" },
+					}),
+					pane
+				)
+				-- Sync border AFTER closing copy mode
+				mode_colors.sync_border_with_mode(window)
+			end),
 		},
 
 		-- Copy and exit
 		{
 			key = "Space",
 			mods = "NONE",
-			action = act.Multiple({
-				{ CopyTo = "ClipboardAndPrimarySelection" },
-				"ScrollToBottom",
-				{ CopyMode = "Close" },
-			}),
+			action = wezterm.action_callback(function(window, pane)
+				window:perform_action(
+					act.Multiple({
+						{ CopyTo = "ClipboardAndPrimarySelection" },
+						"ScrollToBottom",
+						{ CopyMode = "Close" },
+					}),
+					pane
+				)
+				-- Sync border AFTER closing copy mode
+				mode_colors.sync_border_with_mode(window)
+			end),
 		},
 		-- Exit bindings
 		{
 			key = "Escape",
 			mods = "NONE",
-			action = act.Multiple({
-				"ScrollToBottom",
-				{ CopyMode = "Close" },
-			}),
+			action = wezterm.action_callback(function(window, pane)
+				window:perform_action(
+					act.Multiple({
+						"ScrollToBottom",
+						{ CopyMode = "Close" },
+					}),
+					pane
+				)
+				-- Sync border AFTER closing copy mode
+				mode_colors.sync_border_with_mode(window)
+			end),
 		},
 		{
 			key = "q",
 			mods = "NONE",
-			action = act.Multiple({
-				"ScrollToBottom",
-				{ CopyMode = "Close" },
-			}),
+			action = wezterm.action_callback(function(window, pane)
+				window:perform_action(
+					act.Multiple({
+						"ScrollToBottom",
+						{ CopyMode = "Close" },
+					}),
+					pane
+				)
+				-- Sync border AFTER closing copy mode
+				mode_colors.sync_border_with_mode(window)
+			end),
 		},
 		{
 			key = "c",
 			mods = "CTRL",
-			action = act.Multiple({
-				"ScrollToBottom",
-				{ CopyMode = "Close" },
-			}),
+			action = wezterm.action_callback(function(window, pane)
+				window:perform_action(
+					act.Multiple({
+						"ScrollToBottom",
+						{ CopyMode = "Close" },
+					}),
+					pane
+				)
+				-- Sync border AFTER closing copy mode
+				mode_colors.sync_border_with_mode(window)
+			end),
 		},
 	}
 end
--- 	-- Append custom keys to the key table
--- 	for _, key in ipairs(custom_keys) do
--- 		table.insert(config.key_tables.copy_mode, key)
--- 	end
--- end
 
 return M

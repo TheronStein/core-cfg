@@ -24,81 +24,27 @@
 #=============================================================================
 # BASE KEYMAP SETUP
 #=============================================================================
-# Start with emacs keymap as base (more compatible)
-bindkey -e
-
-# But enable some vi-mode features
-bindkey -M main '^[' vi-cmd-mode # Escape to enter vi command mode
+# NOTE: We use zsh-vi-mode plugin which handles keymaps
+# All custom keybindings are set in zvm_after_init() hook in 02-zinit.zsh
+# This prevents vi-mode from overwriting our custom bindings
 
 #=============================================================================
-# FZF WIDGETS (Primary shortcuts)
+# CUSTOM WIDGET KEYBINDINGS
 #=============================================================================
-bindkey '^R' widget::fzf-history-search      # Ctrl+R: Enhanced history
-bindkey '^F' widget::fzf-file-selector       # Ctrl+F: Find files
-bindkey '^[f' widget::fzf-directory-selector # Alt+F: Find directories
-bindkey '^K' widget::fzf-kill-process        # Ctrl+K: Kill process
-bindkey '^P' widget::command-palette         # Ctrl+P: Command palette
-
-#=============================================================================
-# GIT WIDGETS
-#=============================================================================
-bindkey '^G' widget::fzf-git-status   # Ctrl+G: Git status files
-bindkey '^[g' widget::fzf-git-branch  # Alt+G: Git branches
-bindkey '^[c' widget::fzf-git-commits # Alt+C: Git commits
-
-#=============================================================================
-# TMUX WIDGETS
-#=============================================================================
-bindkey '^T' widget::fzf-tmux-session # Ctrl+T: Tmux sessions
-bindkey '^[t' widget::fzf-tmux-window # Alt+T: Tmux windows
-
-#=============================================================================
-# YAZI WIDGETS
-#=============================================================================
-bindkey '^[y' widget::yazi-picker # Alt+Y: Yazi file picker
-bindkey '^Y' widget::yazi-cd      # Ctrl+Y: Yazi with cd
-
-#=============================================================================
-# UTILITY WIDGETS
-#=============================================================================
-bindkey '^[s' widget::fzf-ssh         # Alt+S: SSH host selector
-bindkey '^[e' widget::fzf-env         # Alt+E: Environment variables
-bindkey '^X^E' widget::edit-command   # Ctrl+X Ctrl+E: Edit in $EDITOR
-bindkey '^L' widget::clear-scrollback # Ctrl+L: Clear with scrollback
-
-#=============================================================================
-# CLIPBOARD
-#=============================================================================
-bindkey '^[w' widget::copy-buffer     # Alt+W: Copy buffer
-bindkey '^[v' widget::paste-clipboard # Alt+V: Paste clipboard
-
-#=============================================================================
-# BOOKMARKS & NOTES
-#=============================================================================
-bindkey '^[b' widget::bookmark-directory # Alt+B: Bookmark directory
-bindkey '^[j' widget::jump-bookmark      # Alt+J: Jump to bookmark
-bindkey '^[n' widget::quick-note         # Alt+N: Quick note
-
-#=============================================================================
-# TEXT MANIPULATION
-#=============================================================================
-bindkey '^[=' widget::calculator       # Alt+=: Calculator
-bindkey '^[d' widget::insert-date      # Alt+D: Insert date
-bindkey '^[T' widget::insert-timestamp # Alt+Shift+T: Insert timestamp
-bindkey '^ ' widget::expand-alias      # Ctrl+Space: Expand alias
+# NOTE: All custom widget keybindings have been moved to zvm_after_init()
+# in 02-zinit.zsh to prevent conflicts with zsh-vi-mode
+# See that file for the complete list of keybindings
 
 #=============================================================================
 # SUDO TOGGLE (double escape)
 #=============================================================================
-bindkey -M vicmd "\e\e" widget::toggle-sudo
-bindkey -M viins "\e\e" widget::toggle-sudo
+# NOTE: This is also set in zvm_after_init() in 02-zinit.zsh
 
 #=============================================================================
 # HISTORY NAVIGATION
 #=============================================================================
-# Substring search (from plugin)
-bindkey '^[[A' history-substring-search-up   # Up: History search up
-bindkey '^[[B' history-substring-search-down # Down: History search down
+# NOTE: History substring search keybindings are set in zvm_after_init()
+# Terminal compatibility arrows
 bindkey '^[OA' history-substring-search-up   # Terminal compatibility
 bindkey '^[OB' history-substring-search-down
 
@@ -243,20 +189,8 @@ bindkey '^[?' widget::show-keybindings    # Alt+?
 #=============================================================================
 # DOCUMENTATION SYSTEM WIDGETS
 #=============================================================================
-# Alt+H: Context-aware help for current command/environment
-bindkey '\eh' _doc_help_widget
-
-# Alt+/: Search all documentation
-bindkey '\e/' _doc_search_widget
-
-# Alt+R: Quick reference menu (functions/widgets/keybindings)
-bindkey '\er' _doc_quick_ref_widget
-
-# Ctrl+X ?: Main documentation menu hub
-bindkey '^X?' doc-menu
-
-# Ctrl+X H: Generate documentation from code
-bindkey '^XH' widget::doc-generate
+# NOTE: Documentation widget keybindings are set in zvm_after_init()
+# in 02-zinit.zsh to avoid conflicts with vi-mode
 
 #=============================================================================
 # QUICK REFERENCE ALIAS

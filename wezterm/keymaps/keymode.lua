@@ -3,12 +3,23 @@ local wezterm = require("wezterm")
 local M = {}
 M.leader_modes = {}
 
--- Function to exit mode and return to CORE
+-- Get the current context mode (wezterm_mode or tmux_mode)
+local function get_context_mode()
+	local context = wezterm.GLOBAL.leader_context or "wezterm"
+	return context == "tmux" and "tmux_mode" or "wezterm_mode"
+end
+
+-- Function to exit mode and return to context mode (wezterm_mode or tmux_mode)
 function M.create_exit_action()
 	return wezterm.action_callback(function(window, pane)
 		window:perform_action(wezterm.action.PopKeyTable, pane)
-		-- Trigger status update AFTER popping key table
-		M.update_mode_display(window, "CORE")
+		-- Sync border color and trigger status update
+		local ok, mode_colors = pcall(require, "keymaps.mode-colors")
+		if ok then
+			mode_colors.sync_border_with_mode(window)
+		end
+		-- Update mode display to context mode
+		M.update_mode_display(window, get_context_mode())
 	end)
 end
 
@@ -42,8 +53,6 @@ function M.apply_key_tables(config)
 	end
 end
 
--- local current_mode = "CORE"
-
 function M.setup(config)
 	-- Define key tables for different modes
 	-- NOTE: copy_mode, search_mode, and launcher_mode are now managed directly
@@ -68,9 +77,9 @@ function M.setup(config)
 	M.apply_key_tables(config)
 end
 
--- Initialize GLOBAL state
-wezterm.GLOBAL.current_mode = "CORE"
-wezterm.GLOBAL.leader_active = false
+-- Initialize GLOBAL state (default to wezterm_mode, context detection will update if needed)
+wezterm.GLOBAL.current_mode = wezterm.GLOBAL.current_mode or "wezterm_mode"
+wezterm.GLOBAL.leader_active = wezterm.GLOBAL.leader_active or false
 
 -- Public function to get current mode
 function M.get_current_mode()

@@ -88,7 +88,31 @@ _fzf_comprun() {
 }
 
 # =============================================================================
-# HELPER FUNCTIONS
+# CORE HELPER FUNCTIONS (Used by widgets in 03-widgets.zsh)
+# =============================================================================
+
+# Get current theme colors for fzf
+_fzf_colors() {
+    # Return the current FZF color scheme
+    # Falls back to a sensible default if not set
+    if [[ -n "${FZF_DEFAULT_OPTS_COLORS:-}" ]]; then
+        echo "$FZF_DEFAULT_OPTS_COLORS"
+    elif [[ -n "${_FZF_THEME_COLORS:-}" ]]; then
+        echo "$_FZF_THEME_COLORS"
+    else
+        # Default dark theme colors
+        echo "bg+:#313244,bg:#1e1e2e,spinner:#f5e0dc,hl:#f38ba8,fg:#cdd6f4,header:#f38ba8,info:#cba6f7,pointer:#f5e0dc,marker:#f5e0dc,fg+:#cdd6f4,prompt:#cba6f7,hl+:#f38ba8"
+    fi
+}
+
+# Get base fzf options for widgets
+_fzf_base_opts() {
+    local colors="$(_fzf_colors)"
+    echo "--height=80% --layout=reverse --border=rounded --info=inline --color='$colors'"
+}
+
+# =============================================================================
+# GIT HELPER FUNCTIONS
 # =============================================================================
 
 # Git: fuzzy add files

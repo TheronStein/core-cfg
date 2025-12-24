@@ -68,20 +68,58 @@ local function get_colors(theme)
 	end
 
 	return {
+		-- Normal/default mode - blue/lavender (ansi[5])
 		normal_mode = {
 			a = { fg = background, bg = colors.ansi[5] },
-			-- b = { fg = colors.ansi[5], bg = if in_tmux() then tmux_tabline.get_tmux_workspace_color( else surface end },
 			b = { fg = colors.ansi[5], bg = surface },
 			c = { fg = colors.foreground, bg = background },
 		},
+		-- Wezterm context mode (same as normal)
+		wezterm_mode = {
+			a = { fg = background, bg = colors.ansi[5] },
+			b = { fg = colors.ansi[5], bg = surface },
+			c = { fg = colors.foreground, bg = background },
+		},
+		-- Tmux context mode - cyan/teal (ansi[7])
+		tmux_mode = {
+			a = { fg = background, bg = colors.ansi[7] },
+			b = { fg = colors.ansi[7], bg = surface },
+			c = { fg = colors.foreground, bg = background },
+		},
+		-- Leader mode - red (ansi[2])
+		leader_mode = {
+			a = { fg = background, bg = colors.ansi[2] },
+			b = { fg = colors.ansi[2], bg = surface },
+			c = { fg = colors.foreground, bg = background },
+		},
+		-- Pane navigation mode - green (ansi[3])
+		pane_mode = {
+			a = { fg = background, bg = colors.ansi[3] },
+			b = { fg = colors.ansi[3], bg = surface },
+			c = { fg = colors.foreground, bg = background },
+		},
+		-- Resize mode - yellow/peach (ansi[4])
+		resize_mode = {
+			a = { fg = background, bg = colors.ansi[4] },
+			b = { fg = colors.ansi[4], bg = surface },
+			c = { fg = colors.foreground, bg = background },
+		},
+		-- Copy mode - yellow/peach (ansi[4])
 		copy_mode = {
 			a = { fg = background, bg = colors.ansi[4] },
 			b = { fg = colors.ansi[4], bg = surface },
 			c = { fg = colors.foreground, bg = background },
 		},
+		-- Search mode - green (ansi[3])
 		search_mode = {
 			a = { fg = background, bg = colors.ansi[3] },
 			b = { fg = colors.ansi[3], bg = surface },
+			c = { fg = colors.foreground, bg = background },
+		},
+		-- Selection mode - blue (ansi[5])
+		pane_selection_mode = {
+			a = { fg = background, bg = colors.ansi[5] },
+			b = { fg = colors.ansi[5], bg = surface },
 			c = { fg = colors.foreground, bg = background },
 		},
 		tab = {

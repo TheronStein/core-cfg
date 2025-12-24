@@ -77,8 +77,8 @@ widget::universal-overlay() {
 }
 
 zle -N widget::universal-overlay
-bindkey '^ ' widget::universal-overlay    # Ctrl+Space
-# or bindkey '\e ' widget::universal-overlay   # Alt+Space
+# NOTE: Keybinding moved to zvm_after_init to avoid conflicts with zsh-vi-mode
+# See 02-zinit.zsh for the zvm_after_init_commands configuration
 
 #=============================================================================
 # WIDGET: FZF-POWERED FILE SELECTOR

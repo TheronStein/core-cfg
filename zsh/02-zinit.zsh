@@ -225,9 +225,102 @@ case "$(get_distro)" in
     ;;
 esac
 
-# Vi mode
-zinit ice wait lucid
+# Vi mode with keybinding initialization hook
+# CRITICAL: zsh-vi-mode overwrites ALL keybindings on init
+# Solution: Define zvm_after_init() BEFORE loading the plugin
+# The plugin will call this function after initialization
+
+# This function MUST be defined before zsh-vi-mode loads
+function zvm_after_init() {
+    # Re-bind our custom widgets that vi-mode overwrote
+    # These must be set AFTER vi-mode initializes to prevent conflicts
+
+    # Main menu system - multiple triggers for reliability
+    # Note: Ctrl+Space reserved for tmux prefix
+
+    # Alt+Space (primary)
+    bindkey -M viins '\e ' widget::universal-overlay
+    bindkey -M vicmd '\e ' _core_menu_widget
+
+    # Alt+/ (alternate)
+    bindkey -M viins '\e/' widget::universal-overlay
+    bindkey -M vicmd '\e/' _core_menu_widget
+
+    # Alt+M as another alternate
+    bindkey -M viins '\em' _core_menu_widget
+    bindkey -M vicmd '\em' _core_menu_widget
+
+    # Re-bind FZF widgets (these get overwritten by vi-mode)
+    bindkey -M viins '^R' widget::fzf-history-search
+    bindkey -M viins '^F' widget::fzf-file-selector
+    bindkey -M viins '^[f' widget::fzf-directory-selector
+    bindkey -M viins '^K' widget::fzf-kill-process
+    bindkey -M viins '^P' widget::command-palette
+
+    # Git widgets
+    bindkey -M viins '^G' widget::fzf-git-status
+    bindkey -M viins '^[g' widget::fzf-git-branch
+    bindkey -M viins '^[c' widget::fzf-git-commits
+
+    # Tmux widgets
+    bindkey -M viins '^T' widget::fzf-tmux-session
+    bindkey -M viins '^[t' widget::fzf-tmux-window
+
+    # Yazi widgets
+    bindkey -M viins '^[y' widget::yazi-picker
+    bindkey -M viins '^Y' widget::yazi-cd
+
+    # Utility widgets
+    bindkey -M viins '^[s' widget::fzf-ssh
+    bindkey -M viins '^[e' widget::fzf-env
+    bindkey -M viins '^X^E' widget::edit-command
+    bindkey -M viins '^L' widget::clear-scrollback
+
+    # Clipboard
+    bindkey -M viins '^[w' widget::copy-buffer
+    bindkey -M viins '^[v' widget::paste-clipboard
+
+    # Bookmarks & Notes
+    bindkey -M viins '^[b' widget::bookmark-directory
+    bindkey -M viins '^[j' widget::jump-bookmark
+    bindkey -M viins '^[n' widget::quick-note
+
+    # Text manipulation
+    bindkey -M viins '^[=' widget::calculator
+    bindkey -M viins '^[d' widget::insert-date
+    bindkey -M viins '^[T' widget::insert-timestamp
+
+    # History substring search (from plugin)
+    bindkey -M viins '^[[A' history-substring-search-up
+    bindkey -M viins '^[[B' history-substring-search-down
+    bindkey -M vicmd 'k' history-substring-search-up
+    bindkey -M vicmd 'j' history-substring-search-down
+
+    # Documentation widgets
+    bindkey -M viins '\eh' _doc_help_widget
+    # Note: Alt+/ is reserved for main menu, use Alt+? for doc search
+    bindkey -M viins '\e?' _doc_search_widget
+    bindkey -M viins '\er' _doc_quick_ref_widget
+    bindkey -M viins '^X?' doc-menu
+    bindkey -M viins '^XH' widget::doc-generate
+
+    # Sudo toggle (double escape)
+    bindkey -M viins '\e\e' widget::toggle-sudo
+    bindkey -M vicmd '\e\e' widget::toggle-sudo
+}
+
+# IMPORTANT: Load vi-mode immediately (not deferred) so zvm_after_init hook works
+zinit ice lucid
 zinit light jeffreytse/zsh-vi-mode
+
+# Backup approach: Also bind directly after plugin loads
+# This ensures bindings work even if hook mechanism fails
+bindkey -M viins '\e ' widget::universal-overlay 2>/dev/null
+bindkey -M vicmd '\e ' _core_menu_widget 2>/dev/null
+bindkey -M viins '\e/' widget::universal-overlay 2>/dev/null
+bindkey -M vicmd '\e/' _core_menu_widget 2>/dev/null
+bindkey -M viins '\em' _core_menu_widget 2>/dev/null
+bindkey -M vicmd '\em' _core_menu_widget 2>/dev/null
 
 #=============================================================================
 # HISTORY & DIRECTORY TOOLS

@@ -1,0 +1,152 @@
+#!/usr/bin/env zsh
+# zsh-cache-clean - Clean and rebuild ZSH completion cache
+# Location: $CORE_CFG/zsh/functions/zsh-cache-clean
+#
+# This function resolves completion errors like:
+#   _autocomplete__command:local:3: bad option: -P
+#
+# The error occurs when stale completion functions from removed plugins
+# (like zsh-autocomplete) remain in the compiled cache files.
+#
+# Usage:
+#   zsh-cache-clean         - Clean caches and show what was removed
+#   zsh-cache-clean -q      - Quiet mode
+#   zsh-cache-clean -r      - Clean and reload shell (recommended)
+#   zsh-cache-clean -h      - Show help
+#
+# The function will:
+#   1. Remove stale zcompdump files (plain and compiled)
+#   2. Clear the zcompcache directory
+#   3. Optionally reload the shell to rebuild fresh caches
+#
+# Keybinding: None (run from command line)
+
+emulate -L zsh
+
+function zsh-cache-clean() {
+    local quiet=false
+    local reload=false
+    local -a removed=()
+
+    # Parse arguments
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -q|--quiet)
+                quiet=true
+                shift
+                ;;
+            -r|--reload)
+                reload=true
+                shift
+                ;;
+            -h|--help)
+                cat << 'EOF'
+zsh-cache-clean - Clean and rebuild ZSH completion cache
+
+USAGE:
+    zsh-cache-clean [OPTIONS]
+
+OPTIONS:
+    -q, --quiet     Suppress output except errors
+    -r, --reload    Reload shell after cleaning (recommended)
+    -h, --help      Show this help message
+
+DESCRIPTION:
+    This function clears stale ZSH completion caches that can cause errors
+    when plugins are removed or updated. Common errors this fixes:
+
+    - "_autocomplete__command:local:3: bad option: -P"
+      (Caused by remnants of zsh-autocomplete plugin)
+
+    - "compdef: unknown command or service: ..."
+      (Caused by stale completion definitions)
+
+FILES CLEANED:
+    ~/.cache/zsh/.zcompdump      - Completion dump file
+    ~/.cache/zsh/.zcompdump.zwc  - Compiled completion dump
+    ~/.cache/zsh/zcompcache/     - Completion cache directory
+
+    Also checks common alternate locations:
+    ~/.zcompdump*                - Legacy locations
+    $ZSH_CACHE_DIR/.zcompdump*   - Custom cache locations
+
+EXAMPLE:
+    # Fix completion errors and reload shell:
+    zsh-cache-clean -r
+
+    # Quick silent clean:
+    zsh-cache-clean -q
+
+EOF
+                return 0
+                ;;
+            *)
+                echo "Unknown option: $1" >&2
+                echo "Use -h for help" >&2
+                return 1
+                ;;
+        esac
+    done
+
+    # Define cache locations to clean
+    local -a cache_locations=(
+        "${XDG_CACHE_HOME:-$HOME/.cache}/zsh/.zcompdump"
+        "${XDG_CACHE_HOME:-$HOME/.cache}/zsh/.zcompdump.zwc"
+        "${ZSH_CACHE_DIR:-${XDG_CACHE_HOME:-$HOME/.cache}/zsh}/.zcompdump"
+        "${ZSH_CACHE_DIR:-${XDG_CACHE_HOME:-$HOME/.cache}/zsh}/.zcompdump.zwc"
+        "$HOME/.zcompdump"
+        "$HOME/.zcompdump.zwc"
+        "${ZDOTDIR:-$HOME}/.zcompdump"
+        "${ZDOTDIR:-$HOME}/.zcompdump.zwc"
+    )
+
+    local -a cache_dirs=(
+        "${XDG_CACHE_HOME:-$HOME/.cache}/zsh/zcompcache"
+        "${ZSH_CACHE_DIR:-${XDG_CACHE_HOME:-$HOME/.cache}/zsh}/zcompcache"
+    )
+
+    # Clean individual files
+    for file in "${cache_locations[@]}"; do
+        if [[ -f "$file" ]]; then
+            rm -f "$file" 2>/dev/null && removed+=("$file")
+        fi
+    done
+
+    # Clean cache directories
+    for dir in "${cache_dirs[@]}"; do
+        if [[ -d "$dir" ]]; then
+            local count=$(find "$dir" -type f 2>/dev/null | wc -l)
+            if [[ $count -gt 0 ]]; then
+                rm -rf "$dir"/* 2>/dev/null && removed+=("$dir/* ($count files)")
+            fi
+        fi
+    done
+
+    # Report results
+    if [[ "$quiet" != true ]]; then
+        if [[ ${#removed[@]} -gt 0 ]]; then
+            echo "Cleaned ZSH completion cache:"
+            for item in "${removed[@]}"; do
+                echo "  - $item"
+            done
+            echo ""
+            echo "The completion cache will be rebuilt on next shell startup."
+            if [[ "$reload" != true ]]; then
+                echo "Run 'exec zsh' to reload now, or use 'zsh-cache-clean -r'"
+            fi
+        else
+            echo "No cache files found to clean."
+        fi
+    fi
+
+    # Reload if requested
+    if [[ "$reload" == true ]]; then
+        [[ "$quiet" != true ]] && echo "Reloading shell..."
+        exec zsh
+    fi
+
+    return 0
+}
+
+# Run if sourced/called directly
+zsh-cache-clean "$@"

@@ -1,16 +1,13 @@
 # FZF Layout: Bottom Up
-# Results grow from bottom (default fzf behavior)
+# Traditional fzf style - results grow from bottom
 
 FZF_LAYOUT_NAME="Bottom Up"
-FZF_LAYOUT_DESC="Traditional bottom-up list style"
+FZF_LAYOUT_DESC="Traditional bottom-up list (default fzf)"
 
 FZF_LAYOUT_OPTS=(
     "--height=50%"
     "--layout=default"
-    "--border=horizontal"
     "--info=inline"
 )
 
-FZF_LAYOUT_PROMPT='> '
-FZF_LAYOUT_POINTER='>'
-FZF_LAYOUT_MARKER='*'
+# Uses global defaults for styling

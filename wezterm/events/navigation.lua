@@ -100,6 +100,16 @@ end
 
 function M.handle_key_event(window, pane, key, mods, event)
 	log_key_event({ key = key, mods = mods, event = event })
+
+	-- Sync border color immediately when leader key state changes
+	-- This ensures leader mode border color appears instantly
+	if window:leader_is_active() then
+		local ok, mode_colors = pcall(require, "keymaps.mode-colors")
+		if ok then
+			mode_colors.sync_border_with_mode(window)
+		end
+	end
+
 	return true -- Allow the event to propagate
 end
 

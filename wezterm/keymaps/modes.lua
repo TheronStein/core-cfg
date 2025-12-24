@@ -1,5 +1,6 @@
 local wezterm = require("wezterm")
 local update_mode_display = require("keymaps.keymode").update_mode_display
+local mode_colors = require("keymaps.mode-colors")
 local M = {}
 
 function M.setup(config)
@@ -58,6 +59,23 @@ function M.setup(config)
         )
         -- Trigger status update AFTER activating key table
         update_mode_display(window, "CTRL")
+      end),
+    },
+
+    {
+      key = "p",
+      mods = "LEADER",
+      action = wezterm.action_callback(function(window, pane)
+        -- Set border color for pane mode
+        mode_colors.set_mode_border(window, "PANE")
+        window:perform_action(
+          wezterm.action.ActivateKeyTable({
+            name = "pane_mode",
+            one_shot = false,
+            timeout_milliseconds = 2000,
+          }),
+          pane
+        )
       end),
     },
 

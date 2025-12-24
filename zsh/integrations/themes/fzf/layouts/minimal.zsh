@@ -1,17 +1,16 @@
 # FZF Layout: Minimal
-# Clean, distraction-free minimal interface
+# Clean, distraction-free - no border, hidden info
 
 FZF_LAYOUT_NAME="Minimal"
-FZF_LAYOUT_DESC="Clean minimal design with no border"
+FZF_LAYOUT_DESC="Clean 40% height, no border, hidden info"
 
 FZF_LAYOUT_OPTS=(
     "--height=40%"
     "--layout=reverse"
-    "--border=none"
     "--info=hidden"
     "--no-scrollbar"
 )
 
-FZF_LAYOUT_PROMPT=' '
-FZF_LAYOUT_POINTER=' '
-FZF_LAYOUT_MARKER='+'
+# Override: No border for minimal look
+FZF_LAYOUT_BORDER="none"
+FZF_LAYOUT_BORDER_LABEL=""

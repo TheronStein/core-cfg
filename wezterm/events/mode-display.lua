@@ -1,6 +1,6 @@
 local wezterm = require("wezterm")
 local M = {}
-local current_mode = "CORE"
+local current_mode = "wezterm_mode"
 
 -- Public function to get current mode
 function M.get_current_mode()
@@ -14,9 +14,9 @@ function M.update_mode_display(window, mode_name)
 end
 
 function M.init()
-	-- Initialize GLOBAL state
-	wezterm.GLOBAL.current_mode = "CORE"
-	wezterm.GLOBAL.leader_active = false
+	-- Initialize GLOBAL state (wezterm_mode is the default context)
+	wezterm.GLOBAL.current_mode = wezterm.GLOBAL.current_mode or "wezterm_mode"
+	wezterm.GLOBAL.leader_active = wezterm.GLOBAL.leader_active or false
 	wezterm.on("update-mode", function(window, pane, mode_name)
 		M.update_mode_display(window, mode_name)
 	end)

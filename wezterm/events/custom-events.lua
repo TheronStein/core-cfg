@@ -64,7 +64,7 @@ end
 -- ============================================================================
 -- MODE DISPLAY
 -- ============================================================================
-local current_mode = "CORE"
+local current_mode = "wezterm_mode"
 
 -- Function to update mode and refresh tabline
 local function update_mode_display(window, mode_name)
@@ -112,9 +112,9 @@ function M.setup()
 	end
 	wezterm.GLOBAL.custom_events_initialized = true
 
-	-- Initialize GLOBAL state for mode display
-	wezterm.GLOBAL.current_mode = "CORE"
-	wezterm.GLOBAL.leader_active = false
+	-- Initialize GLOBAL state for mode display (wezterm_mode is the default context)
+	wezterm.GLOBAL.current_mode = wezterm.GLOBAL.current_mode or "wezterm_mode"
+	wezterm.GLOBAL.leader_active = wezterm.GLOBAL.leader_active or false
 
 	-- Backdrop refresh (custom event)
 	wezterm.on("backdrop-refresh", function()

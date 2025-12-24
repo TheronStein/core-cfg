@@ -172,21 +172,27 @@ function backdrop_refresh.update(window, pane)
 end
 
 -- ============================================================================
--- LEADER KEY TRACKING
+-- MODE BORDER COLOR SYNC
 -- ============================================================================
-function update_leader_status(window, pane)
-	local leader_active = window:leader_is_active()
+-- This replaces the old leader-only tracking with full mode synchronization
+-- The border color is ALWAYS synced with the current mode on every status update
 
-	if leader_active then
-		wezterm.GLOBAL.current_mode = "LEADER"
-		wezterm.GLOBAL.leader_active = true
-	else
-		-- Only reset if we were in leader mode
-		if wezterm.GLOBAL.leader_active then
-			wezterm.GLOBAL.current_mode = "CORE"
-			wezterm.GLOBAL.leader_active = false
-		end
+function sync_mode_border(window, pane)
+	local ok, mode_colors = pcall(require, "keymaps.mode-colors")
+	if not ok then
+		return
 	end
+
+	-- sync_border_with_mode handles all mode detection:
+	-- - Leader key active → leader_mode color
+	-- - Key table active (pane_mode, resize_mode, copy_mode, etc.) → mode color
+	-- - Default context → wezterm_mode or tmux_mode color
+	local current_mode = mode_colors.sync_border_with_mode(window)
+
+	-- Update global state for other systems that need to know current mode
+	-- current_mode is already the full mode name (e.g., "leader_mode", "pane_mode", "wezterm_mode")
+	wezterm.GLOBAL.current_mode = current_mode
+	wezterm.GLOBAL.leader_active = window:leader_is_active()
 end
 
 -- ============================================================================
@@ -321,7 +327,8 @@ function M.setup()
 	wezterm.GLOBAL.update_status_initialized = true
 
 	-- Initialize GLOBAL state
-	wezterm.GLOBAL.current_mode = wezterm.GLOBAL.current_mode or "CORE"
+	-- Initialize to wezterm_mode by default (context detection will update to tmux_mode if needed)
+	wezterm.GLOBAL.current_mode = wezterm.GLOBAL.current_mode or "wezterm_mode"
 	wezterm.GLOBAL.leader_active = wezterm.GLOBAL.leader_active or false
 
 	-- THE unified update-status event handler
@@ -336,8 +343,8 @@ function M.setup()
 		-- 3. Backdrop refresh watcher (signal file monitoring)
 		backdrop_refresh.update(window, pane)
 
-		-- 4. Leader key tracking (mode system)
-		update_leader_status(window, pane)
+		-- 4. Mode border color sync (keeps pane borders in sync with current mode)
+		sync_mode_border(window, pane)
 
 		-- 5. Tab cleanup (periodic tmux session check - fallback mechanism)
 		tab_cleanup.update(window, pane)
