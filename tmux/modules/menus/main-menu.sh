@@ -14,6 +14,8 @@ tmux display-menu -x C -y C -T "#[fg=#e0af68,bold] Main Menu " \
   " Zoom Toggle" z "resize-pane -Z" \
   " Vertical Split" v "run-shell '$TMUX_CONF/events/split.sh v'" \
   " Horizontal Split" d "run-shell '$TMUX_CONF/events/split.sh h'" \
+  " Resize Mode" r "run-shell '$TMUX_MENUS/modes/pane-resize-select.sh'" \
+  " Copy Mode" / "run-shell '$TMUX_MENUS/modes/copy-mode.sh'" \
   "" \
   "󰂮 Pane Management" a "$(om mux/pane-menu.sh)" \
   "󰖯 Window Management" w "$(om mux/window-menu.sh)" \
@@ -21,7 +23,6 @@ tmux display-menu -x C -y C -T "#[fg=#e0af68,bold] Main Menu " \
   "󰏘 Theme Selector" T "run-shell '$TMUX_CONF/modules/themes/theme-switcher.sh'" \
   "" \
   " Keybind References Menu" k "$(om keybinds-menu.sh)" \
-  " Key Modes Menu" m "$(om modes/keymodes-menu.sh)" \
   "󱂬 Popup Windows Menu" e "$(om popup-windows.sh)" \
   " Sidebar Menu" b "$(om mux/sidebar-menu.sh)" \
   "" \
