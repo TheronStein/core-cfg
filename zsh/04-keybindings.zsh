@@ -45,7 +45,7 @@
 #=============================================================================
 # NOTE: History substring search keybindings are set in zvm_after_init()
 # Terminal compatibility arrows
-bindkey '^[OA' history-substring-search-up   # Terminal compatibility
+bindkey '^[OA' history-substring-search-up # Terminal compatibility
 bindkey '^[OB' history-substring-search-down
 
 # Beginning search (type partial command, then search)
@@ -94,8 +94,8 @@ bindkey '^T' transpose-chars  # Ctrl+T: Swap chars
 #=============================================================================
 # UNDO/REDO
 #=============================================================================
-bindkey '^_' undo  # Ctrl+_: Undo
-bindkey '^[/' redo # Alt+/: Redo
+# bindkey '^U' undo  # Ctrl+_: Undo
+# bindkey '^R' redo # Alt+/: Redo
 
 #=============================================================================
 # COMPLETION
@@ -115,17 +115,17 @@ zmodload -i zsh/complist
 bindkey -M menuselect '^[[Z' reverse-menu-complete # Shift+Tab: Reverse
 bindkey -M menuselect '^[' send-break              # Escape: Cancel
 bindkey -M menuselect '^M' .accept-line            # Enter: Accept
-bindkey -M menuselect 'h' vi-backward-char         # h: Left
-bindkey -M menuselect 'j' vi-down-line-or-history  # j: Down
-bindkey -M menuselect 'k' vi-up-line-or-history    # k: Up
+bindkey -M menuselect 'j' vi-backward-char         # h: Left
+bindkey -M menuselect 'k' vi-down-line-or-history  # j: Down
+bindkey -M menuselect 'i' vi-up-line-or-history    # k: Up
 bindkey -M menuselect 'l' vi-forward-char          # l: Right
 
 #=============================================================================
 # VI MODE BINDINGS (when in vi command mode)
 #=============================================================================
-bindkey -M vicmd 'H' beginning-of-line
+bindkey -M vicmd 'J' beginning-of-line
 bindkey -M vicmd 'L' end-of-line
-bindkey -M vicmd 'u' undo
+bindkey -M vicmd '^U' undo
 bindkey -M vicmd '^R' redo
 bindkey -M vicmd '/' widget::fzf-history-search
 bindkey -M vicmd 'v' widget::edit-command
@@ -175,8 +175,8 @@ function widget::show-keybindings() {
   echo "  Alt+W     Copy buffer to clipboard"
   echo "  Alt+V     Paste from clipboard"
   echo ""
-  echo "BOOKMARKS:"
-  echo "  Alt+B     Bookmark directory"
+  echo "BITWARDEN & BOOKMARKS:"
+  echo "  Alt+B     Bitwarden interactive"
   echo "  Alt+J     Jump to bookmark"
   echo ""
   echo "═══════════════════════════════════════════════════════════════"
@@ -199,6 +199,7 @@ alias keys='widget::show-keybindings'
 
 # === zce ref ================================================================ [[[
 # function :zce-char() {
+#
 #   [[ -z $BUFFER ]] && zle up-history
 #   zstyle ':zce:*' prompt-char '%B%F{12}Jump to character:%F%b '
 #   zstyle ':zce:*' prompt-key '%B%F{12}Target key:%F%b '
@@ -269,7 +270,7 @@ alias keys='widget::show-keybindings'
 #   local pcursor=$reply[pcursor] pbuffer=$reply[pbuffer]
 #
 #   if (( $CURSOR < $pcursor ))  {
-#     pbuffer[$CURSOR,$pcursor]=$pbuffer[$CURSOR]
+#   pbuffer[$CURSOR,$pcursor]=$pbuffer[$CURSOR]
 #   } else {
 #     pbuffer[$pcursor,$CURSOR]=$pbuffer[$pcursor]
 #     CURSOR=$pcursor

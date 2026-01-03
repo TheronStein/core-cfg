@@ -1,0 +1,35 @@
+# Pinentry popup config for Ghostty
+# Based on your dropdown config but optimized for pinentry
+
+# Use your main config as base
+config-file = /home/theron/.config/ghostty/config
+
+# Window identification
+title = pinentry-popup
+
+# No decorations for clean popup
+gtk-titlebar = false
+window-decoration = false
+
+# Window behavior
+window-theme = ghostty
+window-padding-x = 10
+window-padding-y = 10
+
+# Size - adjust to your preference
+window-width = 60
+window-height = 10
+
+# Font size - slightly larger for readability
+font-size = 12
+
+# Colors - you can customize these
+# background = #1e1e2e
+# foreground = #cdd6f4
+
+# Cursor
+cursor-style = block
+cursor-style-blink = true
+
+# No shell - we're running pinentry-curses directly
+# (command is passed from wrapper script)

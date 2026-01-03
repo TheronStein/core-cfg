@@ -165,6 +165,52 @@ local function generate_view_name(session_name)
   return string.format("%s-view-%d-%d", session_name, timestamp, random)
 end
 
+-- Find existing unattached view session for a parent session
+-- This prevents creating duplicate view sessions when reattaching
+local function find_existing_view(session_name, socket_name)
+  if not tmux.is_tmux_available() then
+    return nil
+  end
+
+  local socket_flag = socket_name and string.format("-L '%s' ", socket_name) or ""
+
+  -- List all sessions and find unattached view sessions for this parent
+  -- Format: name|attached|group
+  local handle = io.popen(
+    string.format(
+      [[tmux %slist-sessions -F '#{session_name}|#{session_attached}|#{session_group}' 2>/dev/null]],
+      socket_flag
+    )
+  )
+
+  if not handle then
+    return nil
+  end
+
+  for line in handle:lines() do
+    local name, attached, group = line:match("([^|]+)|([^|]+)|([^|]*)")
+    -- Check if this is a view session (has -view- in name) that:
+    -- 1. Is NOT currently attached (attached == "0")
+    -- 2. Belongs to the parent session (group matches session_name)
+    -- 3. Matches the session naming pattern
+    if name and name:match("^" .. session_name:gsub("%-", "%%-") .. "%-view%-") then
+      if attached == "0" and (group == session_name or group == "") then
+        handle:close()
+        wezterm.log_info(
+          "Found existing unattached view session: "
+            .. name
+            .. " for parent: "
+            .. session_name
+        )
+        return name
+      end
+    end
+  end
+
+  handle:close()
+  return nil
+end
+
 -- Spawn a WezTerm tab that attaches to a tmux session with independent view
 -- Optional socket parameter for connecting to specific tmux server
 function M.spawn_tab_with_session(window, pane, session_name, create_if_missing, socket_name)
@@ -207,18 +253,41 @@ function M.spawn_tab_with_session(window, pane, session_name, create_if_missing,
   -- Spawn new tab
   local tab, new_pane, _ = mux_window:spawn_tab({})
 
-  -- Generate temporary view name for this terminal
-  local view_name = generate_view_name(session_name)
+  -- Try to find and reuse an existing unattached view session first
+  local view_name = find_existing_view(session_name, socket_name)
+  local reusing_view = view_name ~= nil
 
-  -- Create independent view using session grouping
+  if not view_name then
+    -- No existing view found, generate a new temporary view name
+    view_name = generate_view_name(session_name)
+  end
+
+  -- Create independent view using session grouping (or attach to existing)
   -- The view session will be destroyed when detached (detach-on-destroy)
-  local attach_cmd = string.format(
-    "tmux %snew-session -t '%s' -s '%s' \\; set-option -t '%s' detach-on-destroy on\n",
-    socket_flag,
-    session_name,
-    view_name,
-    view_name
-  )
+  local attach_cmd
+  if reusing_view then
+    -- Attach to existing view session
+    attach_cmd = string.format(
+      "tmux %sattach-session -t '%s'\n",
+      socket_flag,
+      view_name
+    )
+    wezterm.log_info(
+      "Reusing existing view session: " .. view_name .. " for parent: " .. session_name
+    )
+  else
+    -- Create new view session
+    attach_cmd = string.format(
+      "tmux %snew-session -t '%s' -s '%s' \\; set-option -t '%s' detach-on-destroy on\n",
+      socket_flag,
+      session_name,
+      view_name,
+      view_name
+    )
+    wezterm.log_info(
+      "Creating new view session: " .. view_name .. " for parent: " .. session_name
+    )
+  end
   new_pane:send_text(attach_cmd)
 
   -- Look for existing tab template for this session
@@ -318,18 +387,41 @@ function M.spawn_tab_with_custom_session(
   -- Spawn new tab
   local tab, new_pane, _ = mux_window:spawn_tab({})
 
-  -- Generate temporary view name for this terminal
-  local view_name = generate_view_name(session_name)
+  -- Try to find and reuse an existing unattached view session first
+  local view_name = find_existing_view(session_name, socket_name)
+  local reusing_view = view_name ~= nil
 
-  -- Create independent view using session grouping
+  if not view_name then
+    -- No existing view found, generate a new temporary view name
+    view_name = generate_view_name(session_name)
+  end
+
+  -- Create independent view using session grouping (or attach to existing)
   -- The view session will be destroyed when detached (detach-on-destroy)
-  local attach_cmd = string.format(
-    "tmux %snew-session -t '%s' -s '%s' \\; set-option -t '%s' detach-on-destroy on\n",
-    socket_flag,
-    session_name,
-    view_name,
-    view_name
-  )
+  local attach_cmd
+  if reusing_view then
+    -- Attach to existing view session
+    attach_cmd = string.format(
+      "tmux %sattach-session -t '%s'\n",
+      socket_flag,
+      view_name
+    )
+    wezterm.log_info(
+      "Reusing existing view session: " .. view_name .. " for parent: " .. session_name
+    )
+  else
+    -- Create new view session
+    attach_cmd = string.format(
+      "tmux %snew-session -t '%s' -s '%s' \\; set-option -t '%s' detach-on-destroy on\n",
+      socket_flag,
+      session_name,
+      view_name,
+      view_name
+    )
+    wezterm.log_info(
+      "Creating new view session: " .. view_name .. " for parent: " .. session_name
+    )
+  end
   new_pane:send_text(attach_cmd)
 
   -- Use the explicitly provided name/icon (from template)

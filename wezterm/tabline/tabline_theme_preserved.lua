@@ -43,14 +43,14 @@ M.preserved_theme = {
 		z = { fg = "#292D3E", bg = "#01F9C6" },
 	},
 
-	-- LEADER mode (red theme)
+	-- LEADER mode (coral red theme) - Updated to match mode_colors.lua (#FF6B6B)
 	leader_mode = {
-		a = { fg = "#FFFFFF", bg = "#FF5370" },
-		b = { fg = "#FF5370", bg = "#444267" },
-		c = { fg = "#FF5370", bg = "#292D3E" },
-		x = { fg = "#FF5370", bg = "#292D3E" },
-		y = { fg = "#FF5370", bg = "#444267" },
-		z = { fg = "#FFFFFF", bg = "#FF5370" },
+		a = { fg = "#FFFFFF", bg = "#FF6B6B" },
+		b = { fg = "#FF6B6B", bg = "#444267" },
+		c = { fg = "#FF6B6B", bg = "#292D3E" },
+		x = { fg = "#FF6B6B", bg = "#292D3E" },
+		y = { fg = "#FF6B6B", bg = "#444267" },
+		z = { fg = "#FFFFFF", bg = "#FF6B6B" },
 	},
 
 	-- WEZTERM mode (purple theme)
@@ -63,14 +63,14 @@ M.preserved_theme = {
 		z = { fg = "#292D3E", bg = "#8470FF" },
 	},
 
-	-- TMUX mode (green theme)
+	-- TMUX mode (cyan theme) - Updated to match mode_colors.lua (#01F9C6)
 	tmux_mode = {
-		a = { fg = "#292D3E", bg = "#69FF94" },
-		b = { fg = "#69FF94", bg = "#444267" },
-		c = { fg = "#69FF94", bg = "#292D3E" },
-		x = { fg = "#69FF94", bg = "#292D3E" },
-		y = { fg = "#69FF94", bg = "#444267" },
-		z = { fg = "#292D3E", bg = "#69FF94" },
+		a = { fg = "#292D3E", bg = "#01F9C6" },
+		b = { fg = "#01F9C6", bg = "#444267" },
+		c = { fg = "#01F9C6", bg = "#292D3E" },
+		x = { fg = "#01F9C6", bg = "#292D3E" },
+		y = { fg = "#01F9C6", bg = "#444267" },
+		z = { fg = "#292D3E", bg = "#01F9C6" },
 	},
 
 	-- SUPER mode (yellow theme)
@@ -144,24 +144,24 @@ M.preserved_theme = {
 	-- 	z = { fg = "#292D3E", bg = "#69FF00" },
 	-- },
 
-	-- RESIZE mode (pink theme)
+	-- RESIZE mode (orange/peach theme) - Updated to match mode_colors.lua (#F78C6C)
 	resize_mode = {
-		a = { fg = "#292D3E", bg = "#FF79C6" },
-		b = { fg = "#FF79C6", bg = "#444267" },
-		c = { fg = "#FF79C6", bg = "#292D3E" },
-		x = { fg = "#FF79C6", bg = "#292D3E" },
-		y = { fg = "#FF79C6", bg = "#444267" },
-		z = { fg = "#292D3E", bg = "#FF79C6" },
+		a = { fg = "#292D3E", bg = "#F78C6C" },
+		b = { fg = "#F78C6C", bg = "#444267" },
+		c = { fg = "#F78C6C", bg = "#292D3E" },
+		x = { fg = "#F78C6C", bg = "#292D3E" },
+		y = { fg = "#F78C6C", bg = "#444267" },
+		z = { fg = "#292D3E", bg = "#F78C6C" },
 	},
 
-	-- Copy mode (amber theme)
+	-- Copy mode (orange/peach theme) - Updated to match mode_colors.lua (#F78C6C, same as resize)
 	copy_mode = {
-		a = { fg = "#292D3E", bg = "#FFB86C" },
-		b = { fg = "#FFB86C", bg = "#444267" },
-		c = { fg = "#FFB86C", bg = "#292D3E" },
-		x = { fg = "#FFB86C", bg = "#292D3E" },
-		y = { fg = "#FFB86C", bg = "#444267" },
-		z = { fg = "#292D3E", bg = "#FFB86C" },
+		a = { fg = "#292D3E", bg = "#F78C6C" },
+		b = { fg = "#F78C6C", bg = "#444267" },
+		c = { fg = "#F78C6C", bg = "#292D3E" },
+		x = { fg = "#F78C6C", bg = "#292D3E" },
+		y = { fg = "#F78C6C", bg = "#444267" },
+		z = { fg = "#292D3E", bg = "#F78C6C" },
 	},
 
 	-- Search mode (teal theme)
@@ -183,24 +183,24 @@ M.preserved_theme = {
 		z = { fg = "#292D3E", bg = "#8BE9FD" },
 	},
 
-	-- Pane mode (green theme)
+	-- Pane mode (yellow/lime theme) - Updated to match mode_colors.lua (#f1fc79)
 	pane_mode = {
-		a = { fg = "#292D3E", bg = "#69FF94" },
-		b = { fg = "#69FF94", bg = "#444267" },
-		c = { fg = "#69FF94", bg = "#292D3E" },
-		x = { fg = "#69FF94", bg = "#292D3E" },
-		y = { fg = "#69FF94", bg = "#444267" },
-		z = { fg = "#292D3E", bg = "#69FF94" },
+		a = { fg = "#292D3E", bg = "#f1fc79" },
+		b = { fg = "#f1fc79", bg = "#444267" },
+		c = { fg = "#f1fc79", bg = "#292D3E" },
+		x = { fg = "#f1fc79", bg = "#292D3E" },
+		y = { fg = "#f1fc79", bg = "#444267" },
+		z = { fg = "#292D3E", bg = "#f1fc79" },
 	},
 
-	-- Pane selection mode (lime theme)
+	-- Pane selection mode (purple theme) - Updated to match mode_colors.lua (#8470FF, same as wezterm)
 	pane_selection_mode = {
-		a = { fg = "#292D3E", bg = "#C3E88D" },
-		b = { fg = "#C3E88D", bg = "#444267" },
-		c = { fg = "#C3E88D", bg = "#292D3E" },
-		x = { fg = "#C3E88D", bg = "#292D3E" },
-		y = { fg = "#C3E88D", bg = "#444267" },
-		z = { fg = "#292D3E", bg = "#C3E88D" },
+		a = { fg = "#292D3E", bg = "#8470FF" },
+		b = { fg = "#8470FF", bg = "#444267" },
+		c = { fg = "#8470FF", bg = "#292D3E" },
+		x = { fg = "#8470FF", bg = "#292D3E" },
+		y = { fg = "#8470FF", bg = "#444267" },
+		z = { fg = "#292D3E", bg = "#8470FF" },
 	},
 }
 

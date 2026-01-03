@@ -172,6 +172,34 @@ function backdrop_refresh.update(window, pane)
 end
 
 -- ============================================================================
+-- TAB SWITCH DETECTION
+-- ============================================================================
+-- Detects when the active tab changes and restores that tab's mode
+
+function detect_and_handle_tab_switch(window, pane)
+	local ok, tab_mode_state = pcall(require, "modules.utils.tab_mode_state")
+	if not ok then
+		return false
+	end
+
+	local ok2, mode_colors = pcall(require, "keymaps.mode-colors")
+	if not ok2 then
+		return false
+	end
+
+	-- Check if tab switched
+	local switched, from_tab_id, to_tab_id = tab_mode_state.detect_tab_switch(window)
+
+	if switched and to_tab_id then
+		-- Handle the tab switch - restore destination tab's mode
+		mode_colors.on_tab_switch(window, pane, from_tab_id, to_tab_id)
+		return true
+	end
+
+	return false
+end
+
+-- ============================================================================
 -- MODE BORDER COLOR SYNC
 -- ============================================================================
 -- Syncs mode colors ONLY when the mode actually changes.
@@ -182,6 +210,13 @@ end
 wezterm.GLOBAL.last_mode_per_window = wezterm.GLOBAL.last_mode_per_window or {}
 
 function sync_mode_border(window, pane)
+	-- First, check for tab switch (this takes priority)
+	if detect_and_handle_tab_switch(window, pane) then
+		-- Tab switched, mode was already updated by on_tab_switch
+		wezterm.GLOBAL.leader_active = window:leader_is_active()
+		return
+	end
+
 	local ok, mode_colors = pcall(require, "keymaps.mode-colors")
 	if not ok then
 		return
@@ -194,6 +229,12 @@ function sync_mode_border(window, pane)
 
 	local window_id = tostring(window:window_id())
 
+	-- Check leader state directly
+	local leader_active = window:leader_is_active()
+	if leader_active then
+		wezterm.log_info("[SYNC] Leader is active!")
+	end
+
 	-- Detect current mode (cheap boolean/string checks)
 	local current_mode = mode_colors_const.get_current_mode(window)
 
@@ -201,6 +242,7 @@ function sync_mode_border(window, pane)
 	-- Note: set_mode also updates GLOBAL.current_mode, so we check against that too
 	local last_synced = wezterm.GLOBAL.last_mode_per_window[window_id]
 	if last_synced ~= current_mode then
+		wezterm.log_info("[SYNC] Mode changed: " .. tostring(last_synced) .. " -> " .. current_mode)
 		wezterm.GLOBAL.last_mode_per_window[window_id] = current_mode
 		mode_colors.set_mode(window, current_mode)
 	end

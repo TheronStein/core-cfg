@@ -1,0 +1,132 @@
+#compdef uwsm-app uwsm-terminal uwsm-terminal-scope uwsm-terminal-service uuctl fumon wait-tray
+
+# Completions for UWSM helper tools
+# uwsm-app, uwsm-terminal*, uuctl, fumon, wait-tray
+
+# Desktop entry completion helper
+_uwsm_desktop_entries() {
+    local -a entries
+    local dirs="${XDG_DATA_HOME:-$HOME/.local/share}:/usr/local/share:/usr/share"
+
+    # Search for .desktop files in applications directories
+    local IFS=':'
+    for dir in $dirs; do
+        if [[ -d "$dir/applications" ]]; then
+            entries+=("${dir}/applications"/*.desktop(N:t:r))
+        fi
+    done
+
+    _describe 'desktop entry' entries
+}
+
+# Slice completion helper
+_uwsm_slices() {
+    local -a slices
+    slices=(
+        'a:app-graphical.slice'
+        'b:background-graphical.slice'
+        's:session-graphical.slice'
+    )
+    _describe 'slice' slices
+}
+
+# uwsm-app and uwsm-terminal* completions (same as "uwsm app")
+_uwsm-app() {
+    local context state line
+    typeset -A opt_args
+
+    _arguments -s \
+        '(- *)'{-h,--help}'[show help message and exit]' \
+        '-s+[Slice selector (a=app, b=background, s=session)]:slice:_uwsm_slices' \
+        '-t+[Unit type]:type:(scope service)' \
+        '-a+[Override app name]:app name:' \
+        '-u+[Override unit name]:unit name:' \
+        '-d+[Unit description]:description:' \
+        '*-p+[Unit property assignment]:property:' \
+        '-S+[Silence output]:silence:(out err both)' \
+        '-T[Launch in terminal]' \
+        '*:application:_uwsm_desktop_entries'
+}
+
+# uwsm-terminal completions (same options, -T is implicit)
+_uwsm-terminal() {
+    _uwsm-app "$@"
+}
+
+_uwsm-terminal-scope() {
+    _uwsm-app "$@"
+}
+
+_uwsm-terminal-service() {
+    _uwsm-app "$@"
+}
+
+# uuctl completions
+_uuctl() {
+    local context state line
+    typeset -A opt_args
+
+    local -a menu_tools
+    menu_tools=(
+        'vicinae:Vicinae menu'
+        'walker:Walker menu'
+        'fuzzel:Fuzzel menu'
+        'wofi:Wofi menu'
+        'rofi:Rofi menu'
+        'tofi:Tofi menu'
+        'bemenu:Bemenu menu'
+        'wmenu:Wmenu menu'
+        'dmenu:Dmenu menu'
+    )
+
+    _arguments -s \
+        '(- *)'{-h,--help}'[show help]' \
+        '-a[do not filter units]' \
+        '--all[do not filter units]' \
+        '1:menu tool:->menu' \
+        '*:menu args:'
+
+    case $state in
+        menu)
+            _describe 'menu tool' menu_tools
+            ;;
+    esac
+}
+
+# fumon has no arguments
+_fumon() {
+    _message 'fumon takes no arguments'
+}
+
+# wait-tray completions
+_wait-tray() {
+    _arguments -s \
+        '(- *)'{-h,--help}'[show help]' \
+        '1:timeout seconds:(5 10 15 30 60)' \
+        '2:delay seconds:(0 1 2 3 5)'
+}
+
+# Route to the appropriate completion function
+case "$service" in
+    uwsm-app)
+        _uwsm-app "$@"
+        ;;
+    uwsm-terminal)
+        _uwsm-terminal "$@"
+        ;;
+    uwsm-terminal-scope)
+        _uwsm-terminal-scope "$@"
+        ;;
+    uwsm-terminal-service)
+        _uwsm-terminal-service "$@"
+        ;;
+    uuctl)
+        _uuctl "$@"
+        ;;
+    fumon)
+        _fumon "$@"
+        ;;
+    wait-tray)
+        _wait-tray "$@"
+        ;;
+esac

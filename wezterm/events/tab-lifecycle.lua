@@ -15,6 +15,32 @@ local debug_config = require("config.debug")
 local M = {}
 
 -- ============================================================================
+-- PER-TAB MODE STATE INITIALIZATION
+-- ============================================================================
+-- Lazy initialization of tab mode state when tabs are first rendered
+
+local function ensure_tab_mode_initialized(tab_id)
+	local ok, tab_mode_state = pcall(require, "modules.utils.tab_mode_state")
+	if not ok then
+		return
+	end
+
+	-- Check if already initialized
+	wezterm.GLOBAL.tab_modes = wezterm.GLOBAL.tab_modes or {}
+	local id = tostring(tab_id)
+	if wezterm.GLOBAL.tab_modes[id] then
+		return -- Already initialized
+	end
+
+	-- Initialize with global context as default
+	tab_mode_state.initialize_tab(tab_id)
+
+	if debug_config.is_enabled("debug_mode_borders") then
+		wezterm.log_info(string.format("[TAB-LIFECYCLE] Initialized mode state for tab %s", id))
+	end
+end
+
+-- ============================================================================
 -- CLAUDE CODE STATUS INTEGRATION
 -- ============================================================================
 -- Try to load the Claude Code status module (optional dependency)
@@ -102,6 +128,9 @@ local function get_cwd_or_process(pane)
 end
 
 function M.format_tab_title(tab, tabs, panes, config, hover, max_width)
+	-- Ensure this tab has mode state initialized (lazy initialization)
+	ensure_tab_mode_initialized(tab.tab_id)
+
 	local pane = tab.active_pane
 	local process_name = pane.foreground_process_name or ""
 	local process_icon = get_process_icon(process_name)
@@ -246,6 +275,15 @@ function M.handle_mux_tab_closed(tab_id, pane_id)
 	local ok_hooks, tab_hooks = pcall(require, "modules.tabs.tab_hooks")
 	if ok_hooks and tab_hooks and pane_id then
 		tab_hooks.cleanup_pane(pane_id)
+	end
+
+	-- Clean up per-tab mode state
+	local ok_mode_state, tab_mode_state = pcall(require, "modules.utils.tab_mode_state")
+	if ok_mode_state then
+		tab_mode_state.cleanup_tab(tab_id)
+		if debug_config.is_enabled("debug_mode_borders") then
+			wezterm.log_info(string.format("[TAB-LIFECYCLE] Cleaned up mode state for tab %s", tostring(tab_id)))
+		end
 	end
 end
 

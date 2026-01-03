@@ -130,7 +130,7 @@ core-menu() {
                         echo "  Ctrl+R  - History search"
                         echo "  Alt+W   - Copy buffer"
                         echo "  Alt+V   - Paste clipboard"
-                        echo "  Alt+B   - Bookmark directory"
+                        echo "  Alt+B   - Bitwarden interactive"
                         echo "  Alt+J   - Jump to bookmark"
                         echo "  Alt+N   - Quick note"
                         ;;
@@ -276,7 +276,7 @@ yazi-pick|Yazi Picker|Alt+Y - Select files with Yazi
 yazi-cd|Yazi Navigate|Ctrl+Y - Navigate with Yazi
 zoxide|Zoxide Jump|Alt+Z - Smart directory jump
 bookmarks|Bookmarks|Alt+J - Jump to bookmarked directory
-bookmark-add|Add Bookmark|Alt+B - Bookmark current directory
+bitwarden|Bitwarden|Alt+B - Password manager interactive menu
 recent|Recent Files|Recently accessed files
 tree|Directory Tree|Show directory tree structure
 EOF

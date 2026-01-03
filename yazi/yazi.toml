@@ -127,12 +127,12 @@ extract = [
 # Define rules for different file types
 rules = [
   # ━━━ Unity files (highest priority) ━━━
-  { name = "*.unity", use = "unity" },
-  { name = "*.{asset,prefab}", use = "unity" },
+  { url = "*.unity", use = "unity" },
+  { url = "*.{asset,prefab}", use = "unity" },
 
   # ━━━ 3D model files ━━━
-  { name = "*.blend", use = "blend" },
-  { name = "*.{obj,stl,ply,3mf,step,stp,pts,fbx,gltf,glb}", use = "model3d" },
+  { url = "*.blend", use = "blend" },
+  { url = "*.{obj,stl,ply,3mf,step,stp,pts,fbx,gltf,glb}", use = "model3d" },
 
   # ━━━ Images ━━━
   { mime = "image/*", use = "image" },
@@ -145,13 +145,13 @@ rules = [
   { mime = "application/pdf", use = "pdf" },
 
   # ━━━ Markdown (special handling for Obsidian) ━━━
-  { name = "*.md", use = "edit" },
+  { url = "*.md", use = "edit" },
 
   # ━━━ CSV/Data files ━━━
-  { name = "*.{csv,tsv}", use = "csv" },
+  { url = "*.{csv,tsv}", use = "csv" },
 
   # ━━━ Text/code files ━━━
-  { name = "*.{txt,rs,py,js,ts,jsx,tsx,lua,sh,bash,zsh,fish,rasi,vim,conf,config,toml,yaml,yml,json,xml,html,css,scss,c,cpp,h,hpp,go,java,rb,php,pl,sql,Makefile,Dockerfile}", use = "edit" },
+  { url = "*.{txt,rs,py,js,ts,jsx,tsx,lua,sh,bash,zsh,fish,rasi,vim,conf,config,toml,yaml,yml,json,xml,html,css,scss,c,cpp,h,hpp,go,java,rb,php,pl,sql,Makefile,Dockerfile}", use = "edit" },
 
   # ━━━ MIME-based text rules (fallback) ━━━
   { mime = "text/*", use = "edit" },
@@ -236,45 +236,46 @@ sort_sensitive = false
 sort_reverse = false
 sort_translit = false
 
-# # Plugin configuration - inherits from symlinked init.lua
+# Plugin configuration - inherits from symlinked init.lua
+
 # [plugin]
+# # ━━━ PRELOADERS - Load metadata in background (MAX 32 total with fetchers!) ━━━
+# prepend_preloaders = [
+#   # Media files - consolidated
+#   { mime = "{audio,video,image}/*", run = "mediainfo" }, # All media metadata
+#   { mime = "audio/*", run = "exifaudio" },               # Audio-specific details
 #
-# ━━━ PRELOADERS - Load metadata in background (MAX 32 total with fetchers!) ━━━
-prepend_preloaders = [
-  #   # Media files - consolidated
-  #   { mime = "{audio,video,image}/*", run = "mediainfo" }, # All media metadata
-  #   { mime = "audio/*", run = "exifaudio" },               # Audio-specific details
-  #
-  { name = "*.blend", run = "blender-preview" },
-  { name = "*.blend1", run = "blender-preview" },
-  # Data/Database files - consolidated patterns
-  { name = "*.{csv,tsv,json,jsonl,parquet,arrow,txt}", run = "duckdb", multi = false },
-  { name = "*.{db,sqlite,sqlite3,duckdb}", run = "duckdb", multi = false },
-  { name = "*.{xlsx,xls,ods}", run = "duckdb", multi = false },
-  #
-  # 3D model files - consolidated patterns
-  { name = "*.{3mf,obj,pts,ply,stl,step,stp}", run = "f3d-preview" },
-  { name = "*.{fbx,gltf,glb}", run = "f3d-preview" },
-]
+#   { url = "*.blend", run = "blender-preview" },
+#   { url = "*.blend1", run = "blender-preview" },
 #
+#   # Data/Database files - consolidated patterns
+#   { url = "*.{csv,tsv,json,jsonl,parquet,arrow,txt}", run = "duckdb", multi = false },
+#   { url = "*.{db,sqlite,sqlite3,duckdb}", run = "duckdb", multi = false },
+#   { url = "*.{xlsx,xls,ods}", run = "duckdb", multi = false },
+#
+#   # 3D model files - consolidated patterns
+#   { url = "*.{3mf,obj,pts,ply,stl,step,stp}", run = "f3d-preview" },
+#   { url = "*.{fbx,gltf,glb}", run = "f3d-preview" },
+# ]
+
 # ━━━ PREVIEWERS - What actually displays ━━━
-prepend_previewers = [
-  { name = "*/", run = "mux eza_tree_1 eza_tree_2 eza_tree_3 eza_tree_4" },
-  { name = "*.blend", run = "blender-preview" },
-  { name = "*.blend1", run = "blender-preview" },
-  { name = "*.{csv,tsv,json,jsonl,parquet,arrow,txt}", run = "duckdb", multi = false },
-  { name = "*.{db,sqlite,sqlite3,duckdb}", run = "duckdb", multi = false },
-  { name = "*.{xlsx,xls,ods}", run = "duckdb", multi = false },
-  #
-  # # Code/text files with syntax highlighting (uses rich-preview with fallback to bat/code)
-  # { mime = "text/*", run = "rich-preview" },
-]
+# prepend_previewers = [
+#   { url = "*/", run = "mux eza_tree_1 eza_tree_2 eza_tree_3 eza_tree_4" },
+#   { url = "*.blend", run = "blender-preview" },
+#   { url = "*.blend1", run = "blender-preview" },
+#   { url = "*.{csv,tsv,json,jsonl,parquet,arrow,txt}", run = "duckdb", multi = false },
+#   { url = "*.{db,sqlite,sqlite3,duckdb}", run = "duckdb", multi = false },
+#   { url = "*.{xlsx,xls,ods}", run = "duckdb", multi = false },
+#   { mime = "image/*", run = "image" },                                                 # Universal image preview (jpeg, png, webp, gif, svg, bmp, tiff, ico, etc.)
+#
+#   # # Code/text files with syntax highlighting (uses rich-preview with fallback to bat/code)
+#   # { mime = "text/*", run = "rich-preview" },
+# ]
 
 #   # Most specific patterns FIRST!
 #   { name = "*.md", run = "glow" }, # Markdown rendering
 #
 #   # ━━━ COMPREHENSIVE IMAGE SUPPORT - ALL formats ━━━
-#   { mime = "image/*", run = "image" }, # Universal image preview (jpeg, png, webp, gif, svg, bmp, tiff, ico, etc.)
 #
 #   # Media files
 #   { mime = "audio/*", run = "exifaudio" }, # Audio info display
@@ -317,18 +318,18 @@ append_previewers = [
   # { mime = "text/*", run = "rich-preview" },
 
   # Markdown files (uses glow for terminal rendering)
-  # { name = "*.md", run = "" },
-  # { name = "*.rasi", run =  },
+  { url = "*.md", run = "glow" },
+  { url = "*.rasi", run = "glow" },
 
   # Office documents (requires pandoc for conversion)
-  { name = "*.{docx,doc,odt,rtf}", run = "pandoc-preview" },
-  { name = "*.{pptx,ppt,odp}", run = "pandoc-preview" },
+  { url = "*.{docx,doc,odt,rtf}", run = "pandoc-preview" },
+  { url = "*.{pptx,ppt,odp}", run = "pandoc-preview" },
 
   # Spreadsheets still use duckdb
-  { name = "*.{xlsx,xls,ods}", run = "duckdb" },
+  { url = "*.{xlsx,xls,ods}", run = "duckdb" },
 
   # Fallback hex viewer for unknown/binary files
-  { name = "*", run = "hexyl" },
+  { url = "*", run = "hexyl" },
 ]
 #
 # # append_fetchers = [

@@ -22,6 +22,8 @@ return {
 	get = M.get,
 	update = function(window, opts)
 		local mode = M.get(window)
+		-- DEBUG: Log mode being displayed
+		wezterm.log_info("[MODE COMPONENT] Displaying mode: " .. tostring(mode))
 		-- Convert mode key to display name
 		local display_name = mode:gsub("_mode", ""):upper()
 

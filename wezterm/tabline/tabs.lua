@@ -78,22 +78,37 @@ local function tabs(tab)
 		return string.format("#%02x%02x%02x", r, g, b)
 	end
 
-	-- Get mode from global state (set by update-status event)
-	local current_mode = wezterm.GLOBAL.current_mode or "wezterm_mode"
-	local mode_colors = config.theme[current_mode]
+	-- Get tab ID first (needed for per-tab mode lookup)
+	local tab_id = tostring(tab.tab_id)
 
-	-- Get mode background and foreground colors (same as mode/hostname sections)
-	local mode_bg = mode_colors and mode_colors.a and mode_colors.a.bg or "#01F9C6"
-	local mode_fg = mode_colors and mode_colors.a and mode_colors.a.fg or "#292D3E"
+	-- Get THIS TAB's mode from per-tab state
+	local tab_mode_state = require("modules.utils.tab_mode_state")
+	local tab_state = tab_mode_state.get_tab_mode(tab_id)
+
+	-- Each tab displays its own stored mode
+	-- Active tab: Shows current live mode (including transient states like leader_mode)
+	-- Inactive tabs: Show their own base_mode (independent of active tab's mode)
+	local tab_mode
+	if tab.is_active then
+		-- Active tab shows the live current mode (may include leader_mode, etc.)
+		tab_mode = wezterm.GLOBAL.current_mode or tab_state.base_mode or "wezterm_mode"
+	else
+		-- Inactive tabs ALWAYS show their OWN base_mode (per-tab independence)
+		tab_mode = tab_state.base_mode or "wezterm_mode"
+	end
+
+	-- Get mode color directly from mode_colors module (single source of truth)
+	local mode_colors_module = require("modules.utils.mode_colors")
+	local mode_bg = mode_colors_module.get_color(tab_mode)
+	local mode_fg = "#292D3E"  -- Default dark foreground
 
 	-- Get tab metadata to check for workspace info
-	local tab_id = tostring(tab.tab_id)
 	local tab_meta = wezterm.GLOBAL.custom_tabs and wezterm.GLOBAL.custom_tabs[tab_id]
 
 	-- Color priority (highest to lowest):
 	-- 1. tmux workspace color (if in tmux workspace)
 	-- 2. custom tab color (from color picker)
-	-- 3. default mode color
+	-- 3. per-tab mode color (each tab shows its own mode)
 
 	-- Priority 1: Override mode color with workspace color if available (HIGHEST PRIORITY)
 	if tab_meta and tab_meta.tmux_workspace_color then
@@ -107,7 +122,7 @@ local function tabs(tab)
 				mode_bg = custom_color
 			end
 		end
-		-- Priority 3: Default mode color (already set above, no action needed)
+		-- Priority 3: Per-tab mode color (already set above from tab_mode_state)
 	end
 
 	-- Helper function to truncate with ".." suffix

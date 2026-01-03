@@ -7,31 +7,40 @@ return {
   use_fancy_tab_bar = false,
   tab_bar_at_bottom = true,
   hide_tab_bar_if_only_one_tab = false,
-  tab_max_width = 20,
+  tab_max_width = 18,
   switch_to_last_active_tab_when_closing_tab = true,
   show_new_tab_button_in_tab_bar = false, -- Hide the "+" button
-
+  dpi = 96.0, -- Override system DPI detection (default: auto-detect)
+  -- dpi_by_screen = { -- Per-monitor DPI overrides
+  --   ["monitor_name"] = 144.0,
+  -- },
+  freetype_load_target = "Normal", -- Options: Normal, Light, Mono, HorizontalLcd
+  freetype_render_target = "Normal", -- Options: Normal, Light, Mono, HorizontalLcd
+  freetype_load_flags = "DEFAULT", -- Fine-tune hinting
+  font_shaper = "Harfbuzz", -- or "Allsorts" (Harfbuzz is default, better quality)
   -- Cursor
   default_cursor_style = "BlinkingBlock",
   cursor_blink_rate = 800,
   cursor_blink_ease_in = "Linear",
   cursor_blink_ease_out = "Linear",
   force_reverse_video_cursor = true,
+  -- line_height = 1.0,
   line_height = 1.0,
-  alternate_buffer_wheel_scroll_speed = 3,
+
+  alternate_buffer_wheel_scroll_speed = 9,
   enable_scroll_bar = true,
-  initial_rows = 50,
+  initial_rows = 5,
   initial_cols = 120,
   cell_width = 1.0,
   window_decorations = "NONE",
   -- font_size = 14.0,
-  font_size = 14.0,
+  font_size = 20.0,
   adjust_window_size_when_changing_font_size = false,
   window_padding = {
-    left = 2,
-    right = 2,
-    top = 2,
-    bottom = 2,
+    left = 0,
+    right = 0,
+    top = 0,
+    bottom = 0,
   },
   window_content_alignment = {
     horizontal = "Left",
@@ -89,7 +98,10 @@ return {
     selection_fg = "#01f9c6",
     selection_bg = "#033E3E", --"#C4E8E8",
     scrollbar_thumb = "#222222",
-    split = "#2ac3de", -- Bright green for visibility
+    -- Pane border color - DO NOT hardcode here!
+    -- This is dynamically set by keymaps/mode-colors.lua based on current mode
+    -- Default mode (wezterm_mode) is purple (#8470FF)
+    -- split = "#8470FF", -- REMOVED: Let mode-colors.lua handle this dynamically
     -- copy_mode_active_highlight_fg = { Color = "Black" },
     -- copy_mode_inactive_highlight_bg = { Color = "#52ad70" },
     -- copy_mode_inactive_highlight_fg = { Color = "" },

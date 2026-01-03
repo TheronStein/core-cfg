@@ -72,9 +72,6 @@ export MANOPT=--no-hyphenation
 # export MANPAGER="nvim -c 'set ft=man' -"
 # export MANPAGER="sh -c 'sed -e s/.\\\\x08//g | bat -l man -p'"
 export PAGER="less"
-export DELTA_PAGER="less $LESS"
-export BAT_PAGER="less $LESS"
-export LF_PAGER="less ${LESS}"
 export AUR_PAGER='lf'
 export PERLDOC_PAGER="sh -c 'col -bx | bat -l man -p'"
 export PERLDOC_SRC_PAGER="sh -c 'col -bx | bat -l man -p'"
@@ -97,7 +94,6 @@ export SYSTEMD_EDITOR="${EDITOR}"
 # The fix is applied in completions config (see 02-zinit.zsh or completions setup)
 export SYSTEMD_COLORS=1
 export SYSTEMD_LOG_COLOR=1
-export SYSTEMD_LESS=${LESS}
 if builtin command -v lesspipe.sh >/dev/null 2>&1; then
   export LESSOPEN="|lesspipe.sh %s"
 fi
@@ -113,6 +109,10 @@ export LC_CTYPE="${LC_CTYPE:-en_US.UTF-8}"
 # LESS CONFIGURATION
 #=============================================================================
 export LESS="-R -F -X -i -M -W -x4"
+export SYSTEMD_LESS="${LESS}"
+export DELTA_PAGER="less ${LESS}"
+export BAT_PAGER="less ${LESS}"
+export LF_PAGER="less ${LESS}"
 export LESSHISTFILE="${XDG_STATE_HOME}/less/history"
 export LESSKEY="${XDG_CONFIG_HOME}/less/lesskey"
 

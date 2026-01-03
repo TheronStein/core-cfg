@@ -17,8 +17,10 @@ case "$mode_color" in
   *)      mode_bg="#987afb" ;;   # Default purple
 esac
 
-# Get session name and remove -view-* suffix
-session_name=$(tmux display-message -p ' #{session_name} ' | sed 's/-view-.*//')
+# Get session name from argument (passed by tmux format expansion) or fallback
+# Using argument ensures correct session context, not just the focused client
+raw_session="${1:-#{session_name}}"
+session_name=$(echo " $raw_session " | sed 's/-view-.*//')
 
 # Build the status-left: Mode/Context → Session
 # Two sections only: Context/Mode (A) → Session (B)

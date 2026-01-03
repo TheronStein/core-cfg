@@ -102,7 +102,7 @@ end
 -- This is the key function that solves the "extra sessions in background" problem
 function M.cleanup_orphaned_views()
   if not tmux.is_tmux_available() then
-    return
+    return 0
   end
 
   -- Get all currently active tabs from WezTerm
@@ -116,6 +116,7 @@ function M.cleanup_orphaned_views()
   end
 
   local cleaned_count = 0
+  local skipped_count = 0
 
   -- Get list of all tmux sockets/workspaces to check
   local sockets_to_check = { nil } -- nil = default socket
@@ -145,39 +146,63 @@ function M.cleanup_orphaned_views()
         -- IMPORTANT: Only clean up views that meet ALL these criteria:
         -- 1. NOT tracked by WezTerm (not in custom_tabs)
         -- 2. NOT attached (no clients connected)
-        if not is_tracked and not session_info.attached then
-          -- This is an orphaned view - kill it
-          local socket_info = socket_name and (" [socket: " .. socket_name .. "]") or ""
-          wezterm.log_info(
-            "Cleaning up orphaned view session: "
-              .. session_name
-              .. " (group: "
-              .. (session_info.group or "none")
-              .. ")"
-              .. socket_info
-          )
+        --
+        -- ENHANCED: Also check age - clean up unattached views older than 5 minutes
+        -- even if tracked (handles WezTerm crash/restart scenarios)
+        local age_seconds = 0
+        if session_info.created and session_info.created ~= "" then
+          age_seconds = os.time() - tonumber(session_info.created)
+        end
+        local is_stale = age_seconds > 300 -- 5 minutes
 
-          -- Build kill command with socket flag if needed
-          local socket_flag = socket_name and string.format("-L '%s' ", socket_name) or ""
-          local kill_cmd =
-            string.format([[tmux %skill-session -t '%s' 2>/dev/null]], socket_flag, session_name)
+        if not session_info.attached then
+          if not is_tracked or is_stale then
+            -- This is an orphaned view - kill it
+            local socket_info = socket_name and (" [socket: " .. socket_name .. "]") or ""
+            local reason = not is_tracked and "untracked" or "stale (" .. age_seconds .. "s)"
+            wezterm.log_info(
+              "Cleaning up orphaned view session ["
+                .. reason
+                .. "]: "
+                .. session_name
+                .. " (group: "
+                .. (session_info.group or "none")
+                .. ")"
+                .. socket_info
+            )
 
-          if os.execute(kill_cmd) == 0 or os.execute(kill_cmd) == true then
-            cleaned_count = cleaned_count + 1
+            -- Build kill command with socket flag if needed
+            local socket_flag = socket_name and string.format("-L '%s' ", socket_name) or ""
+            local kill_cmd =
+              string.format([[tmux %skill-session -t '%s' 2>/dev/null]], socket_flag, session_name)
+
+            if os.execute(kill_cmd) == 0 or os.execute(kill_cmd) == true then
+              cleaned_count = cleaned_count + 1
+              -- Also remove from custom_tabs if present
+              for tab_id_str, tab_data in pairs(wezterm.GLOBAL.custom_tabs or {}) do
+                if tab_data.tmux_view == session_name then
+                  wezterm.GLOBAL.custom_tabs[tab_id_str] = nil
+                  break
+                end
+              end
+            else
+              wezterm.log_warn("Failed to kill orphaned view session: " .. session_name)
+            end
           else
-            wezterm.log_warn("Failed to kill orphaned view session: " .. session_name)
+            skipped_count = skipped_count + 1
           end
-        elseif is_tracked or session_info.attached then
-          -- Log why we're skipping this session (debug only)
-          local reason = is_tracked and "tracked" or "attached"
-          -- wezterm.log_info("Skipping cleanup of " .. reason .. " view session: " .. session_name)
         end
       end
     end
   end
 
   if cleaned_count > 0 then
-    wezterm.log_info("Cleaned up " .. cleaned_count .. " orphaned view session(s)")
+    wezterm.log_info(
+      "Cleaned up "
+        .. cleaned_count
+        .. " orphaned view session(s)"
+        .. (skipped_count > 0 and " (skipped " .. skipped_count .. " active)" or "")
+    )
   end
 
   return cleaned_count

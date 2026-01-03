@@ -280,8 +280,8 @@ function zvm_after_init() {
     bindkey -M viins '^[w' widget::copy-buffer
     bindkey -M viins '^[v' widget::paste-clipboard
 
-    # Bookmarks & Notes
-    bindkey -M viins '^[b' widget::bookmark-directory
+    # Bitwarden & Notes
+    bindkey -M viins '^[b' widget::bitwarden
     bindkey -M viins '^[j' widget::jump-bookmark
     bindkey -M viins '^[n' widget::quick-note
 

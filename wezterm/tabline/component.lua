@@ -281,66 +281,69 @@ function M.set_status(window)
   -- Store tmux user variables in global for tab formatting
   local pane = window:active_pane()
   if pane then
-    local user_vars = pane:get_user_vars()
-    local tmux_session = user_vars.TMUX_SESSION or ""
-    local tmux_server_icon = user_vars.TMUX_SERVER_ICON or ""
-    local tmux_window = user_vars.TMUX_WINDOW or ""
-    local tmux_pane = user_vars.TMUX_PANE or ""
+    -- Wrap in pcall to handle race condition when pane is closed
+    local pane_ok, user_vars = pcall(function() return pane:get_user_vars() end)
+    if pane_ok and user_vars then
+      local tmux_session = user_vars.TMUX_SESSION or ""
+      local tmux_server_icon = user_vars.TMUX_SERVER_ICON or ""
+      local tmux_window = user_vars.TMUX_WINDOW or ""
+      local tmux_pane = user_vars.TMUX_PANE or ""
 
-    -- Decode base64 values
-    if tmux_session ~= "" then
-      local ok, decoded = pcall(wezterm.base64_decode, tmux_session)
-      if ok then
-        tmux_session = decoded
+      -- Decode base64 values
+      if tmux_session ~= "" then
+        local decode_ok, decoded = pcall(wezterm.base64_decode, tmux_session)
+        if decode_ok then
+          tmux_session = decoded
+        end
       end
-    end
-    if tmux_server_icon ~= "" then
-      local ok, decoded = pcall(wezterm.base64_decode, tmux_server_icon)
-      if ok then
-        tmux_server_icon = decoded
+      if tmux_server_icon ~= "" then
+        local decode_ok, decoded = pcall(wezterm.base64_decode, tmux_server_icon)
+        if decode_ok then
+          tmux_server_icon = decoded
+        end
       end
-    end
-    if tmux_window ~= "" then
-      local ok, decoded = pcall(wezterm.base64_decode, tmux_window)
-      if ok then
-        tmux_window = decoded
-      end
-    end
-
-    -- Only update GLOBAL if we have valid tmux data, otherwise preserve previous values
-    -- This prevents flickering when switching between tabs
-    if tmux_session ~= "" or tmux_server_icon ~= "" then
-      wezterm.GLOBAL.tmux_user_vars = {
-        session = tmux_session,
-        server_icon = tmux_server_icon,
-      }
-    elseif not wezterm.GLOBAL.tmux_user_vars then
-      -- Initialize with empty values if not set
-      wezterm.GLOBAL.tmux_user_vars = {
-        session = "",
-        server_icon = "",
-      }
-    end
-    -- If tmux_session and icon are empty but GLOBAL exists, preserve GLOBAL values (don't overwrite)
-
-    -- Store tmux info for the active tab only
-    -- The TMUX_WINDOW user var is set by tmux hooks, so we just use that
-    if tmux_session ~= "" and tmux_window ~= "" then
-      if not wezterm.GLOBAL.tab_tmux_info then
-        wezterm.GLOBAL.tab_tmux_info = {}
+      if tmux_window ~= "" then
+        local decode_ok, decoded = pcall(wezterm.base64_decode, tmux_window)
+        if decode_ok then
+          tmux_window = decoded
+        end
       end
 
-      local mux_window = window:mux_window()
-      if mux_window then
-        local active_tab = mux_window:active_tab()
-        if active_tab then
-          local tab_id = tostring(active_tab:tab_id())
-          -- Remove -view suffix from session name
-          local clean_session = tmux_session:match("^([^%-]+)") or tmux_session
-          wezterm.GLOBAL.tab_tmux_info[tab_id] = {
-            session = clean_session,
-            window = tmux_window,
-          }
+      -- Only update GLOBAL if we have valid tmux data, otherwise preserve previous values
+      -- This prevents flickering when switching between tabs
+      if tmux_session ~= "" or tmux_server_icon ~= "" then
+        wezterm.GLOBAL.tmux_user_vars = {
+          session = tmux_session,
+          server_icon = tmux_server_icon,
+        }
+      elseif not wezterm.GLOBAL.tmux_user_vars then
+        -- Initialize with empty values if not set
+        wezterm.GLOBAL.tmux_user_vars = {
+          session = "",
+          server_icon = "",
+        }
+      end
+      -- If tmux_session and icon are empty but GLOBAL exists, preserve GLOBAL values (don't overwrite)
+
+      -- Store tmux info for the active tab only
+      -- The TMUX_WINDOW user var is set by tmux hooks, so we just use that
+      if tmux_session ~= "" and tmux_window ~= "" then
+        if not wezterm.GLOBAL.tab_tmux_info then
+          wezterm.GLOBAL.tab_tmux_info = {}
+        end
+
+        local mux_window = window:mux_window()
+        if mux_window then
+          local active_tab = mux_window:active_tab()
+          if active_tab then
+            local tab_id = tostring(active_tab:tab_id())
+            -- Remove -view suffix from session name
+            local clean_session = tmux_session:match("^([^%-]+)") or tmux_session
+            wezterm.GLOBAL.tab_tmux_info[tab_id] = {
+              session = clean_session,
+              window = tmux_window,
+            }
+          end
         end
       end
     end

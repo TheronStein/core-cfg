@@ -1,11 +1,13 @@
 "$schema" = "https://yazi-rs.github.io/schemas/theme.json"
 
 # :Flavor {{{
-
-[flavor]
-dark = "tokyo-night"
-# dark = "dracula"
-# use = "dracula"
+#
+# [flavor]
+# dark = "catppuccin-mocha"
+# [indicator]
+# current = { reversed = true }
+# preview = { underline = true }
+#dark = "dracula"
 
 # }}}
 

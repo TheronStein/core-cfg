@@ -529,22 +529,14 @@ function widget::quick-note() {
 zle -N widget::quick-note
 
 #=============================================================================
-# WIDGET: BOOKMARK DIRECTORY
-# Usage: Alt+B to bookmark current directory
+# WIDGET: BITWARDEN
+# Usage: Alt+B to open Bitwarden interactive menu
 #=============================================================================
-function widget::bookmark-directory() {
-    local bookmark_file="${XDG_DATA_HOME}/zsh/bookmarks"
-    mkdir -p "${bookmark_file:h}"
-    
-    if ! grep -qF "$PWD" "$bookmark_file" 2>/dev/null; then
-        echo "$PWD" >> "$bookmark_file"
-        zle -M "Bookmarked: $PWD"
-    else
-        zle -M "Already bookmarked"
-    fi
+function widget::bitwarden() {
+    bw::interactive
     zle reset-prompt
 }
-zle -N widget::bookmark-directory
+zle -N widget::bitwarden
 
 #=============================================================================
 # WIDGET: JUMP TO BOOKMARK

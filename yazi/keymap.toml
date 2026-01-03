@@ -72,6 +72,7 @@ keymap = [
   { on = [
     "o",
     "d",
+    "r",
   ], run = "shell -- ripdrag -x \"$@\" 2>/dev/null &", desc = "Drag and drop files" },
 
 
@@ -361,6 +362,10 @@ keymap = [
     "d",
     "w",
   ], run = "plugin wallpaper-dir", desc = "Directory actions (Thunar/Wallpaper)" },
+  { on = [
+    "o",
+    "t",
+  ], run = "open_in_thunar", desc = "Open directory in Thunar" },
   { on = [
     "o",
     "s",

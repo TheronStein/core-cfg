@@ -28,7 +28,42 @@ function M.handle_window_created(window, pane)
 	wezterm.GLOBAL.window_counter = wezterm.GLOBAL.window_counter or 0
 	wezterm.GLOBAL.window_counter = wezterm.GLOBAL.window_counter + 1
 
-	wezterm.log_info("[EVENT:WINDOW] Window created: " .. tostring(window:window_id()))
+	local window_id = tostring(window:window_id())
+	wezterm.log_info("[EVENT:WINDOW] Window created: " .. window_id)
+
+	-- Initialize GLOBAL state defaults (in-memory only)
+	wezterm.GLOBAL.current_mode = wezterm.GLOBAL.current_mode or "wezterm_mode"
+	wezterm.GLOBAL.leader_context = wezterm.GLOBAL.leader_context or "wezterm"
+	wezterm.GLOBAL.last_active_tab_per_window = wezterm.GLOBAL.last_active_tab_per_window or {}
+
+	-- Set the default border color immediately (purple for wezterm_mode)
+	-- Do this directly to avoid any timing issues with mode detection
+	local ok, mode_colors_const = pcall(require, "modules.utils.mode_colors")
+	if ok then
+		local default_color = mode_colors_const.get_color("wezterm_mode")
+		local overrides = window:get_config_overrides() or {}
+		overrides.colors = overrides.colors or {}
+		overrides.colors.split = default_color
+		window:set_config_overrides(overrides)
+		wezterm.log_info("[EVENT:WINDOW] Set initial border color: " .. default_color)
+	end
+
+	-- Initialize the first tab's mode state
+	local mux_window = window:mux_window()
+	if mux_window then
+		local active_tab = mux_window:active_tab()
+		if active_tab then
+			local tab_id = tostring(active_tab:tab_id())
+			local ok2, tab_mode_state = pcall(require, "modules.utils.tab_mode_state")
+			if ok2 then
+				-- get_tab_mode auto-initializes with default (wezterm_mode) and stores it
+				tab_mode_state.get_tab_mode(tab_id)
+				-- Set last_active_tab so tab switch detection works correctly
+				wezterm.GLOBAL.last_active_tab_per_window[window_id] = tab_id
+				wezterm.log_info("[EVENT:WINDOW] Initialized tab " .. tab_id .. " mode state")
+			end
+		end
+	end
 
 	-- Note: Initial backdrop is set in window-config-reloaded which fires right after creation
 end
