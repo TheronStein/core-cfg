@@ -1,0 +1,1 @@
+../modules/yazi/yazi-preview-native.sh

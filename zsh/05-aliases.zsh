@@ -24,6 +24,8 @@ else
   alias la='ls -A'
 fi
 
+alias claude-all="claude --dangerously-skip-permissions"
+
 # cat -> bat
 if command -v bat &>/dev/null; then
   alias cat='bat --paging=never'

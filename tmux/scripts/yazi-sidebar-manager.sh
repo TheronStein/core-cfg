@@ -1,0 +1,1 @@
+../modules/yazi/yazi-sidebar-manager.sh

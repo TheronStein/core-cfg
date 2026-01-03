@@ -428,6 +428,18 @@ function M.setup(config)
       desc = "Toggle Spotify Player pane",
       action = wezterm.action_callback(require("modules.panes.toggle-spotify").toggle_spotify),
     },
+
+    {
+      key = "n",
+      mods = "LEADER",
+      action = wezterm.action_callback(function(window, pane)
+        -- Spawn in nix-dev domain
+        window:mux_window():spawn_tab({
+          domain = { DomainName = "nix-dev" },
+          args = { "tmux", "new-session", "-A", "-s", "dev" },
+        })
+      end),
+    },
   }
   --   {
   -- 	key = "y",

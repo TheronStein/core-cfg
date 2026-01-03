@@ -47,8 +47,33 @@ ssh_domains = {
   -- }
 }
 
+exec_domains = {
+  {
+    name = "nix-dev",
+    -- Direct execution into the container
+    command = {
+      "docker",
+      "exec",
+      "-it",
+      "nix-development",
+      "/bin/zsh",
+      "-l",
+    },
+  },
+}
+
+unix_domains = {
+  {
+    name = "nix-dev",
+    -- This assumes docker exec is used
+    -- Alternatively, you can use a socket if exposed
+  },
+}
+
 return {
   set_environment_variables = require("modules.utils.env_builder").init(),
   -- unix_domains = unix_domains,
+  exec_domains = exec_domains,
+  unix_domains = unix_domains,
   ssh_domains = ssh_domains,
 }
