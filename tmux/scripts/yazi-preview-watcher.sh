@@ -1,1 +1,1 @@
-../modules/yazi/yazi-preview-watcher.sh
+../modules/yazibar/scripts/preview/watcher.sh

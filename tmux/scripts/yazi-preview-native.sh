@@ -1,1 +1,1 @@
-../modules/yazi/yazi-preview-native.sh
+../modules/yazibar/scripts/preview/native.sh

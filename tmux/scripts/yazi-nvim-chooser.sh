@@ -1,0 +1,1 @@
+../modules/yazibar/scripts/nvim-chooser.sh

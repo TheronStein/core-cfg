@@ -1,1 +1,1 @@
-../modules/yazi/yazi-preview-dual.sh
+../modules/yazibar/scripts/preview/dual.sh
