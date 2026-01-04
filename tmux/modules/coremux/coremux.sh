@@ -1,12 +1,9 @@
 #!/usr/bin/env bash
 
-# Source shared library for core tmux operations
-if [ -f "$TMUX_CONF/modules/lib/tmux-core.sh" ]; then
-    source "$TMUX_CONF/modules/lib/tmux-core.sh"
-fi
-if [ -f "$TMUX_CONF/modules/lib/tmux-sessions.sh" ]; then
-    source "$TMUX_CONF/modules/lib/tmux-sessions.sh"
-fi
+# Source canonical tmux libraries
+TMUX_CONF="${TMUX_CONF:-$HOME/.core/.sys/cfg/tmux}"
+source "$TMUX_CONF/lib/state-utils.sh"
+source "$TMUX_CONF/lib/session-utils.sh"
 
 readonly DEFAULT_FIND_PATH="$HOME/.core"
 readonly DEFAULT_SHOW_NTH="-2,-1"

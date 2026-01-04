@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
-# modules/lib/tmux-windows.sh
-# DEPRECATED: Use canonical libraries instead
+# lib/window-utils.sh
+# Window query and manipulation functions
 #
-# This file now sources the canonical library to maintain backward compatibility.
+# Provides functions for checking window existence, querying window
+# properties, and window operations.
 
-# Source canonical libraries
+# Source dependencies
 TMUX_CONF="${TMUX_CONF:-$HOME/.core/.sys/cfg/tmux}"
 source "$TMUX_CONF/lib/tmux-utils.sh"
-source "$TMUX_CONF/lib/state-utils.sh"
 
 window_exists() {
     local window_id="$1"
@@ -23,12 +23,12 @@ window_exists() {
 }
 
 get_window_name() {
-    local window_id="${1:-$(get_current_window)}"
+    local window_id="${1:-$(get_window_id)}"
     tmux display-message -p -t "$window_id" '#{window_name}' 2>/dev/null
 }
 
 get_window_index() {
-    local window_id="${1:-$(get_current_window)}"
+    local window_id="${1:-$(get_window_id)}"
     tmux display-message -p -t "$window_id" '#{window_index}' 2>/dev/null
 }
 
@@ -37,11 +37,6 @@ get_window_id_by_index() {
     local session="${2:-$(get_session_id)}"
     tmux list-windows -t "$session" -F "#{window_index} #{window_id}" 2>/dev/null | \
         awk -v idx="$window_index" '$1 == idx {print $2}'
-}
-
-# Legacy wrapper - get_window_id is now in tmux-utils.sh
-get_current_window() {
-    get_window_id
 }
 
 list_windows() {
@@ -54,10 +49,10 @@ list_windows() {
 }
 
 get_window_layout() {
-    local window_id="${1:-$(get_current_window)}"
+    local window_id="${1:-$(get_window_id)}"
     tmux display-message -p -t "$window_id" '#{window_layout}' 2>/dev/null
 }
 
 # Export functions
-export -f window_exists get_window_name get_window_index get_window_id
+export -f window_exists get_window_name get_window_index get_window_id_by_index
 export -f list_windows get_window_layout

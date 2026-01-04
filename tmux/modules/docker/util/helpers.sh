@@ -1,16 +1,18 @@
-# Source shared library for core tmux operations
-if [ -f "$TMUX_CONF/modules/lib/tmux-core.sh" ]; then
-    source "$TMUX_CONF/modules/lib/tmux-core.sh"
-fi
-if [ -f "$TMUX_CONF/modules/lib/tmux-panes.sh" ]; then
-    source "$TMUX_CONF/modules/lib/tmux-panes.sh"
-fi
+#!/usr/bin/env bash
+
+# Source canonical tmux libraries
+TMUX_CONF="${TMUX_CONF:-$HOME/.core/.sys/cfg/tmux}"
+source "$TMUX_CONF/lib/state-utils.sh"
+source "$TMUX_CONF/lib/pane-utils.sh"
+
+# Legacy wrapper for backward compatibility
+get_current_pane_path() {
+    get_pane_cwd
+}
 
 debug() {
   echo "$1" >&2
 }
-
-# Note: get_current_pane_path is now provided by modules/lib/tmux-panes.sh
 
 # Get the workspace directory from the current pane's path
 # This function will check parent directories for a .devcontainer directory,

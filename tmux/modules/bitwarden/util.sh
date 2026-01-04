@@ -1,12 +1,9 @@
 #!/usr/bin/env bash
 
-# Source shared library for core tmux operations
-if [ -f "$TMUX_CONF/modules/lib/tmux-core.sh" ]; then
-    source "$TMUX_CONF/modules/lib/tmux-core.sh"
-fi
-if [ -f "$TMUX_CONF/modules/lib/tmux-display.sh" ]; then
-    source "$TMUX_CONF/modules/lib/tmux-display.sh"
-fi
+# Source canonical tmux libraries
+TMUX_CONF="${TMUX_CONF:-$HOME/.core/.sys/cfg/tmux}"
+source "$TMUX_CONF/lib/state-utils.sh"
+source "$TMUX_CONF/lib/display-utils.sh"
 
 # Copy text to the clipboard
 cp_to_clipboard() {
@@ -30,8 +27,6 @@ is_binary_exist() {
   command -v "$binary" &>/dev/null
   return $?
 }
-
-# Note: get_tmux_option is now provided by modules/lib/tmux-core.sh
 
 # Display tmux message in status bar (module-specific wrapper)
 display_tmux_message() {

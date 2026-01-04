@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
-# modules/lib/tmux-display.sh
-# Display and messaging functions
+# lib/display-utils.sh
+# Display and messaging functions for tmux
 #
 # Provides functions for displaying messages, errors, info, and success
 # notifications in tmux with appropriate styling and durations.
 
-# Source core library for option management
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/tmux-core.sh"
+# Source state-utils for option management
+TMUX_CONF="${TMUX_CONF:-$HOME/.core/.sys/cfg/tmux}"
+source "$TMUX_CONF/lib/state-utils.sh"
 
 display_message() {
     local message="$1"

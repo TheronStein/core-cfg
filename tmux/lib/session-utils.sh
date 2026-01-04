@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# modules/lib/tmux-sessions.sh
+# lib/session-utils.sh
 # Session query and manipulation functions
 #
 # Provides functions for checking session existence, querying session

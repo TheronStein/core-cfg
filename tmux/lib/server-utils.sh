@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# modules/lib/tmux-server.sh
+# lib/server-utils.sh
 # Server-level operations and queries
 #
 # Provides functions for checking tmux server status and
