@@ -18,6 +18,7 @@ LEFT_SIDEBAR_TITLE="yazibar-left"
 
 create_left_sidebar() {
     local start_dir="${1:-$(get_current_dir)}"
+    local window_id=$(get_current_window)
 
     debug_log "Creating left sidebar from: $start_dir"
 
@@ -32,8 +33,8 @@ create_left_sidebar() {
     # Store current pane to return focus
     local current_pane=$(get_current_pane)
 
-    # Set guard flag to prevent recursive hook execution
-    tmux set-option -gq @layout-restore-in-progress 1
+    # Set guard flag to prevent recursive hook execution (window-scoped)
+    tmux set-option -gq "@layout-restore-in-progress-${window_id}" 1
 
     # Create left split (full height, before current pane)
     local new_pane_id=$(tmux split-window -fhb -l "$width" -c "$start_dir" -P -F "#{pane_id}" "
@@ -63,8 +64,8 @@ create_left_sidebar() {
         debug_log "Locked pane width: $new_pane_id = $width"
     fi
 
-    # Clear guard flag now that sidebar is fully created
-    tmux set-option -gu @layout-restore-in-progress
+    # Clear guard flag now that sidebar is fully created (window-scoped)
+    tmux set-option -gu "@layout-restore-in-progress-${window_id}"
 
     # Return to previous pane
     tmux select-pane -t "$current_pane"

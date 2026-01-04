@@ -12,9 +12,20 @@ TMUX_CONF="${TMUX_CONF:-$HOME/.core/.sys/cfg/tmux}"
 # Source canonical tmux libraries
 source "$TMUX_CONF/lib/state-utils.sh"
 source "$TMUX_CONF/lib/pane-utils.sh"
+source "$TMUX_CONF/lib/display-utils.sh"
 
 # Source local layout functions (pane ID management)
 source "$SCRIPT_DIR/layout.sh"
+
+# ============================================================================
+# COMPATIBILITY WRAPPERS
+# ============================================================================
+
+# Legacy function name - maps to canonical pane_exists()
+# Used throughout yazibar scripts, was previously in modules/lib/tmux-panes.sh
+pane_exists_globally() {
+    pane_exists "$1"
+}
 
 # ============================================================================
 # CONFIGURATION
@@ -166,3 +177,4 @@ export -f is_right_enabled set_right_enabled get_right_pane set_right_pane clear
 export -f get_current_window get_window_option_key
 export -f display_message debug_enabled debug_log
 export -f validate_tmux_version
+export -f pane_exists_globally
