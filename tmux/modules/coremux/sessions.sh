@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# Note: This script uses custom get_tmux_option() with caching for performance
+# It overrides the canonical version from lib/state-utils.sh
 
 readonly DEFAULT_FIND_PATH="$HOME/.core"
 readonly DEFAULT_SHOW_NTH="-2,-1"

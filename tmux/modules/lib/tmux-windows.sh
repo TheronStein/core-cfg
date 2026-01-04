@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # modules/lib/tmux-windows.sh
-# Window query and manipulation functions
+# DEPRECATED: Use canonical libraries instead
 #
-# Provides functions for checking window existence and querying
-# window properties.
+# This file now sources the canonical library to maintain backward compatibility.
 
-# Source core library
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/tmux-core.sh"
+# Source canonical libraries
+TMUX_CONF="${TMUX_CONF:-$HOME/.core/.sys/cfg/tmux}"
+source "$TMUX_CONF/lib/tmux-utils.sh"
+source "$TMUX_CONF/lib/state-utils.sh"
 
 window_exists() {
     local window_id="$1"
@@ -32,11 +32,16 @@ get_window_index() {
     tmux display-message -p -t "$window_id" '#{window_index}' 2>/dev/null
 }
 
-get_window_id() {
+get_window_id_by_index() {
     local window_index="$1"
-    local session="${2:-$(get_current_session)}"
+    local session="${2:-$(get_session_id)}"
     tmux list-windows -t "$session" -F "#{window_index} #{window_id}" 2>/dev/null | \
         awk -v idx="$window_index" '$1 == idx {print $2}'
+}
+
+# Legacy wrapper - get_window_id is now in tmux-utils.sh
+get_current_window() {
+    get_window_id
 }
 
 list_windows() {

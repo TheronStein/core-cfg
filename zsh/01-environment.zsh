@@ -44,6 +44,18 @@
 #
 
 #=============================================================================
+# LAYERED CONTEXT SYSTEM
+# Source environment detection and context loading libraries
+#=============================================================================
+if [[ -f "$HOME/.core/.cortex/lib/detect.sh" ]]; then
+    source "$HOME/.core/.cortex/lib/detect.sh"
+fi
+
+if [[ -f "$HOME/.core/.cortex/lib/context.sh" ]]; then
+    source "$HOME/.core/.cortex/lib/context.sh"
+fi
+
+#=============================================================================
 # PATH MANAGEMENT (using typeset -U to remove duplicates)
 #=============================================================================
 typeset -U path PATH
@@ -386,8 +398,9 @@ validate_dir "$NVM_DIR/nodes"
 validate_dir "$NVM_DIR/versions"
 ln -sfn "$NVM_DIR/nodes" "$NVM_DIR/versions/node" 2>/dev/null || true
 
-[[ -s "$NVM_DIR/nvm.sh" ]] && \. "$NVM_DIR/nvm.sh"                   # loads nvm + PATH
-[[ -s "$NVM_DIR/bash_completion" ]] && \. "$NVM_DIR/bash_completion" # works in zsh too
+# DISABLED: NVM eval adds ~150-200ms startup delay. Use NixOS/direnv for Node version management.
+# [[ -s "$NVM_DIR/nvm.sh" ]] && \. "$NVM_DIR/nvm.sh"                   # loads nvm + PATH
+# [[ -s "$NVM_DIR/bash_completion" ]] && \. "$NVM_DIR/bash_completion" # works in zsh too
 
 # ]]] ──────────────────────────────────────────────────────────────
 
@@ -475,7 +488,8 @@ export PIPX_BIN_DIR="${PYTHON_HOME}/pipx/bin"
 # pyenv
 export PYENV_ROOT="${PYTHON_HOME}/pyenv"
 validate_dir "$PYENV_ROOT"
-command -v pyenv >/dev/null && eval "$(pyenv init -)" && eval "$(pyenv virtualenv-init -)" 2>/dev/null || true
+# DISABLED: Pyenv eval adds ~100-150ms startup delay. Use NixOS/direnv for Python version management.
+# command -v pyenv >/dev/null && eval "$(pyenv init -)" && eval "$(pyenv virtualenv-init -)" 2>/dev/null || true
 
 # Poetry (optional but clean)
 export POETRY_HOME="${PYTHON_HOME}/poetry"
@@ -506,7 +520,8 @@ export PATH="${ZIG_BIN}:${PATH}"
 export RBENV_ROOT="${CORE_TOOLS}/ruby/rbenv"
 validate_dir "$RBENV_ROOT"
 export PATH="${RBENV_ROOT}/bin:${PATH}"
-command -v rbenv >/dev/null && eval "$(rbenv init - zsh)"
+# DISABLED: Rbenv eval adds ~50-100ms startup delay. Use NixOS/direnv for Ruby version management.
+# command -v rbenv >/dev/null && eval "$(rbenv init - zsh)"
 
 # ]]] ──────────────────────────────────────────────────────────
 

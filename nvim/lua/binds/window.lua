@@ -4,118 +4,111 @@ local wk = require("which-key")
 local map = vim.keymap.set
 
 function M.setup()
-	wk.add({
-		{ "<C-w>", "<Nop>", desc = "windows (disabled default)" },
-	})
+  wk.add({
+    { "<C-w>", "<Nop>", desc = "windows (disabled default)" },
+  })
 
-	wk.add({
-		-- { "<M-w>", "<C-y>", desc = "windows (disabled default)" },
-		{ "<M-e>", "<C-e>", desc = "windows (disabled default)" },
-		-- Window resizing with Meta+Shift+w/s/a/d
-		{ "<M-S-w>", "<cmd>resize +2<cr>", desc = "Increase height" },
-		{ "<M-S-s>", "<cmd>resize -2<cr>", desc = "Decrease height" },
-		{ "<M-S-a>", "<cmd>vertical resize -2<cr>", desc = "Decrease width" },
-		{ "<M-S-d>", "<cmd>vertical resize +2<cr>", desc = "Increase width" },
+  wk.add({
+    -- { "<M-w>", "<C-y>", desc = "windows (disabled default)" },
+    { "<M-e>", "<C-e>", desc = "windows (disabled default)" },
+    -- Window resizing with Meta+Shift+w/s/a/d
+    { "<M-S-w>", "<cmd>resize +2<cr>", desc = "Increase height" },
+    { "<M-S-s>", "<cmd>resize -2<cr>", desc = "Decrease height" },
+    { "<M-S-a>", "<cmd>vertical resize -2<cr>", desc = "Decrease width" },
+    { "<M-S-d>", "<cmd>vertical resize +2<cr>", desc = "Increase width" },
 
-		-- { "<M-a>", "<C-w>h", desc = "Go left" },
-		-- { "<M-s>", "<C-w>j", desc = "Go down" },
-		-- { "<M-w>", "<C-w>k", desc = "Go up" },
-		-- { "<M-d>", "<C-w>l", desc = "Go right" },
-	})
+    -- { "<M-a>", "<C-w>h", desc = "Go left" },
+    -- { "<M-s>", "<C-w>j", desc = "Go down" },
+    -- { "<M-w>", "<C-w>k", desc = "Go up" },
+    -- { "<M-d>", "<C-w>l", desc = "Go right" },
+  })
 
-	wk.add({
+  wk.add({
 
-		-- 1. WinShift core bindings
-		-- -- Use <leader>w as the namespace (clean and discoverable)
-		-- map("n", "<leader>wm", "<cmd>WinShift<CR>", { desc = "Enter WinShift mode" })
-		-- map("n", "<leader>wx", "<cmd>WinShift swap<CR>", { desc = "Swap with next window" })
-		-- map("n", "<leader>wf", "<cmd>WinShift far<CR>", { desc = "Move window far (to another tab)" })
-		{ "<leader>w", group = "windows" },
-		{ "<leader>wm", desc = "Move / resize mode" },
-		{ "<leader>wx", desc = "Swap windows" },
-		{ "<leader>wf", desc = "Move far (tab)" },
-		{ "<C-w>w", desc = "WinShift mode" },
-		{
-			"<leader>wn",
-			function()
-				vim.cmd("vsplit")
-				vim.cmd("enew")
-				vim.bo.buftype = "nofile"
-				vim.bo.bufhidden = "wipe"
-				vim.bo.swapfile = false
-			end,
-			desc = "Create scratch window",
-		},
-		{
-			"<leader>wz",
-			function()
-				if vim.g.window_maximized then
-					vim.cmd("wincmd =")
-					vim.g.window_maximized = false
-				else
-					vim.cmd("wincmd |")
-					vim.cmd("wincmd _")
-					vim.g.window_maximized = true
-				end
-			end,
-			desc = "Toggle window maximize",
-		},
+    -- 1. WinShift core bindings
+    -- -- Use <leader>w as the namespace (clean and discoverable)
+    -- map("n", "<leader>wm", "<cmd>WinShift<CR>", { desc = "Enter WinShift mode" })
+    -- map("n", "<leader>wx", "<cmd>WinShift swap<CR>", { desc = "Swap with next window" })
+    -- map("n", "<leader>wf", "<cmd>WinShift far<CR>", { desc = "Move window far (to another tab)" })
+    { "<leader>w", group = "windows" },
+    { "<leader>wm", ":WinShift<CR>", desc = "Move / resize mode" },
+    { "<C-w>w", desc = "WinShift mode" },
+    {
+      "<leader>wn",
+      function()
+        vim.cmd("vsplit")
+        vim.cmd("enew")
+        vim.bo.buftype = "nofile"
+        vim.bo.bufhidden = "wipe"
+        vim.bo.swapfile = false
+      end,
+      desc = "Create scratch window",
+    },
+    {
+      "<leader>wz",
+      function()
+        if vim.g.window_maximized then
+          vim.cmd("wincmd =")
+          vim.g.window_maximized = false
+        else
+          vim.cmd("wincmd |")
+          vim.cmd("wincmd _")
+          vim.g.window_maximized = true
+        end
+      end,
+      desc = "Toggle window maximize",
+    },
 
-		{ "<leader>wa", ":WinShift swap left<CR>", desc = "Swap with left window" },
-		{ "<leader>ws", ":WinShift swap down<CR>", desc = "Swap with window below" },
+    { "<leader>wv", "<cmd>vsplit<cr>", desc = "Vertical split" },
+    { "<leader>wh", "<cmd>split<cr>", desc = "Horizontal split" },
+    { "<leader>wo", "<cmd>only<cr>", desc = "Close other windows" },
+    -- Move window (OL;K - lowercase now)
+    { "<leader>wa", "<C-w>H", desc = "Move window left" },
+    { "<leader>ws", "<C-w>J", desc = "Move window down" },
+    { "<leader>ww", "<C-w>K", desc = "Move window up" },
+    { "<leader>wd", "<C-w>L", desc = "Move window right" },
+    { "<leader>wt", "<C-w>T", desc = "Move window to new tab" },
+    {
+      "<leader>wc",
+      function()
+        local win_count = #vim.api.nvim_tabpage_list_wins(0)
+        local tab_count = #vim.api.nvim_list_tabpages()
+        if win_count > 1 then
+          vim.cmd("close")
+        elseif tab_count > 1 then
+          vim.cmd("tabclose")
+        else
+          vim.cmd("quit")
+        end
+      end,
+      desc = "Smart close (window/tab/quit)",
 
-		{ "<leader>ww", ":WinShift swap up<CR>", desc = "Swap with window above" },
-		{ "<leader>wd", ":WinShift swap right<CR>", desc = "Swap with right window" },
-		{ "<leader>wv", "<cmd>vsplit<cr>", desc = "Vertical split" },
-		{ "<leader>wh", "<cmd>split<cr>", desc = "Horizontal split" },
-		{ "<leader>wo", "<cmd>only<cr>", desc = "Close other windows" },
-		-- Move window (OL;K - lowercase now)
-		{ "<leader>wa", "<C-w>H", desc = "Move window left" },
-		{ "<leader>ws", "<C-w>J", desc = "Move window down" },
-		{ "<leader>ww", "<C-w>K", desc = "Move window up" },
-		{ "<leader>wd", "<C-w>L", desc = "Move window right" },
-		{ "<leader>wt", "<C-w>T", desc = "Move window to new tab" },
-		{
-			"<leader>wc",
-			function()
-				local win_count = #vim.api.nvim_tabpage_list_wins(0)
-				local tab_count = #vim.api.nvim_list_tabpages()
-				if win_count > 1 then
-					vim.cmd("close")
-				elseif tab_count > 1 then
-					vim.cmd("tabclose")
-				else
-					vim.cmd("quit")
-				end
-			end,
-			desc = "Smart close (window/tab/quit)",
-
-			-- True fullscreen (hide tabline + statusline + signcolumn)
-			map("n", "<leader>wz", function()
-				local is_fullscreen = vim.g.fullscreen ~= nil and vim.g.fullscreen
-				if is_fullscreen then
-					-- Restore normal view
-					vim.cmd("WinShift") -- if you were in WinShift, exit it cleanly
-					vim.opt.laststatus = vim.g.saved_statusline or 3
-					vim.opt.showtabline = vim.g.saved_tabline or 2
-					vim.opt.signcolumn = vim.g.saved_signcolumn or "yes"
-					vim.g.fullscreen = false
-				else
-					-- Enter true fullscreen
-					vim.g.saved_statusline = vim.opt.laststatus:get()
-					vim.g.saved_tabline = vim.opt.showtabline:get()
-					vim.g.saved_signcolumn = vim.opt.signcolumn:get()
-					vim.opt.laststatus = 0
-					vim.opt.showtabline = 0
-					vim.opt.signcolumn = "no"
-					vim.g.fullscreen = true
-				end
-			end, { desc = "Window Zoom" }),
-		},
-		mode = { "n", "v" },
-		noremap = true,
-		silent = true,
-	})
+      -- True fullscreen (hide tabline + statusline + signcolumn)
+      map("n", "<leader>wz", function()
+        local is_fullscreen = vim.g.fullscreen ~= nil and vim.g.fullscreen
+        if is_fullscreen then
+          -- Restore normal view
+          vim.cmd("WinShift") -- if you were in WinShift, exit it cleanly
+          vim.opt.laststatus = vim.g.saved_statusline or 3
+          vim.opt.showtabline = vim.g.saved_tabline or 2
+          vim.opt.signcolumn = vim.g.saved_signcolumn or "yes"
+          vim.g.fullscreen = false
+        else
+          -- Enter true fullscreen
+          vim.g.saved_statusline = vim.opt.laststatus:get()
+          vim.g.saved_tabline = vim.opt.showtabline:get()
+          vim.g.saved_signcolumn = vim.opt.signcolumn:get()
+          vim.opt.laststatus = 0
+          vim.opt.showtabline = 0
+          vim.opt.signcolumn = "no"
+          vim.g.fullscreen = true
+        end
+      end, { desc = "Window Zoom" }),
+    },
+    mode = { "n", "v" },
+    noremap = true,
+    silent = true,
+  })
 end
 
 return M

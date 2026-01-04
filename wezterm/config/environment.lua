@@ -46,22 +46,27 @@ ssh_domains = {
   -- 	},
   -- }
 }
-
-exec_domains = {
-  {
-    name = "nix-dev",
-    -- Direct execution into the container
-    command = {
-      "docker",
-      "exec",
-      "-it",
-      "nix-development",
-      "/bin/zsh",
-      "-l",
-    },
-  },
-}
-
+--
+-- exec_domains = {
+--   {
+--     name = "nix-dev",
+--     -- Direct execution into the container
+--     command = {
+--       "docker",
+--       "exec",
+--       "-it",
+--       "nix-development",
+--       "/bin/zsh",
+--       "-l",
+--     },
+--   },
+--   --   -- fixup_command should be inside the domain object
+--   --   fixup_command = function(cmd)
+--   --     return cmd
+--   --   end,
+--   -- },
+-- }
+--
 unix_domains = {
   {
     name = "nix-dev",

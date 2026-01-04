@@ -6,6 +6,11 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+# Source canonical libraries
+TMUX_CONF="${TMUX_CONF:-$HOME/.tmux}"
+source "$TMUX_CONF/lib/state-utils.sh"
+source "$TMUX_CONF/lib/pane-utils.sh"
+
 # Tmux variables for state tracking
 LEFT_PANE_VAR="@rclone-browser-left-pane"
 RIGHT_PANE_VAR="@rclone-browser-right-pane"
@@ -13,21 +18,15 @@ ENABLED_VAR="@rclone-browser-enabled"
 
 # Get current pane IDs
 get_left_pane() {
-  tmux show-option -gqv "$LEFT_PANE_VAR"
+  get_tmux_option "$LEFT_PANE_VAR" ""
 }
 
 get_right_pane() {
-  tmux show-option -gqv "$RIGHT_PANE_VAR"
+  get_tmux_option "$RIGHT_PANE_VAR" ""
 }
 
 is_enabled() {
-  [ "$(tmux show-option -gqv "$ENABLED_VAR")" = "1" ]
-}
-
-# Check if pane exists
-pane_exists() {
-  local pane_id="$1"
-  [ -n "$pane_id" ] && tmux list-panes -F "#{pane_id}" | grep -q "^${pane_id}$"
+  [ "$(get_tmux_option "$ENABLED_VAR" "0")" = "1" ]
 }
 
 # Enable rclone browser mode

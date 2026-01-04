@@ -1,4 +1,13 @@
-get_tmux_option() {
+#!/usr/bin/env bash
+# yazibar/scripts/helpers.sh
+# Helper functions for yazibar module
+
+# Source canonical libraries
+TMUX_CONF="${TMUX_CONF:-$HOME/.core/.sys/cfg/tmux}"
+source "$TMUX_CONF/lib/state-utils.sh"
+
+# Custom yazibar-specific get_tmux_option with legacy option migration
+yazibar_get_tmux_option() {
   local option=$1
   local default_value=$2
   local option_value=$(tmux show-option -gqv "$option")
@@ -14,10 +23,9 @@ get_tmux_option() {
   fi
 }
 
-set_tmux_option() {
-  local option=$1
-  local value=$2
-  tmux set-option -gq "$option" "$value"
+# Override to use yazibar-specific version
+get_tmux_option() {
+  yazibar_get_tmux_option "$@"
 }
 
 # Ensures a message is displayed for 5 seconds in tmux prompt.

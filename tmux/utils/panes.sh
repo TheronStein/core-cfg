@@ -1,3 +1,12 @@
+#!/usr/bin/env bash
+# utils/panes.sh
+# Pane utility functions
+
+# Source canonical libraries
+TMUX_CONF="${TMUX_CONF:-$HOME/.core/.sys/cfg/tmux}"
+source "$TMUX_CONF/lib/pane-utils.sh"
+source "$TMUX_CONF/lib/layout-utils.sh"
+
 # Get locked panes from layout-manager
 get_locked_pane_ids() {
   tmux show-option -qv "@locked-panes" | tr ',' '\n' | cut -d: -f1 | sort -u
@@ -11,45 +20,26 @@ is_pane_locked() {
   echo "$locked_panes" | grep -q "^${pane_id}$"
 }
 
-# Get the current pane's path
-get_current_pane_path() {
-  local current_pane_path=$(tmux display-message -p -F "#{pane_current_path}")
-  echo "$current_pane_path"
-}
-
+# Get all panes with details
 get_all_panes() {
   local panes=$(tmux list-panes -a -F "#{session_name}:#{window_index}.#{pane_index}:#{pane_title}:#{pane_current_path}")
   echo "$panes"
 }
 
-pane_exists() {
-  local pane_id="$1"
-  local window_id="${2:-$(get_current_window)}"
-  [ -n "$pane_id" ] && tmux list-panes -t "$window_id" -F "#{pane_id}" 2>/dev/null | grep -q "^${pane_id}$"
-}
-
-pane_exists_globally() {
-  local pane_id="$1"
-  [ -n "$pane_id" ] && tmux list-panes -a -F "#{pane_id}" 2>/dev/null | grep -q "^${pane_id}$"
+# Legacy aliases (use canonical functions instead)
+get_current_pane_path() {
+  get_pane_cwd
 }
 
 get_current_pane() {
-  tmux display-message -p '#{pane_id}'
+  get_pane_id
 }
 
 get_current_dir() {
-  tmux display-message -p '#{pane_current_path}'
+  get_pane_cwd
 }
 
-get_pane_width() {
-  local pane_id="${1:-$(get_current_pane)}"
-  tmux display-message -p -t "$pane_id" '#{pane_width}'
-}
-
-get_pane_height() {
-  local pane_id="${1:-$(get_current_pane)}"
-  tmux display-message -p -t "$pane_id" '#{pane_height}'
-}
+# Note: pane_exists, get_pane_width, get_pane_height now from pane-utils.sh / layout-utils.sh
 
 main() {
   case "$1" in

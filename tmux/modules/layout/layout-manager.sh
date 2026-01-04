@@ -2,6 +2,12 @@
 # Custom Layout Manager - Preserves fixed-dimension panes
 # Handles pane operations while maintaining static pane dimensions
 
+# Source canonical libraries
+TMUX_CONF="${TMUX_CONF:-$HOME/.core/.sys/cfg/tmux}"
+source "$TMUX_CONF/lib/pane-utils.sh"
+source "$TMUX_CONF/lib/layout-utils.sh"
+source "$TMUX_CONF/lib/state-utils.sh"
+
 # ============================================================================
 # CONFIGURATION
 # ============================================================================
@@ -63,16 +69,12 @@ get_pane_lock_info() {
     get_locked_panes | grep "^${pane_id}:" | cut -d: -f2-
 }
 
-# Check if a pane exists (globally)
-pane_exists() {
-    local pane_id="$1"
-    tmux list-panes -a -F "#{pane_id}" 2>/dev/null | grep -q "^${pane_id}$"
-}
+# Note: pane_exists() now from pane-utils.sh
 
-# Check if a pane exists in current window
-pane_exists_in_window() {
+# Check if a pane exists in current window (local function)
+_layout_pane_exists_in_window() {
     local pane_id="$1"
-    local window_id="${2:-$(tmux display-message -p '#{window_id}')}"
+    local window_id="${2:-$(get_window_id)}"
     tmux list-panes -t "$window_id" -F "#{pane_id}" 2>/dev/null | grep -q "^${pane_id}$"
 }
 
@@ -125,11 +127,11 @@ restore_locked_dimensions() {
     done < <(get_locked_panes)
 }
 
-# Get current pane dimensions
+# Get current pane dimensions (uses canonical library functions)
 get_pane_dimensions() {
     local pane_id="$1"
-    local width=$(tmux display-message -p -t "$pane_id" '#{pane_width}')
-    local height=$(tmux display-message -p -t "$pane_id" '#{pane_height}')
+    local width=$(get_pane_width "$pane_id")
+    local height=$(get_pane_height "$pane_id")
     echo "${width}x${height}"
 }
 

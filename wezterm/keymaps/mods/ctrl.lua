@@ -166,40 +166,51 @@ function M.setup(config)
     { key = "E", mods = "CTRL|SHIFT", action = act.ActivateTabRelative(1) },
 
     -- Handle navigation signals from tmux (Ctrl+Shift+Arrows = navigate WezTerm)
+    { key = "W", mods = "CTRL|SHIFT", action = act.ActivatePaneDirection("Up") },
+    { key = "S", mods = "CTRL|SHIFT", action = act.ActivatePaneDirection("Down") },
+    { key = "A", mods = "CTRL|SHIFT", action = act.ActivatePaneDirection("Left") },
+    { key = "D", mods = "CTRL|SHIFT", action = act.ActivatePaneDirection("Right") },
+
+    -- Handle navigation signals from tmux (Ctrl+Shift+Arrows = navigate WezTerm)
+    { key = "I", mods = "CTRL|SHIFT", action = act.ActivatePaneDirection("Up") },
+    { key = "K", mods = "CTRL|SHIFT", action = act.ActivatePaneDirection("Down") },
+    { key = "J", mods = "CTRL|SHIFT", action = act.ActivatePaneDirection("Left") },
+    { key = "L", mods = "CTRL|SHIFT", action = act.ActivatePaneDirection("Right") },
+    -- Handle navigation signals from tmux (Ctrl+Shift+Arrows = navigate WezTerm)
     { key = "UpArrow", mods = "CTRL|SHIFT", action = act.ActivatePaneDirection("Up") },
     { key = "DownArrow", mods = "CTRL|SHIFT", action = act.ActivatePaneDirection("Down") },
     { key = "LeftArrow", mods = "CTRL|SHIFT", action = act.ActivatePaneDirection("Left") },
     { key = "RightArrow", mods = "CTRL|SHIFT", action = act.ActivatePaneDirection("Right") },
 
-    {
-      key = "W",
-      mods = "CTRL|SHIFT",
-      action = wezterm.action_callback(function(window, pane)
-        navigate_mode(window, pane, "Up", "w")
-      end),
-    },
-    {
-      key = "S",
-      mods = "CTRL|SHIFT",
-      action = wezterm.action_callback(function(window, pane)
-        navigate_mode(window, pane, "Down", "s")
-      end),
-    },
-    {
-      key = "A",
-      mods = "CTRL|SHIFT",
-      action = wezterm.action_callback(function(window, pane)
-        navigate_mode(window, pane, "Left", "a")
-      end),
-    },
-
-    {
-      key = "D",
-      mods = "CTRL|SHIFT",
-      action = wezterm.action_callback(function(window, pane)
-        navigate_mode(window, pane, "Right", "d")
-      end),
-    },
+    -- {
+    --   key = "W",
+    --   mods = "CTRL|SHIFT",
+    --   action = wezterm.action_callback(function(window, pane)
+    --     navigate_mode(window, pane, "Up", "w")
+    --   end),
+    -- },
+    -- {
+    --   key = "S",
+    --   mods = "CTRL|SHIFT",
+    --   action = wezterm.action_callback(function(window, pane)
+    --     navigate_mode(window, pane, "Down", "s")
+    --   end),
+    -- },
+    -- {
+    --   key = "A",
+    --   mods = "CTRL|SHIFT",
+    --   action = wezterm.action_callback(function(window, pane)
+    --     navigate_mode(window, pane, "Left", "a")
+    --   end),
+    -- },
+    --
+    -- {
+    --   key = "D",
+    --   mods = "CTRL|SHIFT",
+    --   action = wezterm.action_callback(function(window, pane)
+    --     navigate_mode(window, pane, "Right", "d")
+    --   end),
+    -- },
     --
     -- {
     -- 	key = "I",

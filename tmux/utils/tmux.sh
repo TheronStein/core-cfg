@@ -1,4 +1,10 @@
 #!/usr/bin/env bash
+# utils/tmux.sh
+# Utility functions for tmux version checking and display messages
+
+# Source canonical libraries
+TMUX_CONF="${TMUX_CONF:-$HOME/.core/.sys/cfg/tmux}"
+source "$TMUX_CONF/lib/state-utils.sh"
 
 VERSION="$1"
 UNSUPPORTED_MSG="$2"
@@ -62,23 +68,7 @@ display_info() {
   display_message "$1" 2000
 }
 
-get_tmux_option() {
-  local option="$1"
-  local default="$2"
-  local value=$(tmux show-option -gqv "$option")
-  echo "${value:-$default}"
-}
-
-set_tmux_option() {
-  local option="$1"
-  local value="$2"
-  tmux set-option -gq "$option" "$value"
-}
-
-clear_tmux_option() {
-  local option="$1"
-  tmux set-option -guq "$option"
-}
+# Note: get_tmux_option, set_tmux_option, clear_tmux_option now from state-utils.sh
 
 stored_key_vars() {
   tmux show-options -g \
