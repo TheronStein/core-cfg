@@ -223,3 +223,25 @@ swap_panes() {
         tmux swap-pane -s "$pane1" -t "$pane2"
     fi
 }
+
+# ==============================================================================
+# Pane Locking (Layout Manager Integration)
+# ==============================================================================
+
+# Get locked panes from layout-manager
+get_locked_pane_ids() {
+    tmux show-option -qv "@locked-panes" | tr ',' '\n' | cut -d: -f1 | sort -u
+}
+
+# Check if a pane is locked
+is_pane_locked() {
+    local pane_id="$1"
+    local locked_panes
+    locked_panes=$(get_locked_pane_ids)
+    echo "$locked_panes" | grep -q "^${pane_id}$"
+}
+
+# Get all panes with details
+get_all_panes_detailed() {
+    tmux list-panes -a -F "#{session_name}:#{window_index}.#{pane_index}:#{pane_title}:#{pane_current_path}"
+}
