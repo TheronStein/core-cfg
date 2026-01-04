@@ -1,1 +1,0 @@
-../modules/yazi/yazi-integration.sh

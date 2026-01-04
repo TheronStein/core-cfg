@@ -1,1 +1,0 @@
-../modules/yazi/yazi-sidebar-persistent.sh
