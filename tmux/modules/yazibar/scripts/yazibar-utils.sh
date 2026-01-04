@@ -3,6 +3,20 @@
 # Common functions used across yazibar scripts
 
 # ============================================================================
+# SOURCE DEPENDENCIES
+# ============================================================================
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+TMUX_CONF="${TMUX_CONF:-$HOME/.core/.sys/cfg/tmux}"
+
+# Source canonical tmux libraries
+source "$TMUX_CONF/lib/state-utils.sh"
+source "$TMUX_CONF/lib/pane-utils.sh"
+
+# Source local layout functions (pane ID management)
+source "$SCRIPT_DIR/layout.sh"
+
+# ============================================================================
 # CONFIGURATION
 # ============================================================================
 
@@ -144,14 +158,11 @@ validate_tmux_version() {
   fi
 }
 
-# Export functions for sourcing
-export -f get_tmux_option set_tmux_option clear_tmux_option
+# Export yazibar-specific functions (library functions already exported by their sources)
 export -f yazibar_server yazibar_left_session yazibar_right_session
 export -f yazibar_left_width yazibar_right_width yazibar_width_file
 export -f is_left_enabled set_left_enabled get_left_pane set_left_pane clear_left_pane
 export -f is_right_enabled set_right_enabled get_right_pane set_right_pane clear_right_pane
-export -f pane_exists get_current_pane get_current_dir get_pane_width get_pane_height
-export -f server_running session_exists
-export -f display_message display_error display_info
-export -f debug_enabled debug_log
+export -f get_current_window get_window_option_key
+export -f display_message debug_enabled debug_log
 export -f validate_tmux_version

@@ -3,34 +3,9 @@
 VERSION="$1"
 UNSUPPORTED_MSG="$2"
 
-# Source canonical library
-TMUX_CONF="${TMUX_CONF:-$HOME/.tmux}"
-source "$TMUX_CONF/lib/state-utils.sh"
-
-# Ensures a message is displayed for 5 seconds in tmux prompt.
-# Does not override the 'display-time' tmux option.
-display_message() {
-	local message="$1"
-
-	# display_duration defaults to 5 seconds, if not passed as an argument
-	if [ "$#" -eq 2 ]; then
-		local display_duration="$2"
-	else
-		local display_duration="5000"
-	fi
-
-	# saves user-set 'display-time' option
-	local saved_display_time=$(get_tmux_option "display-time" "750")
-
-	# sets message display time to 5 seconds
-	tmux set-option -gq display-time "$display_duration"
-
-	# displays message
-	tmux display-message "$message"
-
-	# restores original 'display-time' value
-	tmux set-option -gq display-time "$saved_display_time"
-}
+# Source yazibar utilities (includes display_message and tmux option functions)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/yazibar-utils.sh"
 
 # this is used to get "clean" integer version number. Examples:
 # `tmux 1.9` => `19`
