@@ -5,9 +5,77 @@
 # DIRECTORY OPERATIONS
 #=============================================================================
 
-# Create directory and cd into it
+# Create directory and cd into it (supports multiple args, cds to last)
 function mkcd() {
-    mkdir -p "$1" && cd "$1"
+    command mkdir -p "$@" && builtin cd "${@[-1]}"
+}
+alias takedir='mkcd'
+
+# Move items to a directory and cd to it
+function mvcd() {
+    (( $# > 1 )) && command mv "$@" && builtin cd "${@[-1]}"
+}
+
+# Download a URL as a tar and cd to extracted directory
+function takeurl() {
+    local data comp
+    data=$(mktemp)
+    curl -L "$1" > "$data"
+    tar xf "$data"
+    comp=$(tar tf "$data" | head -1)
+    command rm "$data"
+    builtin cd "$comp"
+}
+
+# Clone git repo and cd to directory
+function takegit() {
+    command git clone "$1"
+    builtin cd "${${1%%.git}:t}"
+}
+
+# General take function - handles URLs, git repos, or directories
+function take() {
+    if [[ $1 =~ ^(https?|ftp).*\.tar\.(gz|bz2|xz)$ ]]; then
+        takeurl "$1"
+    elif [[ $1 =~ ^([A-Za-z0-9]\+@|https?|git|ssh|ftps?|rsync).*\.git/?$ ]]; then
+        takegit "$1"
+    else
+        mkcd "$1"
+    fi
+}
+
+#=============================================================================
+# LAZY LOADING UTILITY
+#=============================================================================
+
+# Lazy load commands - create placeholder functions that load on first use
+# Usage: lazyload cmd1 cmd2 -- 'eval "$(tool init zsh)"'
+function lazyload() {
+    local seperator='--'
+    local seperator_index=${@[(ie)$seperator]}
+    local -a cmd_list=(${@:1:(($seperator_index - 1))})
+    local load_cmd=${@[(($seperator_index + 1))]}
+
+    if [[ ! $load_cmd ]]; then
+        echo "lazyload: No load command defined" >&2
+        echo "  Usage: lazyload cmd1 cmd2 -- 'init command'" >&2
+        return 1
+    fi
+
+    # Check if called by placeholder function (recursive call)
+    if (( ${cmd_list[(I)${funcstack[2]}]} )); then
+        unfunction $cmd_list 2>/dev/null
+        eval "$load_cmd"
+    else
+        # Create placeholder function for each command
+        local cmd
+        for cmd in "${cmd_list[@]}"; do
+            eval "function $cmd {
+                lazyload $cmd_list $seperator ${(qqqq)load_cmd}
+                $cmd \"\$@\"
+            }"
+        done
+    fi
 }
 
 # Go up n directories

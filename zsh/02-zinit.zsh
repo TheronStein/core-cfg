@@ -36,16 +36,19 @@ zinit light-mode for \
 #=============================================================================
 # PROMPT (instant prompt compatible)
 #=============================================================================
-zinit ice depth=1
-zinit light romkatv/powerlevel10k
-[[ -f "${XDG_CONFIG_HOME}/p10k/p10k.zsh" ]] && source "${XDG_CONFIG_HOME}/p10k/p10k.zsh"
+if [[ -o interactive ]]; then
+    zinit ice depth=1
+    zinit light romkatv/powerlevel10k
+    [[ -f "${XDG_CONFIG_HOME}/p10k/p10k.zsh" ]] && source "${XDG_CONFIG_HOME}/p10k/p10k.zsh"
+fi
 
 #=============================================================================
 # COMPLETIONS + FZF-TAB (turbo + Nix-safe)
 #=============================================================================
-# Load fzf-tab preview functions first (must be available before fzf-tab uses them)                                                                     
-source "$HOME/.core/.sys/cfg/zsh/functions/widgets/fzf-preview"                                                                                              
-source "${CORE_CFG}/zsh/integrations/fzf.zsh"                                 
+# Load fzf-tab preview functions first (must be available before fzf-tab uses them)
+source "$HOME/.core/.sys/cfg/zsh/functions/widgets/fzf-preview"
+source "${CORE_CFG}/zsh/integrations/fzf.zsh"
+
 # Core zsh completions
 zinit wait lucid for blockf zsh-users/zsh-completions
 # NOTE: zsh-autocomplete disabled due to fundamental conflicts with our setup:
@@ -145,40 +148,44 @@ zinit_load_if_exists() {
 }
 
 # =============================================================================
+# COMPINIT - Initialize completion system AFTER plugins add their completions
+# =============================================================================
+autoload -Uz compinit
+# Use -C (skip security check) if cache is less than 24 hours old
+if [[ -n "${ZSH_CACHE_DIR}/.zcompdump"(#qN.mh-24) ]]; then
+    compinit -C -d "${ZSH_CACHE_DIR}/.zcompdump"
+else
+    compinit -d "${ZSH_CACHE_DIR}/.zcompdump"
+fi
+
+# =============================================================================
 # FZF-TAB LOADING (CRITICAL: Must load directly, not through zinit_load_if_exists)
 # fzf-tab is a plugin, not a binary command - the command check would always fail
 # =============================================================================
 # Load fzf-tab without 'wait' so completions are available immediately
 # The atload ice configures zstyles after the plugin initializes
 zinit ice lucid atload'
-    # Basic fzf-tab settings applied after plugin loads
-    zstyle ":fzf-tab:*" fzf-command fzf
-    zstyle ":fzf-tab:*" fzf-preview-window "top:75%:wrap:rounded"
+    # fzf-tab core settings
+    zstyle ":fzf-tab:*" fzf-preview-window "right:50%:wrap"
     zstyle ":fzf-tab:*" switch-group "," "."
     zstyle ":fzf-tab:*" continuous-trigger "/"
-    zstyle ":fzf-tab:*" popup-min-size 80 20
-    zstyle ":fzf-tab:*" fzf-pad 4
 
-    # Apply theme colors if available
+    # Apply theme colors
     if [[ -n "${_FZF_THEME_COLORS:-}" ]]; then
-        zstyle ":fzf-tab:*" fzf-flags \
-            --height=90% \
-            --color="${_FZF_THEME_COLORS}" \
-            --bind="ctrl-/:toggle-down" \
-            --bind="ctrl-a:select-all" \
-            --bind="ctrl-d:deselect-all"
+        zstyle ":fzf-tab:*" fzf-flags --height=80% --color="${_FZF_THEME_COLORS}"
     else
-        zstyle ":fzf-tab:*" fzf-flags \
-            --height=90% \
-            --bind="ctrl-/:toggle-down" \
-            --bind="ctrl-a:select-all" \
-            --bind="ctrl-d:deselect-all"
+        zstyle ":fzf-tab:*" fzf-flags --height=80%
     fi
 
-    # TMUX popup integration
+    # TMUX popup - only when inside tmux
     if [[ -n "$TMUX" ]]; then
-        ftb-tmux-popup() { fzf-tmux -p 80%,80% "$@"; }
-        zstyle ":fzf-tab:*" fzf-command ftb-tmux-popup
+        zstyle ":fzf-tab:*" fzf-command fzf-tmux
+        zstyle ":fzf-tab:*" fzf-flags -p 80%,80% --height=80%
+        if [[ -n "${_FZF_THEME_COLORS:-}" ]]; then
+            zstyle ":fzf-tab:*" fzf-flags -p 80%,80% --height=80% --color="${_FZF_THEME_COLORS}"
+        fi
+    else
+        zstyle ":fzf-tab:*" fzf-command fzf
     fi
 '
 zinit light Aloxaf/fzf-tab
@@ -263,8 +270,9 @@ function zvm_after_init() {
     bindkey -M viins '^[c' widget::fzf-git-commits
 
     # Tmux widgets
-    bindkey -M viins '^T' widget::fzf-tmux-session
-    bindkey -M viins '^[t' widget::fzf-tmux-window
+    bindkey -M viins '^T' widget::tmux-session-manager    # Ctrl+T: Full session manager
+    bindkey -M viins '^[^t' widget::fzf-tmux-session      # Ctrl+Alt+T: Quick session switch
+    bindkey -M viins '^[t' widget::fzf-tmux-window        # Alt+T: Window selector
 
     # Yazi widgets
     bindkey -M viins '^[y' widget::yazi-picker
@@ -402,9 +410,78 @@ zinit light direnv/direnv
 #=============================================================================
 # SYNTAX HIGHLIGHTING (load dead last)
 #=============================================================================
+
+# Create stub widgets for lazy-loaded modules
+# These stubs load the real module on first invocation, then call the real widget
+_create_lazy_widget_stubs() {
+    local ZSH_CORE="${ZDOTDIR:-$HOME/.core/.sys/cfg/zsh}"
+
+    # Documentation widgets → modules/documentation.zsh
+    local -a doc_widgets=(_doc_help_widget _doc_search_widget _doc_quick_ref_widget doc-menu widget::doc-generate)
+    for w in "${doc_widgets[@]}"; do
+        if ! (( ${+functions[$w]} )); then
+            eval "function $w() {
+                unfunction $w 2>/dev/null
+                source \"$ZSH_CORE/modules/documentation.zsh\"
+                if (( \${+functions[$w]} )); then
+                    $w \"\$@\"
+                fi
+            }"
+            zle -N $w
+        else
+            zle -N $w
+        fi
+    done
+
+    # Main menu widgets → modules/main-menu.zsh
+    local -a menu_widgets=(_core_menu_widget _core_menu_fzf_widget _core_menu_git_widget _core_menu_system_widget)
+    for w in "${menu_widgets[@]}"; do
+        if ! (( ${+functions[$w]} )); then
+            eval "function $w() {
+                unfunction $w 2>/dev/null
+                source \"$ZSH_CORE/modules/main-menu.zsh\"
+                if (( \${+functions[$w]} )); then
+                    $w \"\$@\"
+                fi
+            }"
+            zle -N $w
+        else
+            zle -N $w
+        fi
+    done
+
+    # Widgets-advanced → modules/widgets-advanced.zsh (docker widgets)
+    local -a adv_widgets=(widget::docker-container-manager widget::docker-image-manager widget::docker-compose-manager)
+    for w in "${adv_widgets[@]}"; do
+        if ! (( ${+functions[$w]} )); then
+            eval "function $w() {
+                unfunction $w 2>/dev/null
+                source \"$ZSH_CORE/modules/widgets-advanced.zsh\"
+                if (( \${+functions[$w]} )); then
+                    $w \"\$@\"
+                fi
+            }"
+            zle -N $w
+        else
+            zle -N $w
+        fi
+    done
+
+    # FZF git widgets (if fzf-git-add doesn't exist yet)
+    if ! (( ${+functions[fzf-git-add]} )); then
+        function fzf-git-add() {
+            unfunction fzf-git-add 2>/dev/null
+            # This should exist in integrations/git.zsh or similar
+            zle reset-prompt
+        }
+        zle -N fzf-git-add
+    else
+        zle -N fzf-git-add
+    fi
+}
+
 _register_custom_widgets_for_highlighting() {
-    local -a w=( widget::doc-generate doc-menu fzf-git-add _doc_quick_ref_widget _doc_search_widget _doc_help_widget )
-    for w in $w; do (( ${+functions[$w]} )) && zle -N $w; done
+    _create_lazy_widget_stubs
 }
 
 zinit ice wait"3" lucid atinit"_register_custom_widgets_for_highlighting" atload'ZSH_HIGHLIGHT_HIGHLIGHTERS=(main brackets)'

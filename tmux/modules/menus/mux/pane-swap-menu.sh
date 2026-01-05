@@ -1,8 +1,10 @@
 #!/bin/bash
-# Pane swap submenu - interactive pane and window swapping
+MENU_NAV="$TMUX_MENUS/menu-nav.sh"
+CURRENT_MENU="mux/$(basename "$0")"
+PARENT=$("$MENU_NAV" get "$CURRENT_MENU" "mux/pane-menu.sh")
 
-tmux display-menu -x W -y S -T "Swap Panes & Windows" \
-  "Swap panes/windows, don't follow" P "choose-tree { swapp -t '%%' }" \
-  "Swap with selected pane" q "display-panes { swapp -t '%%' }" \
+tmux display-menu -x C -y C -T "#[fg=#89b4fa,bold]󰓡 Swap Panes " \
+  "󰌑 Back" Tab "run-shell '$TMUX_MENUS/$PARENT'" \
   "" \
-  "Back" Tab "run-shell '$TMUX_MENUS/pane-menu.sh'"
+  "󰓡 Swap with tree selection" P "choose-tree { swapp -t '%%' }" \
+  " Swap with displayed pane" q "display-panes { swapp -t '%%' }"

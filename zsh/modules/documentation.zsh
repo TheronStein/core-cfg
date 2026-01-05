@@ -659,4 +659,5 @@ zle -N widget::doc-generate
 zle -N doc-menu
 
 # Print loading message
-[[ -o interactive ]] && echo "Documentation system loaded. Type 'docs' for main menu."
+# Startup message removed for faster shell initialization
+# Type 'docs' to access the documentation system

@@ -402,6 +402,48 @@ function nvhealth() {
 }
 
 #=============================================================================
+# GIT INTEGRATION (from plugins/git.zsh)
+# Nvim-specific git tools for fugitive, diffview, neogit, flog
+#=============================================================================
+
+# Helper: check if inside a git worktree
+function __git_inside_worktree() {
+    command git rev-parse --is-inside-work-tree >/dev/null 2>&1
+}
+
+# Open fugitive in neovim
+function ngf() {
+    __git_inside_worktree && nvim +"lua require('plugs.fugitive').index()"
+}
+
+# Open diffview in neovim
+function ngd() {
+    __git_inside_worktree && nvim +'DiffviewOpen' +'bw 1'
+}
+
+# Open diffview history in neovim
+function ngh() {
+    __git_inside_worktree && nvim +"DiffviewFileHistory ${*:+${(q)*}}" +'bw 1'
+}
+
+# Open neogit in neovim
+function ngn() {
+    __git_inside_worktree && nvim +"Neogit" +'bw 1'
+}
+
+# Open flog in neovim
+function ngg() {
+    __git_inside_worktree && nvim +"Flog -raw-args=${*:+${(q)*}}" +'bw 1'
+}
+
+# Completion for ngg (uses git-log completion)
+function __ngg_compdef() {
+    (( $+functions[_git-log] )) || _git
+    _git-log
+}
+(( $+functions[compdef] )) && compdef __ngg_compdef ngg
+
+#=============================================================================
 # COMPLETIONS
 #=============================================================================
 

@@ -237,8 +237,25 @@ function widget::fzf-git-commits() {
 zle -N widget::fzf-git-commits
 
 #=============================================================================
-# WIDGET: TMUX SESSION SELECTOR
-# Usage: Ctrl+T to select/create tmux sessions
+# WIDGET: TMUX SESSION MANAGER
+# Usage: Interactive session management with create/delete/rename/wezterm-tab
+#=============================================================================
+function widget::tmux-session-manager() {
+    # Clear the command line
+    BUFFER=""
+    zle redisplay
+
+    # Run the tmux session manager
+    tmux-session-manager
+
+    # Reset prompt after returning
+    zle reset-prompt
+}
+zle -N widget::tmux-session-manager
+
+#=============================================================================
+# WIDGET: TMUX SESSION SELECTOR (Legacy - kept for compatibility)
+# Usage: Quick session switch
 #=============================================================================
 function widget::fzf-tmux-session() {
     local session
@@ -576,3 +593,54 @@ function widget::insert-date() {
     LBUFFER+="$(date '+%Y-%m-%d')"
 }
 zle -N widget::insert-date
+
+#=============================================================================
+# ZLE UTILITY FUNCTIONS
+# Low-level helpers for building custom widgets
+#=============================================================================
+
+# Redraw prompt by running all precmd functions
+function :@zredraw-prompt() {
+    local precmd
+    for precmd in "${precmd_functions[@]}"; do
+        $precmd
+    done
+    zle reset-prompt
+}
+zle -N :@zredraw-prompt
+
+# Add command to history without executing it
+function :commit-to-history() {
+    print -rs "${(z)BUFFER}"
+    zle end-of-history
+}
+zle -N :commit-to-history
+
+# Execute buffer content (helper for programmatic widget building)
+function :@execute() {
+    BUFFER="${(j:; :)@}"
+    zle accept-line
+}
+zle -N :@execute
+
+# Replace entire buffer with given content
+function :@replace-buffer() {
+    LBUFFER="${(j:; :)@}"
+    RBUFFER=""
+}
+zle -N :@replace-buffer
+
+# Append content to buffer
+function :@append-to-buffer() {
+    LBUFFER="${BUFFER}${(j:; :)@}"
+}
+zle -N :@append-to-buffer
+
+# Open file(s) in editor
+function :@edit-file() {
+    local -a args
+    args=("${(@q)@}")
+    BUFFER="${EDITOR:-nvim} ${args}"
+    zle accept-line
+}
+zle -N :@edit-file

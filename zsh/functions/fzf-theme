@@ -17,6 +17,7 @@ typeset -g FZF_LAYOUTS_DIR="$FZF_THEMES_DIR/layouts"
 typeset -g FZF_THEME_STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/fzf"
 typeset -g FZF_THEME_CURRENT_FILE="$FZF_THEME_STATE_DIR/current-theme"
 typeset -g FZF_LAYOUT_CURRENT_FILE="$FZF_THEME_STATE_DIR/current-layout"
+typeset -g FZF_THEME_CACHE_FILE="$FZF_THEME_STATE_DIR/opts-cache.zsh"
 
 # Ensure state directory exists
 [[ -d "$FZF_THEME_STATE_DIR" ]] || mkdir -p "$FZF_THEME_STATE_DIR"
@@ -198,6 +199,9 @@ fzf-theme-apply() {
     # Rebuild FZF_DEFAULT_OPTS with new colors
     _fzf_rebuild_opts
 
+    # Update cache for next startup
+    _fzf_write_cache
+
     local actual_name=$(_fzf_get_theme_name "$theme_file")
     echo "Applied theme: $actual_name"
 }
@@ -239,6 +243,9 @@ fzf-layout-apply() {
 
     # Rebuild FZF_DEFAULT_OPTS
     _fzf_rebuild_opts
+
+    # Update cache for next startup
+    _fzf_write_cache
 
     local actual_name=$(_fzf_get_layout_name "$layout_file")
     echo "Applied layout: $actual_name"
@@ -694,6 +701,20 @@ fzf-appearance() {
 # ============================================================================
 
 fzf-theme-init() {
+    # Fast path: use cache if it exists and is newer than source files
+    if [[ -f "$FZF_THEME_CACHE_FILE" ]]; then
+        local cache_valid=1
+        # Check if cache is newer than theme/layout preference files
+        [[ -f "$FZF_THEME_CURRENT_FILE" && "$FZF_THEME_CURRENT_FILE" -nt "$FZF_THEME_CACHE_FILE" ]] && cache_valid=0
+        [[ -f "$FZF_LAYOUT_CURRENT_FILE" && "$FZF_LAYOUT_CURRENT_FILE" -nt "$FZF_THEME_CACHE_FILE" ]] && cache_valid=0
+
+        if (( cache_valid )); then
+            source "$FZF_THEME_CACHE_FILE"
+            return 0
+        fi
+    fi
+
+    # Slow path: compute values and cache them
     # Load saved theme
     if [[ -f "$FZF_THEME_CURRENT_FILE" ]]; then
         local saved_theme=$(cat "$FZF_THEME_CURRENT_FILE" 2>/dev/null)
@@ -718,6 +739,21 @@ fzf-theme-init() {
 
     # Build FZF_DEFAULT_OPTS
     _fzf_rebuild_opts
+
+    # Write cache for next startup
+    _fzf_write_cache
+}
+
+# Write computed values to cache file for fast startup
+_fzf_write_cache() {
+    # Use print with proper quoting to handle special characters
+    {
+        print "# FZF theme cache - auto-generated, do not edit"
+        print "# Regenerated when theme or layout changes"
+        print "export _FZF_THEME_COLORS=${(qq)_FZF_THEME_COLORS}"
+        print "export _FZF_LAYOUT_OPTS=${(qq)_FZF_LAYOUT_OPTS}"
+        print "export FZF_DEFAULT_OPTS=${(qq)FZF_DEFAULT_OPTS}"
+    } > "$FZF_THEME_CACHE_FILE"
 }
 
 # ============================================================================

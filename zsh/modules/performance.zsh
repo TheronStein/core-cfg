@@ -90,7 +90,7 @@ function lazy-load-completions() {
         fi
 
         # Create lazy loading wrapper
-        if [[ -f "$file" ]]; then
+        if [[ -f "$file" ]] && (( $+functions[compdef] )); then
             eval "
             function _${cmd}_completion_loader() {
                 unfunction _${cmd}_completion_loader

@@ -112,9 +112,10 @@ setopt LIST_PACKED               # Make completion list more compact
 setopt LIST_ROWS_FIRST           # Sort completions horizontally
 setopt LIST_TYPES                # Show type indicators in listings
 
-# Initialize completion
-autoload -Uz compinit
-compinit -d "${ZSH_CACHE_DIR}/.zcompdump"
+# NOTE: compinit is now called in 02-zinit.zsh AFTER plugins load their completions
+# This prevents double-initialization and ensures all completions are available
+
+# bashcompinit for bash completion scripts
 autoload -Uz bashcompinit && bashcompinit
 
 # Completion styling

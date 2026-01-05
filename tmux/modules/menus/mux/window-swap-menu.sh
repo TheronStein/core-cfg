@@ -1,13 +1,15 @@
 #!/bin/bash
-# Window swap submenu - interactive swapping and moving operations
+MENU_NAV="$TMUX_MENUS/menu-nav.sh"
+CURRENT_MENU="mux/$(basename "$0")"
+PARENT=$("$MENU_NAV" get "$CURRENT_MENU" "mux/window-menu.sh")
 
-tmux display-menu -x W -y S -T "Window Swap & Move Operations" \
-  "Swap windows, don't follow" C "choose-tree { swapw -t '%%' }" \
-  "Swap windows, follow" W "choose-tree { swapw -dt '%%' }" \
+tmux display-menu -x C -y C -T "#[fg=#a6e3a1,bold]󰓡 Swap Windows " \
+  "󰌑 Back" Tab "run-shell '$TMUX_MENUS/$PARENT'" \
   "" \
-  "Move before selected, don't follow" '<' "choose-tree { movew -dbt '%%' }" \
-  "Move after selected, don't follow" '>' "choose-tree { movew -dat '%%' }" \
-  "Move before selected, follow" ',' "choose-tree { movew -bt '%%' }" \
-  "Move after selected, follow" '.' "choose-tree { movew -at '%%' }" \
+  "󰓡 Swap (don't follow)" s "choose-tree { swapw -t '%%' }" \
+  "󰓡 Swap (follow)" S "choose-tree { swapw -dt '%%' }" \
   "" \
-  "Back" Tab "run-shell '$TMUX_MENUS/mux/window-menu.sh'"
+  " Move before (don't follow)" "<" "choose-tree { movew -dbt '%%' }" \
+  " Move after (don't follow)" ">" "choose-tree { movew -dat '%%' }" \
+  " Move before (follow)" "," "choose-tree { movew -bt '%%' }" \
+  " Move after (follow)" "." "choose-tree { movew -at '%%' }"

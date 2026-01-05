@@ -1,0 +1,199 @@
+#!/usr/bin/env zsh
+# fzf-file-browser - Persistent file browser that stays open until explicit exit
+# Uses fzf's reload action to drill down/up without closing
+#
+# Keybindings:
+#   Enter/Right  - Enter directory or select file
+#   Left/Backspace - Go to parent directory
+#   Ctrl-H       - Go to home directory
+#   Ctrl-/       - Toggle preview
+#   Ctrl-E       - Edit selected file
+#   Ctrl-O       - Open with xdg-open
+#   Esc/Ctrl-C   - Exit browser
+#   Tab          - Toggle selection
+#   Ctrl-A       - Select all
+
+fzf-file-browser() {
+    local start_dir="${1:-$(pwd)}"
+    local result=""
+    local selected_files=()
+
+    # Preview command - handles files, directories, and special cases
+    local preview_cmd='
+        item={}
+        if [[ -d "$item" ]]; then
+            eza --color=always --icons --group-directories-first -la "$item" 2>/dev/null || ls -la "$item"
+        elif [[ -f "$item" ]]; then
+            # Check if binary
+            if file "$item" | grep -q "executable\|shared object\|ELF"; then
+                echo -e "\033[1;35m⚡ Binary:\033[0m $item"
+                file "$item"
+                echo ""
+                # Try to show help
+                "$item" --help 2>&1 | head -30 || "$item" -h 2>&1 | head -30 || echo "(no help available)"
+            else
+                bat --color=always --style=numbers,changes --line-range :200 "$item" 2>/dev/null || \
+                head -200 "$item" 2>/dev/null || \
+                echo "Cannot preview: $item"
+            fi
+        elif [[ -L "$item" ]]; then
+            echo -e "\033[1;36m🔗 Symlink:\033[0m $item"
+            echo -e "→ $(readlink -f "$item" 2>/dev/null)"
+        else
+            echo "$item"
+        fi
+    '
+
+    # List command - shows directories first, then files
+    local list_cmd='
+        dir="${1:-.}"
+        echo ".."
+        eza -1 --color=always --icons --group-directories-first "$dir" 2>/dev/null || ls -1 "$dir"
+    '
+
+    cd "$start_dir" || return 1
+
+    while true; do
+        result=$(
+            eval "$list_cmd" "." | fzf \
+                --ansi \
+                --height=90% \
+                --layout=reverse \
+                --border=rounded \
+                --prompt="$(pwd)/ > " \
+                --header=$'Enter/→: enter dir | ←/Backspace: parent | Ctrl-E: edit | Esc: exit' \
+                --preview="$preview_cmd" \
+                --preview-window='right:60%:wrap' \
+                --bind='enter:accept' \
+                --bind='right:accept' \
+                --bind='left:execute-silent(cd .. && echo PARENT)+abort' \
+                --bind='backspace:execute-silent(cd .. && echo PARENT)+abort' \
+                --bind='ctrl-h:execute-silent(cd ~ && echo HOME)+abort' \
+                --bind='ctrl-e:execute(${EDITOR:-nvim} {})' \
+                --bind='ctrl-o:execute(xdg-open {} 2>/dev/null &)' \
+                --bind='ctrl-/:toggle-preview' \
+                --bind='tab:toggle' \
+                --bind='ctrl-a:select-all' \
+                --bind='esc:abort' \
+                --bind='ctrl-c:abort' \
+                --expect='left,backspace,ctrl-h'
+        )
+
+        # Parse result - first line is the key pressed, rest is selection
+        local key=$(echo "$result" | head -1)
+        local selection=$(echo "$result" | tail -n +2 | head -1)
+
+        # Handle special keys
+        case "$key" in
+            left|backspace)
+                cd .. 2>/dev/null
+                continue
+                ;;
+            ctrl-h)
+                cd ~ 2>/dev/null
+                continue
+                ;;
+        esac
+
+        # Handle empty selection (Esc pressed or no selection)
+        if [[ -z "$selection" ]]; then
+            break
+        fi
+
+        # Strip ANSI codes and icons from selection
+        selection=$(echo "$selection" | sed 's/\x1b\[[0-9;]*m//g' | sed 's/^[[:space:]]*//' | awk '{print $NF}')
+
+        # Handle selection
+        if [[ "$selection" == ".." ]]; then
+            cd .. 2>/dev/null
+        elif [[ -d "$selection" ]]; then
+            cd "$selection" 2>/dev/null
+        elif [[ -f "$selection" ]]; then
+            # File selected - return it and exit
+            echo "$(pwd)/$selection"
+            break
+        fi
+    done
+
+    # Return to original directory behavior handled by caller
+}
+
+# Widget version for ZLE
+widget::fzf-file-browser() {
+    local selected
+    selected=$(fzf-file-browser)
+    if [[ -n "$selected" ]]; then
+        LBUFFER+="$selected"
+    fi
+    zle reset-prompt
+}
+zle -N widget::fzf-file-browser
+
+# Directory-only browser for cd operations
+fzf-cd-browser() {
+    local start_dir="${1:-$(pwd)}"
+
+    local preview_cmd='
+        item={}
+        if [[ -d "$item" ]]; then
+            eza --color=always --icons --group-directories-first -la "$item" 2>/dev/null || ls -la "$item"
+        else
+            echo "$item"
+        fi
+    '
+
+    cd "$start_dir" || return 1
+
+    while true; do
+        local result=$(
+            { echo ".."; find . -maxdepth 1 -type d ! -name "." -printf "%f\n" 2>/dev/null | sort; } | fzf \
+                --ansi \
+                --height=80% \
+                --layout=reverse \
+                --border=rounded \
+                --prompt="cd: $(pwd)/ > " \
+                --header=$'Enter: enter dir | Backspace: parent | Ctrl-Enter: accept | Esc: cancel' \
+                --preview="$preview_cmd" \
+                --preview-window='right:50%:wrap' \
+                --bind='enter:accept' \
+                --bind='backspace:execute-silent(cd ..)+abort' \
+                --bind='ctrl-h:execute-silent(cd ~)+abort' \
+                --bind='esc:abort' \
+                --expect='backspace,ctrl-h,ctrl-m'
+        )
+
+        local key=$(echo "$result" | head -1)
+        local selection=$(echo "$result" | tail -n +2 | head -1)
+
+        case "$key" in
+            backspace) cd .. 2>/dev/null; continue ;;
+            ctrl-h) cd ~ 2>/dev/null; continue ;;
+            ctrl-m)
+                # Ctrl+Enter - accept current directory
+                echo "$(pwd)"
+                return 0
+                ;;
+        esac
+
+        if [[ -z "$selection" ]]; then
+            return 1
+        fi
+
+        if [[ "$selection" == ".." ]]; then
+            cd .. 2>/dev/null
+        elif [[ -d "$selection" ]]; then
+            cd "$selection" 2>/dev/null
+        fi
+    done
+}
+
+widget::fzf-cd-browser() {
+    local target
+    target=$(fzf-cd-browser)
+    if [[ -n "$target" && -d "$target" ]]; then
+        cd "$target"
+        zle reset-prompt
+        zle -R
+    fi
+}
+zle -N widget::fzf-cd-browser

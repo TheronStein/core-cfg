@@ -7,14 +7,14 @@ CURRENT_MENU="config-management.sh"
 # Helper to open submenu with parent tracking
 om() {
   "$MENU_NAV" set "$(basename "$1")" "$CURRENT_MENU"
-  echo "run-shell '\$TMUX_MENUS/$1'"
+  echo "run-shell '$TMUX_MENUS/$1'"
 }
 
 # Get dynamic back button
 PARENT=$("$MENU_NAV" get "$CURRENT_MENU" "main-menu.sh")
 
 tmux display-menu -x C -y C -T "#[fg=#e0af68,bold]󰒓 Config Management " \
-  "󰌑 Back" Tab "run-shell '\$TMUX_MENUS/$PARENT'" \
+  "󰌑 Back" Tab "run-shell '$TMUX_MENUS/$PARENT'" \
   "" \
   "#[fg=#01F9C6,bold]━━━ CONFIGURATIONS ━━━" "" "" \
   " TMUX Config" t "$(om config/tmux-config-menu.sh)" \

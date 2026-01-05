@@ -14,8 +14,8 @@ local wk = require("which-key")
 
 -- Navigation (no prefix)
 wk.add({
-  { "", "<cmd>MkdnEnter<cr>", desc = "Follow link/Continue list", buffer = 0, mode = "n" },
-  { "<C-b> b", "<cmd>MkdnGoBack<cr>", desc = "Go back", buffer = 0, mode = "n" },
+  { "<CR>", "<cmd>MkdnEnter<cr>", desc = "Follow link/Continue list", buffer = 0, mode = "n" },
+  { "<C-b>b", "<cmd>MkdnGoBack<cr>", desc = "Go back", buffer = 0, mode = "n" },
   { "<C-n> f", "<cmd>MkdnGoForward<cr>", desc = "Go forward", buffer = 0, mode = "n" },
   { "<C-b> h", "<cmd>MkdnPrevHeading<cr>", desc = "Previous heading", buffer = 0, mode = "n" },
   { "<C-n> h", "<cmd>MkdnNextHeading<cr>", desc = "Next heading", buffer = 0, mode = "n" },
@@ -61,7 +61,7 @@ wk.add({
     mode = "n",
   },
   {
-    "<leader>mt",
+    "<leader>mx",
     "<cmd>MkdnToggleToDo<cr>",
     desc = "Toggle to-do",
     buffer = 0,
@@ -102,7 +102,7 @@ wk.add({
 wk.add({
   { "<leader>ml", group = "links", buffer = 0 },
   {
-    "<leader>ml",
+    "<leader>mll",
     "<cmd>MkdnCreateLink<cr>",
     desc = "Create link",
     buffer = 0,
