@@ -1,5 +1,42 @@
+/* tab { */
+/*   padding: 8px 20px; */
+/*   background-color: #282828; */
+/*   color: #ebdbb2; */
+/*   border: none; */
+/*   margin: 0; */
+/*   font-family: "JetBrains Mono", monospace; */
+/*   font-size: 12px; */
+/*   font-weight: 500; */
+/* } */
+/**/
+/* tab:hover { */
+/*   background-color: #3c3836; */
+/*   color: #fbf1c7; */
+/* } */
+/**/
+/* tab:checked { */
+/*   background-color: #458588; */
+/*   color: #fbf1c7; */
+/*   font-weight: 600; */
+/* } */
+/**/
+/* /* Try to create subtle separation */ */
+/* tab:not(:checked) { */
+/*   border-right: 1px solid #3c3836; */
+/* } */
+/**/
+/* tab button { */
+/*   color: #928374; */
+/*   padding: 0 6px; */
+/*   margin-left: 8px; */
+/* } */
+/**/
+/* tab button:hover { */
+/*   color: #fb4934; */
+/* } */
+
 tab {
-  stty 1.2.3-arch2\P>|ghostty 1.2.3-arch2
+ echo -ne "\033]0;Ghostty\007"
   padding: 4px 8px; /* Reduce padding for compactness */
   background-color: #2a2a2a;
   color: #dddddd;

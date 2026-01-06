@@ -1,18 +1,29 @@
 # ~/.core/zsh/integrations/tmux.zsh
 # TMUX Integration - Advanced session, window, and pane management
 # Dependencies: tmux, fzf, yazi (optional), neovim (optional)
+#
+# NOTE: Core tmux utilities are sourced from global libraries:
+#   - session.sh: Session management (session::*)
+#   - tmux.sh: Pane/window operations (tmux::*)
+#   - fzf-config.sh: FZF styling (fzf::*)
+# This file provides ZSH-specific wrappers, aliases, and completions.
 
 #=============================================================================
-# CHECK FOR TMUX
+# GLOBAL LIBRARIES
 #=============================================================================
-# (($ + commands[tmux])) || return 0
+# Source cortex libraries via compatibility layer
+if [[ -f "${HOME}/.core/.cortex/lib/compat.zsh" ]]; then
+    source "${HOME}/.core/.cortex/lib/compat.zsh"
+    cortex::source session 2>/dev/null    # session::* functions
+    cortex::source tmux 2>/dev/null       # tmux::* functions
+    cortex::source fzf-config 2>/dev/null # fzf::* functions
+fi
 
 #=============================================================================
 # TMUX ENVIRONMENT
 #=============================================================================
 export TMUX_CONFIG="${CORE_CFG}/tmux"
 export TMUX_PLUGIN_MANAGER_PATH="${CORE_CFG}/tmux/plugins"
-# export TMUX_TMPDIR="${XDG_RUNTIME_DIR:-/tmp}"
 
 #=============================================================================
 # TMUX AUTO-START (optional, uncomment to enable)
@@ -362,9 +373,14 @@ alias tmuxconf='$EDITOR $TMUX_CONFIG/tmux.conf'
 #=============================================================================
 
 # Function: is-tmux
-# Description: Check if we're inside tmux
+# Description: Check if we're inside tmux (wrapper for global lib)
 function is-tmux() {
-  [[ -n "$TMUX" ]]
+  # Use global lib if available, fallback to direct check
+  if (( $+functions[session::in_tmux] )); then
+    session::in_tmux
+  else
+    [[ -n "$TMUX" ]]
+  fi
 }
 
 # Function: tmux-colors
@@ -381,43 +397,55 @@ function tmux-colors() {
 #=============================================================================
 # TMUX SESSION MANAGER (FZF-based with WezTerm integration)
 #=============================================================================
+# NOTE: Core session functions are provided by ~/.core/.cortex/lib/session.sh
+# This section provides ZSH-specific wrappers and the interactive session manager.
 
-# Configuration
-export TMUX_DEFAULT_SOCKET=""  # Empty = default socket, set to custom socket name if needed
-# Future: Support multiple sockets via TMUX_SOCKET_DIR and socket selection
+# Configuration (used by global session.sh via TMUX_DEFAULT_SOCKET)
+export TMUX_DEFAULT_SOCKET=""  # Empty = default socket
 
 # Function: _tmux_get_socket_flag
-# Description: Get socket flag for tmux commands
+# Description: Get socket flag for tmux commands (wrapper for global lib)
 _tmux_get_socket_flag() {
-  [[ -n "$TMUX_DEFAULT_SOCKET" ]] && echo "-L $TMUX_DEFAULT_SOCKET" || echo ""
+  if (( $+functions[session::_socket_flag] )); then
+    session::_socket_flag
+  else
+    [[ -n "$TMUX_DEFAULT_SOCKET" ]] && echo "-L $TMUX_DEFAULT_SOCKET" || echo ""
+  fi
 }
 
 # Function: _tmux_list_sessions
-# Description: List all tmux sessions with details
+# Description: List all tmux sessions with details (wrapper for global lib)
 _tmux_list_sessions() {
-  local socket_flag="$(_tmux_get_socket_flag)"
-  tmux $socket_flag list-sessions -F "#{session_name}|#{session_windows}w|#{session_attached}a|#{session_created}" 2>/dev/null | \
-    awk -F'|' '{
-      name = $1
-      windows = $2
-      attached = ($3 > 0) ? "●" : "○"
-      printf "%-20s %s %3s  [%s]\n", name, attached, windows, $4
-    }'
+  if (( $+functions[session::list] )); then
+    session::list
+  else
+    local socket_flag="$(_tmux_get_socket_flag)"
+    tmux $socket_flag list-sessions -F "#{session_name}|#{session_windows}w|#{session_attached}a|#{session_created}" 2>/dev/null | \
+      awk -F'|' '{
+        name = $1
+        windows = $2
+        attached = ($3 > 0) ? "●" : "○"
+        printf "%-20s %s %3s  [%s]\n", name, attached, windows, $4
+      }'
+  fi
 }
 
 # Function: _tmux_session_preview
-# Description: Generate preview for tmux session
+# Description: Generate preview for tmux session (wrapper for global lib)
 _tmux_session_preview() {
   local session_name="$1"
-  local socket_flag="$(_tmux_get_socket_flag)"
-
-  echo "Session: $session_name"
-  echo "─────────────────────────────────────"
-  tmux $socket_flag list-windows -t "$session_name" -F "  #{window_index}: #{window_name} #{window_panes}p #{?window_active,(active),}" 2>/dev/null
-  echo ""
-  echo "Preview:"
-  echo "─────────────────────────────────────"
-  tmux $socket_flag capture-pane -ep -t "$session_name" 2>/dev/null | head -30
+  if (( $+functions[session::preview] )); then
+    session::preview "$session_name"
+  else
+    local socket_flag="$(_tmux_get_socket_flag)"
+    echo "Session: $session_name"
+    echo "─────────────────────────────────────"
+    tmux $socket_flag list-windows -t "$session_name" -F "  #{window_index}: #{window_name} #{window_panes}p #{?window_active,(active),}" 2>/dev/null
+    echo ""
+    echo "Preview:"
+    echo "─────────────────────────────────────"
+    tmux $socket_flag capture-pane -ep -t "$session_name" 2>/dev/null | head -30
+  fi
 }
 
 # Function: _is_wezterm
@@ -446,8 +474,9 @@ tmux-session-open-wezterm-tab() {
 # Description: Interactive tmux session manager with FZF
 # Actions:
 #   Enter     - Switch to session (or attach if not in tmux)
-#   Ctrl-D    - Delete session
-#   Ctrl-N    - Create new session
+#   Tab       - Mark session for bulk operations
+#   Ctrl-D    - Kill marked sessions
+#   Ctrl-N    - Create new session (uses query text as name)
 #   Ctrl-R    - Rename session
 #   Ctrl-T    - Open in new WezTerm tab (if in WezTerm)
 tmux-session-manager() {
@@ -460,88 +489,115 @@ tmux-session-manager() {
   [[ -n "$in_tmux" ]] && header="$header (Current: $(tmux display-message -p '#S'))"
   header="$header
 ───────────────────────────────────────────────
-Enter: Switch/Attach │ Ctrl-N: New │ Ctrl-D: Delete │ Ctrl-R: Rename"
+Enter: Switch/Attach │ Ctrl-N: New (uses query) │ Tab: Mark │ Ctrl-D: Kill marked │ Ctrl-R: Rename"
   [[ "$in_wezterm" == "yes" ]] && header="$header │ Ctrl-T: New WezTerm Tab"
 
   while true; do
-    local session
-    session=$(_tmux_list_sessions | \
+    local fzf_output key query selections
+
+    # Use --expect to capture key presses, --print-query to get typed text
+    fzf_output=$(_tmux_list_sessions | \
       fzf --ansi \
+          --multi \
           --height 60% \
           --border rounded \
           --header "$header" \
-          --preview 'session=$(echo {} | awk "{print \$1}"); source /home/theron/.core/.sys/cfg/zsh/integrations/tmux.zsh; _tmux_session_preview "$session"' \
-          --preview-window 'right:60%:wrap' \
-          --bind 'ctrl-n:execute(echo "new-session" > /tmp/tmux-action)+abort' \
-          --bind 'ctrl-d:execute(echo "delete:{}" > /tmp/tmux-action)+abort' \
-          --bind 'ctrl-r:execute(echo "rename:{}" > /tmp/tmux-action)+abort' \
-          --bind 'ctrl-t:execute(echo "wezterm-tab:{}" > /tmp/tmux-action)+abort' \
-          --expect 'enter' | head -1)
+          --print-query \
+          --expect=ctrl-n,ctrl-d,ctrl-r,ctrl-t \
+          --preview 'session=$(echo {} | awk "{print \$1}"); echo "Session: $session" && echo "─────────────────────────────────────" && tmux list-windows -t "$session" -F "  #{window_index}: #{window_name} #{window_panes}p" 2>/dev/null && echo "" && tmux capture-pane -ep -t "$session" 2>/dev/null | head -30' \
+          --preview-window 'right:60%:wrap')
 
-    # Check if action file exists
-    if [[ -f /tmp/tmux-action ]]; then
-      local action=$(cat /tmp/tmux-action)
-      rm -f /tmp/tmux-action
+    # Parse output: line 1 = query, line 2 = key pressed, line 3+ = selections
+    query=$(echo "$fzf_output" | sed -n '1p')
+    key=$(echo "$fzf_output" | sed -n '2p')
+    selections=$(echo "$fzf_output" | sed -n '3,$p')
 
-      case "$action" in
-        new-session)
-          # Prompt for new session name
+    # Handle escape/no selection
+    [[ -z "$key" && -z "$selections" ]] && return 0
+
+    case "$key" in
+      ctrl-n)
+        # Create new session using query text as name
+        local new_name="$query"
+        if [[ -z "$new_name" ]]; then
           echo -n "New session name: "
           read new_name
-          if [[ -n "$new_name" ]]; then
+        fi
+        if [[ -n "$new_name" ]]; then
+          if tmux $socket_flag has-session -t "$new_name" 2>/dev/null; then
+            echo "Session '$new_name' already exists"
+          else
             tmux $socket_flag new-session -d -s "$new_name" 2>/dev/null && \
               echo "Created session: $new_name"
           fi
+        fi
+        continue
+        ;;
+
+      ctrl-d)
+        # Kill all marked sessions
+        local -a sessions_to_kill
+        while IFS= read -r line; do
+          local sess=$(echo "$line" | awk '{print $1}')
+          [[ -n "$sess" ]] && sessions_to_kill+=("$sess")
+        done <<< "$selections"
+
+        if [[ ${#sessions_to_kill[@]} -eq 0 ]]; then
+          echo "No sessions marked (use Tab to mark sessions first)"
           continue
-          ;;
+        fi
 
-        delete:*)
-          local to_delete=$(echo "$action" | cut -d: -f2 | awk '{print $1}')
-          echo -n "Delete session '$to_delete'? [y/N] "
-          read confirm
-          if [[ "$confirm" =~ ^[Yy]$ ]]; then
-            tmux $socket_flag kill-session -t "$to_delete" 2>/dev/null && \
-              echo "Deleted session: $to_delete"
-          fi
+        echo "Sessions to kill: ${sessions_to_kill[*]}"
+        echo -n "Kill ${#sessions_to_kill[@]} session(s)? [y/N] "
+        read confirm
+        if [[ "$confirm" =~ ^[Yy]$ ]]; then
+          for sess in "${sessions_to_kill[@]}"; do
+            tmux $socket_flag kill-session -t "$sess" 2>/dev/null && \
+              echo "Killed session: $sess"
+          done
+        fi
+        continue
+        ;;
+
+      ctrl-r)
+        # Rename selected session
+        local old_name=$(echo "$selections" | head -1 | awk '{print $1}')
+        if [[ -z "$old_name" ]]; then
+          echo "No session selected"
           continue
-          ;;
+        fi
+        echo -n "Rename session '$old_name' to: "
+        read new_name
+        if [[ -n "$new_name" ]]; then
+          tmux $socket_flag rename-session -t "$old_name" "$new_name" 2>/dev/null && \
+            echo "Renamed: $old_name → $new_name"
+        fi
+        continue
+        ;;
 
-        rename:*)
-          local old_name=$(echo "$action" | cut -d: -f2 | awk '{print $1}')
-          echo -n "Rename session '$old_name' to: "
-          read new_name
-          if [[ -n "$new_name" ]]; then
-            tmux $socket_flag rename-session -t "$old_name" "$new_name" 2>/dev/null && \
-              echo "Renamed: $old_name → $new_name"
-          fi
-          continue
-          ;;
+      ctrl-t)
+        # Open in new WezTerm tab
+        if [[ "$in_wezterm" == "yes" ]]; then
+          local target=$(echo "$selections" | head -1 | awk '{print $1}')
+          [[ -n "$target" ]] && tmux-session-open-wezterm-tab "$target"
+        fi
+        return 0
+        ;;
 
-        wezterm-tab:*)
-          if [[ "$in_wezterm" == "yes" ]]; then
-            local target=$(echo "$action" | cut -d: -f2 | awk '{print $1}')
-            tmux-session-open-wezterm-tab "$target"
-          fi
-          return 0
-          ;;
-      esac
-    fi
+      *)
+        # Enter key - switch/attach to session
+        local session_name=$(echo "$selections" | head -1 | awk '{print $1}')
+        [[ -z "$session_name" ]] && return 0
 
-    # Normal selection (Enter key)
-    [[ -z "$session" ]] && return 0
-
-    local session_name=$(echo "$session" | awk '{print $1}')
-
-    if [[ -n "$in_tmux" ]]; then
-      # Inside tmux - switch client
-      tmux switch-client -t "$session_name"
-    else
-      # Outside tmux - attach or create
-      tmux $socket_flag attach-session -t "$session_name" 2>/dev/null || \
-        tmux $socket_flag new-session -s "$session_name"
-    fi
-
-    return 0
+        if [[ -n "$in_tmux" ]]; then
+          tmux switch-client -t "$session_name"
+        else
+          tmux $socket_flag attach-session -t "$session_name" 2>/dev/null || \
+            tmux $socket_flag new-session -s "$session_name"
+        fi
+        return 0
+        ;;
+    esac
   done
 }
 

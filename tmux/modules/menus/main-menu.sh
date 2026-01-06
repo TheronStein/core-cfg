@@ -9,10 +9,8 @@ om() {
   echo "run-shell '$TMUX_MENUS/$1'"
 }
 
-tmux display-menu -x C -y C -T "#[fg=#e0af68,bold] Main Menu " \
+tmux display-menu -x C -y P -T "#[fg=#e0af68,bold] Main Menu " \
   " Zoom Toggle" z "resize-pane -Z" \
-  " Vertical Split" v "run-shell '$TMUX_CONF/events/split.sh v'" \
-  " Horizontal Split" d "run-shell '$TMUX_CONF/events/split.sh h'" \
   " Resize Mode" r "run-shell '$TMUX_MENUS/modes/pane-resize-select.sh'" \
   " Copy Mode" / "run-shell '$TMUX_MENUS/modes/copy-mode.sh'" \
   "" \

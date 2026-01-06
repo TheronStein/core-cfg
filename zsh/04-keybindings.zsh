@@ -139,52 +139,52 @@ bindkey '^[[6~' end-of-buffer-or-history       # Page Down
 #=============================================================================
 # HELP KEY (F1)
 #=============================================================================
-function widget::show-keybindings() {
-  echo ""
-  echo "═══════════════════════════════════════════════════════════════"
-  echo "                    ZSH KEYBINDINGS REFERENCE"
-  echo "═══════════════════════════════════════════════════════════════"
-  echo ""
-  echo "FZF WIDGETS:"
-  echo "  Ctrl+R    History search with preview"
-  echo "  Ctrl+F    Find and insert files"
-  echo "  Alt+F     Find directories"
-  echo "  Ctrl+K    Kill processes"
-  echo "  Ctrl+P    Command palette"
-  echo ""
-  echo "GIT:"
-  echo "  Ctrl+G    Git status file selector"
-  echo "  Alt+G     Git branch selector"
-  echo "  Alt+C     Git commit browser"
-  echo ""
-  echo "TMUX:"
-  echo "  Ctrl+T    Tmux session selector"
-  echo "  Alt+T     Tmux window selector"
-  echo ""
-  echo "YAZI:"
-  echo "  Ctrl+Y    Yazi with cd on exit"
-  echo "  Alt+Y     Yazi file picker"
-  echo ""
-  echo "UTILITIES:"
-  echo "  Alt+S     SSH host selector"
-  echo "  Alt+E     Environment variable browser"
-  echo "  Ctrl+X E  Edit command in \$EDITOR"
-  echo "  Esc Esc   Toggle sudo prefix"
-  echo ""
-  echo "CLIPBOARD:"
-  echo "  Alt+W     Copy buffer to clipboard"
-  echo "  Alt+V     Paste from clipboard"
-  echo ""
-  echo "BITWARDEN & BOOKMARKS:"
-  echo "  Alt+B     Bitwarden interactive"
-  echo "  Alt+J     Jump to bookmark"
-  echo ""
-  echo "═══════════════════════════════════════════════════════════════"
-  zle reset-prompt
-}
-zle -N widget::show-keybindings
-bindkey '^[[11~' widget::show-keybindings # F1
-bindkey '^[?' widget::show-keybindings    # Alt+?
+# function widget::show-keybindings() {
+#   echo ""
+#   echo "═══════════════════════════════════════════════════════════════"
+#   echo "                    ZSH KEYBINDINGS REFERENCE"
+#   echo "═══════════════════════════════════════════════════════════════"
+#   echo ""
+#   echo "FZF WIDGETS:"
+#   echo "  Ctrl+R    History browser (C-] cycles: Global/Local/Clipboard)"
+#   echo "  Ctrl+F    Find and insert files"
+#   echo "  Alt+F     Find directories"
+#   echo "  Ctrl+K    Killrocesses"
+#   echo "  Ctrl+P    Command palette"
+#   echo ""
+#   echo "GIT:"
+#   echo "  Ctrl+G    Git status file selector"
+#   echo "  Alt+G     Git branch selector"
+#   echo "  Alt+C     Git commit browser"
+#   echo ""
+#   echo "TMUX:"
+#   echo "  Ctrl+T    Tmux session selector"
+#   echo "  Alt+T     Tmux window selector"
+#   echo ""
+#   echo "YAZI:"
+#   echo "  Ctrl+Y    Yazi with cd on exit"
+#   echo "  Alt+Y     Yazi file picker"
+#   echo ""
+#   echo "UTILITIES:"
+#   echo "  Alt+S     SSH host selector"
+#   echo "  Alt+E     Environment variable browser"
+#   echo "  Ctrl+X E  Edit command in \$EDITOR"
+#   echo "  Esc Esc   Toggle sudo prefix"
+#   echo ""
+#   echo "CLIPBOARD:"
+#   echo "  Alt+W     Copy buffer to clipboard"
+#   echo "  Alt+V     Paste from clipboard"
+#   echo ""
+#   echo "BITWARDEN & BOOKMARKS:"
+#   echo "  Alt+B     Bitwarden interactive"
+#   echo "  Alt+J     Jump to bookmark"
+#   echo ""
+#   echo "═══════════════════════════════════════════════════════════════"
+#   zle reset-prompt
+# }
+# zle -N widget::show-keybindings
+# bindkey '[[11~' widget::show-keybindings # F1
+# bindkey '^[?' widget::show-keybindings   # Alt+?
 
 #=============================================================================
 # DOCUMENTATION SYSTEM WIDGETS

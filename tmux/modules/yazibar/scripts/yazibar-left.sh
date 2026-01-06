@@ -17,7 +17,7 @@ LEFT_SIDEBAR_TITLE="yazibar-left"
 # ============================================================================
 
 create_left_sidebar() {
-    local start_dir="${1:-$(get_current_dir)}"
+    local start_dir="${1:-$(get_pane_cwd)}"
     local window_id=$(get_current_window)
 
     debug_log "Creating left sidebar from: $start_dir"
@@ -184,6 +184,26 @@ resize_left_sidebar() {
     display_info "Left sidebar resized to $new_width"
 }
 
+resize_left_wider() {
+    local left_pane=$(get_left_pane)
+    if [ -z "$left_pane" ] || ! pane_exists_globally "$left_pane"; then
+        return 1
+    fi
+    local width=$(tmux display-message -p -t "$left_pane" '#{pane_width}')
+    local new_width=$((width + 5))
+    resize_left_sidebar "$new_width"
+}
+
+resize_left_narrower() {
+    local left_pane=$(get_left_pane)
+    if [ -z "$left_pane" ] || ! pane_exists_globally "$left_pane"; then
+        return 1
+    fi
+    local width=$(tmux display-message -p -t "$left_pane" '#{pane_width}')
+    local new_width=$((width - 5))
+    resize_left_sidebar "$new_width"
+}
+
 # ============================================================================
 # STATUS
 # ============================================================================
@@ -228,6 +248,12 @@ case "${1:-help}" in
         ;;
     resize)
         resize_left_sidebar "$2"
+        ;;
+    resize-wider)
+        resize_left_wider
+        ;;
+    resize-narrower)
+        resize_left_narrower
         ;;
     status)
         status_left

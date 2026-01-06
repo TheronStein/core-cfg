@@ -24,7 +24,7 @@ opt.incsearch = true -- Incremental search
 opt.termguicolors = true -- Enable 24-bit RGB colors
 opt.scrolloff = 8 -- Keep 8 lines above/below cursor
 opt.sidescrolloff = 8 -- Keep 8 columns left/right
-opt.wrap = false -- Disable line wrapping
+opt.wrap = true -- Disable line wrapping
 opt.signcolumn = "yes" -- Always show sign column
 opt.updatetime = 250 -- Faster updates (for diagnostics, etc.)
 opt.laststatus = 3 -- Global statusline (3 = single statusline at top with globalstatus)

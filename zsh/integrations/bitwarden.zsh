@@ -44,24 +44,41 @@ function bw-login() {
     fi
 }
 
-# Unlock vault
+# Unlock vault (with keyring persistence)
 function bw-unlock() {
+    # Try keyring first
+    local session
+    session="$(secret-tool lookup bw session 2>/dev/null)"
+
+    if [[ -n "$session" ]]; then
+        export BW_SESSION="$session"
+        # Verify session is still valid
+        if bw unlock --check >/dev/null 2>&1; then
+            echo "Vault session loaded from keyring"
+            return 0
+        fi
+    fi
+
+    # Session expired or missing - need to unlock
     BW_SESSION=$(bw unlock --raw 2>/dev/null)
     export BW_SESSION
-    
+
     if [[ -n "$BW_SESSION" ]]; then
-        echo "Vault unlocked"
+        # Save to keyring for other terminals
+        echo "$BW_SESSION" | secret-tool store --label="Bitwarden Session" bw session
+        echo "Vault unlocked and saved to keyring"
     else
         echo "Unlock failed"
         return 1
     fi
 }
 
-# Lock vault
+# Lock vault (clears keyring)
 function bw-lock() {
     bw lock
+    secret-tool clear bw session 2>/dev/null
     unset BW_SESSION
-    echo "Vault locked"
+    echo "Vault locked and session cleared"
 }
 
 # Logout
@@ -1071,6 +1088,22 @@ if [[ -n "$ZSH_VERSION" ]]; then
 fi
 
 #=============================================================================
+# GITHUB CLI INTEGRATION
+#=============================================================================
+
+# Refresh gh auth from Bitwarden-stored token
+function gh-auth-refresh() {
+    bw-ensure-unlocked || return 1
+    bw get notes "GitHub Personal Access Token" 2>/dev/null | gh auth login --with-token
+    if [[ $? -eq 0 ]]; then
+        echo "GitHub CLI authenticated from Bitwarden"
+    else
+        echo "Failed to authenticate GitHub CLI"
+        return 1
+    fi
+}
+
+#=============================================================================
 # ALIASES
 #=============================================================================
 alias bws='bw-status'
@@ -1082,3 +1115,4 @@ alias bwt='bw-totp'
 alias bwgen='bw-generate'
 alias bwsync='bw-sync'
 alias bwf='bw-fzf'
+alias ghar='gh-auth-refresh'

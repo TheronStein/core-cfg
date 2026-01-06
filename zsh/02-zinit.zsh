@@ -170,22 +170,12 @@ zinit ice lucid atload'
     zstyle ":fzf-tab:*" switch-group "," "."
     zstyle ":fzf-tab:*" continuous-trigger "/"
 
-    # Apply theme colors
+    # Apply theme colors and use plain fzf (not tmux popup - causes shell spawn delay)
+    zstyle ":fzf-tab:*" fzf-command fzf
     if [[ -n "${_FZF_THEME_COLORS:-}" ]]; then
         zstyle ":fzf-tab:*" fzf-flags --height=80% --color="${_FZF_THEME_COLORS}"
     else
         zstyle ":fzf-tab:*" fzf-flags --height=80%
-    fi
-
-    # TMUX popup - only when inside tmux
-    if [[ -n "$TMUX" ]]; then
-        zstyle ":fzf-tab:*" fzf-command fzf-tmux
-        zstyle ":fzf-tab:*" fzf-flags -p 80%,80% --height=80%
-        if [[ -n "${_FZF_THEME_COLORS:-}" ]]; then
-            zstyle ":fzf-tab:*" fzf-flags -p 80%,80% --height=80% --color="${_FZF_THEME_COLORS}"
-        fi
-    else
-        zstyle ":fzf-tab:*" fzf-command fzf
     fi
 '
 zinit light Aloxaf/fzf-tab
@@ -258,7 +248,7 @@ function zvm_after_init() {
     bindkey -M vicmd '\em' _core_menu_widget
 
     # Re-bind FZF widgets (these get overwritten by vi-mode)
-    bindkey -M viins '^R' widget::fzf-history-search
+    bindkey -M viins '^R' widget::fzf-history-search  # Ctrl+R: Unified history browser
     bindkey -M viins '^F' widget::fzf-file-selector
     bindkey -M viins '^[f' widget::fzf-directory-selector
     bindkey -M viins '^K' widget::fzf-kill-process
@@ -334,8 +324,9 @@ bindkey -M vicmd '\em' _core_menu_widget 2>/dev/null
 # HISTORY & DIRECTORY TOOLS
 #=============================================================================
 
-zinit ice wait lucid
-zinit light joshskidmore/zsh-fzf-history-search
+# Disabled - using custom widget::fzf-history-search in 03-widgets.zsh instead
+# zinit ice wait lucid
+# zinit light joshskidmore/zsh-fzf-history-search
 
 zinit ice wait lucid
 zinit light zsh-users/zsh-history-substring-search

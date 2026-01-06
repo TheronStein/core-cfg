@@ -40,7 +40,7 @@ check_left_sidebar() {
 # ============================================================================
 
 create_right_sidebar() {
-    local start_dir="${1:-$(get_current_dir)}"
+    local start_dir="${1:-$(get_pane_cwd)}"
     local window_id=$(get_current_window)
 
     debug_log "Creating right sidebar from: $start_dir"
@@ -218,6 +218,26 @@ resize_right_sidebar() {
     display_info "Right sidebar resized to $new_width"
 }
 
+resize_right_wider() {
+    local right_pane=$(get_right_pane)
+    if [ -z "$right_pane" ] || ! pane_exists_globally "$right_pane"; then
+        return 1
+    fi
+    local width=$(tmux display-message -p -t "$right_pane" '#{pane_width}')
+    local new_width=$((width + 5))
+    resize_right_sidebar "$new_width"
+}
+
+resize_right_narrower() {
+    local right_pane=$(get_right_pane)
+    if [ -z "$right_pane" ] || ! pane_exists_globally "$right_pane"; then
+        return 1
+    fi
+    local width=$(tmux display-message -p -t "$right_pane" '#{pane_width}')
+    local new_width=$((width - 5))
+    resize_right_sidebar "$new_width"
+}
+
 # ============================================================================
 # STATUS
 # ============================================================================
@@ -267,6 +287,12 @@ case "${1:-help}" in
         ;;
     resize)
         resize_right_sidebar "$2"
+        ;;
+    resize-wider)
+        resize_right_wider
+        ;;
+    resize-narrower)
+        resize_right_narrower
         ;;
     status)
         status_right

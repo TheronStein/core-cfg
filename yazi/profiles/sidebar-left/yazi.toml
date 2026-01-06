@@ -2,7 +2,6 @@
 
 # LEFT SIDEBAR PROFILE
 # Navigation-focused: Shows only the current file list column
-# Inherits all other settings from global config (../../yazi.toml)
 # Inherits plugins from symlinked init.lua
 
 [mgr]
@@ -12,3 +11,34 @@ ratio = [0, 1, 0]
 
 # Custom title to indicate this is the navigation pane
 title_format = "Navigator: {cwd}"
+
+# ============================================================================
+# OPENER - Use tmux-aware opener to open files in main nvim pane
+# ============================================================================
+[opener]
+edit = [
+  { run = '$CORE_CFG/yazi/scripts/tmux-nvim-opener.sh "$@"', block = true, desc = "Edit in Neovim (tmux-aware)" },
+]
+
+markdown = [
+  { run = '$CORE_CFG/yazi/scripts/tmux-nvim-opener.sh "$@"', block = true, desc = "Edit in Neovim (tmux-aware)" },
+]
+
+# Fallback for other file types
+fallback = [
+  { run = '$CORE_CFG/yazi/scripts/tmux-nvim-opener.sh "$@"', block = true, desc = "Edit in Neovim (tmux-aware)" },
+]
+
+# ============================================================================
+# OPEN RULES - Map file types to openers
+# ============================================================================
+[open]
+rules = [
+  { mime = "text/*", use = "edit" },
+  { mime = "*/json", use = "edit" },
+  { mime = "*/yaml", use = "edit" },
+  { mime = "*/toml", use = "edit" },
+  { mime = "*/xml", use = "edit" },
+  { name = "*.md", use = "markdown" },
+  { name = "*", use = "fallback" },
+]

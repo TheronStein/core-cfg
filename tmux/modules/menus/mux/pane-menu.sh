@@ -13,7 +13,7 @@ tmux display-menu -x C -y C -T "#[fg=#89b4fa,bold]󰂮 Pane Management " \
   "" \
   " Kill Pane" x "kill-pane" \
   " Vertical Split" v "run-shell '$TMUX_CONF/events/split.sh v'" \
-  " Horizontal Split" h "run-shell '$TMUX_CONF/events/split.sh h'" \
+  " Horizontal Split" d "run-shell '$TMUX_CONF/events/split.sh h'" \
   "" \
   "󰓡 Swap with selected" q "display-panes { swapp -t '%%' }" \
   " Rotate Clockwise" r "rotate-window" \

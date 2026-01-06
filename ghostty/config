@@ -20,6 +20,7 @@
 font-family = Iosevka
 # window-padding-x = 2
 theme = TokyoNight Moon
+font-size = 22
 # # Spacing around the equals sign does not matter.
 # # All of these are identical:
 # key=value
@@ -48,7 +49,12 @@ keybind = ctrl+enter=text:\x1b[13;5u
 # keybind = ctrl+shift+e=ignore
 # keybind = ctrl+shift+q=ignore
 # keybind = ctrl+enter=ignore
+keybind = ctrl+shift+z=toggle_split_zoom
 keybind = ctrl+shift+r=reload_config
+keybind = ctrl+shift+q=previous_tab
+keybind = ctrl+shift+e=next_tab
+keybind = ctrl+alt+u=check_for_updates
+keybind = ctrl+alt+w=close_tab
 keybind = ctrl+shift+page_up=move_tab:1
 keybind = ctrl+shift+page_down=move_tab:-1
 keybind = ctrl+shift+a=goto_split:left
@@ -63,9 +69,14 @@ keybind = ctrl+alt+arrow_up=resize_split:up,10
 keybind = ctrl+alt+arrow_left=resize_split:left,10
 keybind = ctrl+alt+arrow_down=resize_split:down,10
 keybind = ctrl+alt+arrow_right=resize_split:right,10
-keybind = global:super+ctrl+p=toggle_quick_terminal
-keybind = global:cmd+p=toggle_quick_terminal
-keybind = ctrl+tab=unbind
+keybind = ctrl+alt+arrow_right=resize_split:right,10
+# keybind = global:super+ctrl+p=toggle_quick_terminal
+# keybind = global:cmd+p=toggle_quick_terminal
+keybind = ctrl+shift+tab=toggle_tab_overview
+keybind = ctrl+shift+i=unbind
+keybind = ctrl+shift+f1=inspector:toggle
+
+
 # Required: Global keybind to toggle the quick terminal (replace Super+` with your preferred combo, e.g., Ctrl+` or F12)
 # keybind = global:super+grave_accent=toggle_quick_terminal
 
@@ -81,3 +92,5 @@ keybind = ctrl+alt+d=new_split:down
 # theme = Banana Blueberry
 # theme = 0x96f
 keybind = shift+enter=text:\x1b\r
+keybind = super+alt+c=write_screen_file:copy
+keybind = super+alt+f=write_screen_file:open

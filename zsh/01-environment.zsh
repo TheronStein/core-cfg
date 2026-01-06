@@ -450,8 +450,10 @@ export PATH="${PNPM_HOME}/bin:${PATH}"
 yarn_global="${CORE_TOOLS}/yarn/global"
 yarn_cache="${XDG_CACHE_HOME:-${HOME}/.cache}/yarn"
 validate_dir "$yarn_global/.bin" "$yarn_cache"
-yarn config set globalFolder "$yarn_global" --home >/dev/null 2>&1
-yarn config set cacheFolder "$yarn_cache" --home >/dev/null 2>&1
+# NOTE: yarn config commands removed - they add ~750ms to startup
+# Run these ONCE manually if needed:
+#   yarn config set globalFolder "$yarn_global" --home
+#   yarn config set cacheFolder "$yarn_cache" --home
 export PATH="${yarn_global}/.bin:${PATH}"
 
 # ]]] ──────────────────────────────────────────────────────────────
@@ -460,7 +462,9 @@ export PATH="${yarn_global}/.bin:${PATH}"
 
 export NPM_PREFIX="${CORE_TOOLS}/npm"
 validate_dir "$NPM_PREFIX/bin"
-npm config set prefix "$NPM_PREFIX" >/dev/null 2>&1
+# NOTE: npm config command removed - adds ~185ms to startup
+# Run ONCE manually if needed: npm config set prefix "$NPM_PREFIX"
+# Or set via npmrc file: echo "prefix=$NPM_PREFIX" >> ~/.npmrc
 export PATH="${NPM_PREFIX}/bin:${PATH}"
 
 # ]]] ─────────────────────────────────────────────────────────────
@@ -645,10 +649,21 @@ declare -gAH Zkeymaps_nvo=()
 declare -gxA Zkeymaps=()
 
 # === Non-zsh variables that are used later ============================== [[[
-typeset -gx RUST_SYSROOT=$(rustc --print sysroot)
+# Cache rust sysroot to avoid ~100ms startup penalty
+# Invalidate cache when rustc binary changes
+_rust_cache="${ZSH_CACHE_DIR:-${XDG_CACHE_HOME:-$HOME/.cache}/zsh}/rust-sysroot"
+if (( $+commands[rustc] )); then
+    # Use zsh builtin =rustc instead of $(command -v rustc) to avoid spawning subshell
+    if [[ ! -f "$_rust_cache" || "${commands[rustc]}" -nt "$_rust_cache" ]]; then
+        rustc --print sysroot > "$_rust_cache" 2>/dev/null
+    fi
+    typeset -gx RUST_SYSROOT="$(<$_rust_cache)"
+else
+    typeset -gx RUST_SYSROOT=""
+fi
+unset _rust_cache
 typeset -gx RUST_SRC_PATH=$RUST_SYSROOT/lib/rustlib/src
 typeset -gx RUSTDOC_DIR=$XDG_DOCUMENTS_DIR/code/rust/docs
-# typeset -gx RUSTDOCFLAGS=""
 # ]]]
 
 [[ ${(t)sysexits} != *readonly ]] &&

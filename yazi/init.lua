@@ -692,8 +692,15 @@ safe_require_checked("thumbnail")
 -- UTILITY PLUGINS
 -- ═══════════════════════════════════════════════════════════════
 
--- Yazibar Sync - Mirrors navigation to right sidebar (for dual sidebar setup)
--- safe_require_checked("yazibar-sync")
+-- Yazibar Sync - DDS-based synchronization for left/right sidebar pairs
+-- Only activates when YAZIBAR_SIDE and YAZIBAR_WINDOW_ID env vars are set
+local yazibar_sync = safe_require_checked("yazibar-sync")
+if yazibar_sync then
+	yazibar_sync:setup({
+		debounce = true,  -- Skip publishing if URL unchanged
+		debug = false,    -- Enable for troubleshooting
+	})
+end
 
 safe_require_checked("kdeconnect-send")
 -- safe_require_checked("kdeconnect-mount")

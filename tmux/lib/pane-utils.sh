@@ -1,247 +1,73 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# Tmux Pane Utilities
+# Tmux Pane Utilities - WRAPPER
 # ==============================================================================
-# Functions for pane management operations.
+# DEPRECATED: This file now sources the global library.
+# All pane functions are available via ~/.core/.cortex/lib/tmux.sh
 #
-# Usage:
-#   source "$TMUX_CONF/lib/pane-utils.sh"
-#   if pane_exists "%5"; then
-#     kill_pane_safe "%5"
-#   fi
+# For new code, source the global library directly:
+#   source ~/.core/.cortex/lib/tmux.sh
 #
+# This file provides backwards-compatible function names that map to the
+# namespaced functions in the global library.
 # ==============================================================================
 
 # Prevent double-sourcing
 [[ -n "${_PANE_UTILS_SH_LOADED:-}" ]] && return 0
 _PANE_UTILS_SH_LOADED=1
 
-# Source dependencies
-source "${BASH_SOURCE%/*}/tmux-utils.sh"
-source "${BASH_SOURCE%/*}/state-utils.sh"
+# Source the global tmux library
+source "${HOME}/.core/.cortex/lib/tmux.sh"
 
 # ==============================================================================
-# Pane Existence Checks
+# Legacy Function Aliases (for backwards compatibility)
 # ==============================================================================
 
-# Check if pane exists
-pane_exists() {
-    local pane_id="$1"
+# Pane existence checks
+pane_exists() { tmux::pane::exists "$@"; }
+pane_exists_in_window() { tmux::pane::exists_in_window "$@"; }
 
-    [[ -z "$pane_id" ]] && return 1
+# Pane creation
+create_pane_right() { tmux::pane::create_right "$@"; }
+create_pane_below() { tmux::pane::create_below "$@"; }
+create_pane_in_dir() { tmux::pane::create_in_dir "$@"; }
 
-    tmux list-panes -a -F '#{pane_id}' 2>/dev/null | grep -q "^${pane_id}$"
-}
+# Pane termination
+kill_pane_safe() { tmux::pane::kill "$@"; }
+kill_other_panes() { tmux::pane::kill_others "$@"; }
 
-# Check if pane exists in current window
-pane_exists_in_window() {
-    local pane_id="$1"
+# Pane navigation
+select_pane() { tmux::pane::select "$@"; }
+select_pane_direction() { tmux::pane::select_direction "$@"; }
+get_pane_in_direction() { tmux::pane::id_in_direction "$@"; }
 
-    [[ -z "$pane_id" ]] && return 1
+# Pane information
+list_panes() { tmux::pane::list; }
+list_all_panes() { tmux::pane::list_all; }
+get_pane_by_command() { tmux::pane::find_by_command "$@"; }
 
-    tmux list-panes -F '#{pane_id}' 2>/dev/null | grep -q "^${pane_id}$"
-}
+# Pane actions
+send_keys() { tmux::pane::send_keys "$@"; }
+toggle_zoom() { tmux::pane::toggle_zoom; }
+swap_panes() { tmux::pane::swap "$@"; }
 
-# ==============================================================================
-# Pane Creation
-# ==============================================================================
+# Layout manager integration
+get_locked_pane_ids() { tmux::layout::get_locked_panes; }
+is_pane_locked() { tmux::layout::is_pane_locked "$@"; }
+get_all_panes_detailed() { tmux::pane::list_detailed; }
 
-# Create horizontal split (pane to the right)
-create_pane_right() {
-    local cmd="${1:-}"
-    local width="${2:-}"
+# Core functions from tmux-utils.sh
+get_pane_id() { tmux::pane::id; }
+get_pane_index() { tmux::pane::index; }
+get_pane_cwd() { tmux::pane::cwd; }
+get_pane_command() { tmux::pane::command; }
 
-    local args=(-h)
-    [[ -n "$width" ]] && args+=(-l "$width")
-    [[ -n "$cmd" ]] && args+=("$cmd")
-
-    tmux split-window "${args[@]}"
-    get_pane_id
-}
-
-# Create vertical split (pane below)
-create_pane_below() {
-    local cmd="${1:-}"
-    local height="${2:-}"
-
-    local args=(-v)
-    [[ -n "$height" ]] && args+=(-l "$height")
-    [[ -n "$cmd" ]] && args+=("$cmd")
-
-    tmux split-window "${args[@]}"
-    get_pane_id
-}
-
-# Create pane with specific working directory
-create_pane_in_dir() {
-    local dir="$1"
-    local cmd="${2:-}"
-    local split="${3:-h}"  # h for horizontal, v for vertical
-
-    local args=("-$split" -c "$dir")
-    [[ -n "$cmd" ]] && args+=("$cmd")
-
-    tmux split-window "${args[@]}"
-    get_pane_id
-}
-
-# ==============================================================================
-# Pane Termination
-# ==============================================================================
-
-# Kill pane safely (with checks)
-kill_pane_safe() {
-    local pane_id="$1"
-
-    [[ -z "$pane_id" ]] && return 1
-
-    if pane_exists "$pane_id"; then
-        tmux kill-pane -t "$pane_id"
-        return 0
-    fi
-    return 1
-}
-
-# Kill all panes except current
-kill_other_panes() {
-    local current
-    current=$(get_pane_id)
-
-    tmux list-panes -F '#{pane_id}' | while read -r pane; do
-        [[ "$pane" != "$current" ]] && tmux kill-pane -t "$pane"
-    done
-}
-
-# ==============================================================================
-# Pane Navigation
-# ==============================================================================
-
-# Select pane by ID
-select_pane() {
-    local pane_id="$1"
-
-    if pane_exists "$pane_id"; then
-        tmux select-pane -t "$pane_id"
-        return 0
-    fi
-    return 1
-}
-
-# Select pane in direction (U/D/L/R)
-select_pane_direction() {
-    local direction="$1"  # U, D, L, R
-
-    case "$direction" in
-        U|u|up)    tmux select-pane -U ;;
-        D|d|down)  tmux select-pane -D ;;
-        L|l|left)  tmux select-pane -L ;;
-        R|r|right) tmux select-pane -R ;;
-        *)         return 1 ;;
-    esac
-}
-
-# Get pane ID in direction
-get_pane_in_direction() {
-    local direction="$1"
-
-    # Save current pane
-    local current
-    current=$(get_pane_id)
-
-    # Try to move
-    case "$direction" in
-        U|u|up)    tmux select-pane -U ;;
-        D|d|down)  tmux select-pane -D ;;
-        L|l|left)  tmux select-pane -L ;;
-        R|r|right) tmux select-pane -R ;;
-        *)         echo "$current"; return 1 ;;
-    esac
-
-    # Get new pane ID
-    local new
-    new=$(get_pane_id)
-
-    # Return to original
-    tmux select-pane -t "$current"
-
-    echo "$new"
-}
-
-# ==============================================================================
-# Pane Information
-# ==============================================================================
-
-# List all panes in current window
-list_panes() {
-    tmux list-panes -F '#{pane_id}:#{pane_index}:#{pane_current_command}'
-}
-
-# List all panes in session
-list_all_panes() {
-    tmux list-panes -s -F '#{window_index}.#{pane_index}:#{pane_id}:#{pane_current_command}'
-}
-
-# Get pane running specific command
-get_pane_by_command() {
-    local cmd="$1"
-
-    tmux list-panes -F '#{pane_id}:#{pane_current_command}' 2>/dev/null | \
-        grep ":$cmd$" | cut -d: -f1 | head -1
-}
-
-# ==============================================================================
-# Pane Actions
-# ==============================================================================
-
-# Send keys to pane
-send_keys() {
-    local pane_id="$1"
-    shift
-    local keys="$*"
-
-    if pane_exists "$pane_id"; then
-        tmux send-keys -t "$pane_id" "$keys"
-        return 0
-    fi
-    return 1
-}
-
-# Zoom/unzoom pane
-toggle_zoom() {
-    tmux resize-pane -Z
-}
-
-# Swap panes
-swap_panes() {
-    local pane1="$1"
-    local pane2="${2:-}"
-
-    if [[ -z "$pane2" ]]; then
-        # Swap with previous pane
-        tmux swap-pane -t "$pane1"
-    else
-        tmux swap-pane -s "$pane1" -t "$pane2"
-    fi
-}
-
-# ==============================================================================
-# Pane Locking (Layout Manager Integration)
-# ==============================================================================
-
-# Get locked panes from layout-manager
-get_locked_pane_ids() {
-    tmux show-option -qv "@locked-panes" | tr ',' '\n' | cut -d: -f1 | sort -u
-}
-
-# Check if a pane is locked
-is_pane_locked() {
-    local pane_id="$1"
-    local locked_panes
-    locked_panes=$(get_locked_pane_ids)
-    echo "$locked_panes" | grep -q "^${pane_id}$"
-}
-
-# Get all panes with details
-get_all_panes_detailed() {
-    tmux list-panes -a -F "#{session_name}:#{window_index}.#{pane_index}:#{pane_title}:#{pane_current_path}"
-}
+# Export legacy functions for subshells
+export -f pane_exists pane_exists_in_window
+export -f create_pane_right create_pane_below create_pane_in_dir
+export -f kill_pane_safe kill_other_panes
+export -f select_pane select_pane_direction get_pane_in_direction
+export -f list_panes list_all_panes get_pane_by_command
+export -f send_keys toggle_zoom swap_panes
+export -f get_locked_pane_ids is_pane_locked get_all_panes_detailed
+export -f get_pane_id get_pane_index get_pane_cwd get_pane_command

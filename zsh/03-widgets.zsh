@@ -2,7 +2,19 @@
 # ZLE (Zsh Line Editor) Widgets - custom interactive command-line widgets
 # ~/.config/zsh/widgets/universal-fzf-overlay.zsh
 
+#=============================================================================
+# WIDGET CLEANUP HELPER
+#=============================================================================
+# Ensures background jobs are cleaned up when widgets exit
+_widget_cleanup() {
+  # Kill any background jobs spawned by this widget
+  local pids=$(jobs -p 2>/dev/null)
+  [[ -n "$pids" ]] && kill $pids 2>/dev/null
+}
+
 widget::universal-overlay() {
+  # Setup cleanup trap
+  trap _widget_cleanup EXIT INT TERM
   local choice
 
   choice=$(printf '%s\n' \
@@ -59,7 +71,7 @@ widget::universal-overlay() {
       ;;
     "Git Branch      :: "*)
       git rev-parse --is-inside-work-tree >/dev/null || return
-      branch=$(git branch --all --color=always | grep -v HEAD | fzf $(_fzf_base_opts) --ansi --preview 'git log --oneline --graph $(echo {} | sed "s/.* //")' | sed 's/.* //;s#remotes/origin/##')
+      branch=$(git branch --all --color=always --format='%(refname:short)' | grep -v HEAD | fzf $(_fzf_base_opts) --ansi --preview 'git log --oneline --graph {}' | sed 's#remotes/origin/##')
       [[ -n "$branch" ]] && { [[ -z "$BUFFER" ]] && git checkout "$branch" || LBUFFER+="$branch" }
       ;;
     # … add the rest exactly like your old widgets …
@@ -72,6 +84,10 @@ widget::universal-overlay() {
       zle -M "Not implemented yet: $choice"
       ;;
   esac
+
+  # Cleanup before exit
+  _widget_cleanup
+  trap - EXIT INT TERM
 
   zle reset-prompt
 }
@@ -122,26 +138,102 @@ function widget::fzf-directory-selector() {
 zle -N widget::fzf-directory-selector
 
 #=============================================================================
-# WIDGET: FZF HISTORY SEARCH WITH PREVIEW
-# Usage: Ctrl+R for enhanced history search
+# WIDGET: UNIFIED HISTORY BROWSER WITH MODE SWITCHING
+# Usage: Ctrl+R for history search with switchable contexts
+# Modes: Global (all shell history), Local (directory), Clipboard (cliphist)
+# Ctrl+] cycles through modes, Ctrl+Y copies selection
 #=============================================================================
+
+# Helper function to get global history
+_hist_global() {
+    local hist="${HISTFILE:-${XDG_STATE_HOME:-$HOME/.local/state}/zsh/history}"
+    [[ -f "$hist" ]] || hist="$HOME/.zsh_history"
+    tac "$hist" 2>/dev/null | \
+        sed 's/^: [0-9]*:[0-9]*;//' | awk '!seen[$0]++' | command head -n 2000
+}
+
+# Helper function to get local/directory history
+_hist_local() {
+    local hist_file="${HISTORY_BASE:-$HOME/.directory_history}${PWD}/history"
+    if [[ -f "$hist_file" ]]; then
+        tac "$hist_file" 2>/dev/null | \
+            sed 's/^: [0-9]*:[0-9]*;//' | awk '!seen[$0]++' | command head -n 1000
+    else
+        echo "No local history for: $PWD"
+    fi
+}
+
+# Helper function to get clipboard history
+_hist_clipboard() {
+    if (( $+commands[cliphist] )); then
+        cliphist list 2>/dev/null | command head -n 500
+    else
+        echo "cliphist not installed"
+    fi
+}
+
 function widget::fzf-history-search() {
-    local selected num
     setopt localoptions noglobsubst noposixbuiltins pipefail 2>/dev/null
 
-    selected=$(fc -rl 1 | awk '!seen[$0]++' | \
-        fzf $(_fzf_base_opts) --height 80% --tiebreak=index \
-            --query "${LBUFFER}" \
-            --bind 'ctrl-y:execute-silent(echo -n {2..} | wl-copy)+abort' \
-            --header 'Ctrl-Y: copy to clipboard' \
-            --preview 'echo {2..} | bat --style=plain --color=always -l bash' \
-            --preview-window 'down:3:wrap')
+    local result mode=1 tmpfile
+    tmpfile=$(mktemp) || return 1
+    trap "rm -f '$tmpfile'" EXIT
 
-    if [[ -n "$selected" ]]; then
-        num=$(echo "$selected" | awk '{print $1}')
-        if [[ -n "$num" ]]; then
-            zle vi-fetch-history -n $num
+    local header="C-]: Cycle Mode │ C-y: Copy │ Enter: Select │ Esc: Cancel"
+    local colors=$(_fzf_colors 2>/dev/null)
+
+    while true; do
+        local label fzf_extra_opts=() preview_cmd
+        preview_cmd='echo {} | bat --style=plain --color=always -l bash 2>/dev/null || echo {}'
+
+        case $mode in
+            1) label=" [CORE] GLOBAL SHELL HISTORY "
+               _hist_global >| "$tmpfile" 2>/dev/null ;;
+            2) label=" [CORE] LOCAL SHELL HISTORY "
+               _hist_local >| "$tmpfile" 2>/dev/null ;;
+            3) label=" [CORE] CLIPBOARD HISTORY "
+               _hist_clipboard >| "$tmpfile" 2>/dev/null
+               fzf_extra_opts=(--delimiter=$'\t' --with-nth=2..)
+               preview_cmd='echo {} | cliphist decode 2>/dev/null || echo {}' ;;
+        esac
+
+        result=$(
+            env -u FZF_DEFAULT_OPTS fzf < "$tmpfile" \
+                --height=100% --layout=reverse --border=rounded --info=inline \
+                --color="$colors" \
+                --border-label="$label" \
+                --border-label-pos=2 \
+                --tiebreak=index \
+                --query="${LBUFFER}" \
+                --header="$header" \
+                --expect=ctrl-] \
+                --bind='ctrl-y:execute-silent(echo -n {} | wl-copy)+abort' \
+                --preview="$preview_cmd" \
+                --preview-window='up:40%' \
+                "${fzf_extra_opts[@]}"
+        ) 2>/dev/null
+
+        local key="${result%%$'\n'*}"
+        local selection="${result#*$'\n'}"
+        [[ "$result" != *$'\n'* ]] && selection=""
+
+        if [[ "$key" == "ctrl-]" ]]; then
+            mode=$(( (mode % 3) + 1 ))
+        else
+            result="$selection"
+            break
         fi
+    done
+
+    rm -f "$tmpfile" 2>/dev/null
+    trap - EXIT
+
+    if [[ -n "$result" ]]; then
+        local cmd="$result"
+        if [[ "$mode" == "3" ]] && (( $+commands[cliphist] )); then
+            cmd=$(printf '%s' "$result" | cliphist decode 2>/dev/null)
+        fi
+        [[ -n "$cmd" ]] && { BUFFER="$cmd"; CURSOR=${#BUFFER}; }
     fi
     zle reset-prompt
 }
@@ -241,15 +333,31 @@ zle -N widget::fzf-git-commits
 # Usage: Interactive session management with create/delete/rename/wezterm-tab
 #=============================================================================
 function widget::tmux-session-manager() {
+    # Source global session library
+    source "${HOME}/.core/.cortex/lib/session.sh"
+
     # Clear the command line
     BUFFER=""
     zle redisplay
 
-    # Run the tmux session manager
-    tmux-session-manager
+    if session::in_tmux; then
+        # Inside tmux - can switch directly via picker
+        local selected
+        selected=$(session::picker)
+        [[ -n "$selected" ]] && session::switch "$selected"
+        zle reset-prompt
+    else
+        # Outside tmux - select session then set BUFFER for attach
+        local selected
+        selected=$(session::picker)
 
-    # Reset prompt after returning
-    zle reset-prompt
+        if [[ -n "$selected" ]]; then
+            BUFFER="tmux attach -t ${(q)selected}"
+            zle accept-line
+        else
+            zle reset-prompt
+        fi
+    fi
 }
 zle -N widget::tmux-session-manager
 

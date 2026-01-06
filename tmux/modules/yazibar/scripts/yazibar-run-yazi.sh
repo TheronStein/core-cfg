@@ -30,9 +30,10 @@ else
     export YAZI_CONFIG_HOME="${YAZI_CONFIG_HOME:-${CORE_CFG}/yazi/profiles/sidebar-right}"
 fi
 
-# Export environment variables for yazibar-sync.yazi plugin (backwards compat)
+# Export environment variables for yazibar-sync.yazi plugin
 export YAZIBAR_SIDE="$SIDE"
 export YAZIBAR_PANE_ID="$TMUX_PANE"
+export YAZIBAR_WINDOW_ID="$(tmux display-message -p '#{window_id}')"
 
 # Change to start directory
 cd "$START_DIR" || exit 1

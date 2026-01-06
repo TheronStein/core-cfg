@@ -61,13 +61,9 @@ widget::fzf-dir() {
 zle -N widget::fzf-dir
 bindkey '^D' widget::fzf-dir
 
-widget::fzf-history() {
-  local sel=$(fc -rl 1 | awk '!seen[$0]++' | _fzf_base --tiebreak=index --preview='echo {2..}' --bind='ctrl-y:execute-silent(echo -n {2..} | wl-copy)+abort')
-  [[ -n "$sel" ]] && zle vi-fetch-history -n $(echo "$sel" | awk '{print $1}')
-  zle reset-prompt
-}
-zle -N widget::fzf-history
-bindkey '^R' widget::fzf-history
+# NOTE: Ctrl+R history widget is defined in 03-widgets.zsh as widget::fzf-history-search
+# It supports cycling between Global/Local/Clipboard history with Ctrl+]
+# Binding is set in 02-zinit.zsh zvm_after_init()
 
 widget::fzf-kill() {
   local pid=$(ps aux | sed 1d | _fzf_base -m --preview='echo {}' | awk '{print $2}')

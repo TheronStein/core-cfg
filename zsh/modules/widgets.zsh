@@ -48,32 +48,8 @@ function widget::fzf-directory-selector() {
 }
 zle -N widget::fzf-directory-selector
 
-#=============================================================================
-# FZF HISTORY SEARCH
-# Enhanced history search with preview and copy support
-#=============================================================================
-function widget::fzf-history-search() {
-    local selected
-    setopt localoptions noglobsubst noposixbuiltins pipefail 2>/dev/null
-
-    # Get unique history entries
-    selected=$(fc -rl 1 | awk '!seen[$0]++' | \
-        fzf --height 80% --reverse --tiebreak=index \
-            --query "${LBUFFER}" \
-            --preview 'echo {2..} | bat --style=plain --color=always -l bash' \
-            --preview-window 'down:3:wrap' \
-            --header '╭─ History ─╮  Ctrl+Y: copy  Enter: execute' \
-            --bind 'ctrl-y:execute-silent(echo -n {2..} | wl-copy)+abort')
-    
-    if [[ -n "$selected" ]]; then
-        local num=$(echo "$selected" | awk '{print $1}')
-        if [[ -n "$num" ]]; then
-            zle vi-fetch-history -n $num
-        fi
-    fi
-    zle reset-prompt
-}
-zle -N widget::fzf-history-search
+# NOTE: widget::fzf-history-search is defined in 03-widgets.zsh
+# It supports cycling between Global/Local/Clipboard history with Ctrl+]
 
 #=============================================================================
 # FZF KILL PROCESS

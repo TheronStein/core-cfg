@@ -22,7 +22,7 @@ function widget::systemd-unit-manager() {
     # List units of selected type
     unit=$(systemctl list-units --all --type="$unit_type" --no-legend | \
         fzf --height 60% \
-            --preview "SYSTEMD_COLORS=1 systemctl status \$(echo {} | awk '{print \$1}')" \
+            --preview "SYSTEMD_COLORS=1 systemctl status {1}" \
             --preview-window 'right:60%:wrap' \
             --header "Select $unit_type unit" | \
         awk '{print $1}')

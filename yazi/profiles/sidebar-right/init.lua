@@ -16,5 +16,14 @@ require("full-border"):setup({
 require("yatline")
 require("simple-status")
 
--- That's it! Yazi's built-in preview system handles everything else.
--- This pane receives `reveal` commands via DDS from the left navigator pane.
+-- Yazibar Sync - Subscribe to DDS events from left sidebar
+-- This enables automatic hover/cd sync from the navigator pane
+local yazibar_sync = require("yazibar-sync")
+if yazibar_sync then
+	yazibar_sync:setup({
+		debounce = true,
+		debug = false,
+	})
+end
+
+-- This pane receives `reveal` and `cd` commands via DDS from the left navigator pane.

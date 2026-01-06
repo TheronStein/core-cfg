@@ -1,58 +1,34 @@
 #!/usr/bin/env bash
-# lib/window-utils.sh
-# Window query and manipulation functions
+# ==============================================================================
+# Tmux Window Utilities - WRAPPER
+# ==============================================================================
+# DEPRECATED: This file now sources the global library.
+# All window functions are available via ~/.core/.cortex/lib/tmux.sh
 #
-# Provides functions for checking window existence, querying window
-# properties, and window operations.
+# For new code, source the global library directly:
+#   source ~/.core/.cortex/lib/tmux.sh
+#
+# This file provides backwards-compatible function names that map to the
+# namespaced functions in the global library.
+# ==============================================================================
 
-# Source dependencies
-TMUX_CONF="${TMUX_CONF:-$HOME/.core/.sys/cfg/tmux}"
-source "$TMUX_CONF/lib/tmux-utils.sh"
+# Source the global tmux library
+source "${HOME}/.core/.cortex/lib/tmux.sh"
 
-window_exists() {
-    local window_id="$1"
-    local session="${2:-}"
+# ==============================================================================
+# Legacy Function Aliases (for backwards compatibility)
+# ==============================================================================
 
-    if [ -n "$session" ]; then
-        tmux list-windows -t "$session" -F "#{window_id}" 2>/dev/null | \
-            grep -q "^${window_id}$"
-    else
-        tmux list-windows -a -F "#{window_id}" 2>/dev/null | \
-            grep -q "^${window_id}$"
-    fi
-}
+window_exists() { tmux::window::exists "$@"; }
+get_window_name() { tmux::window::name "$@"; }
+get_window_index() { tmux::window::index "$@"; }
+get_window_id_by_index() { tmux::window::id_by_index "$@"; }
+list_windows() { tmux::window::list "$@"; }
+get_window_layout() { tmux::window::layout "$@"; }
 
-get_window_name() {
-    local window_id="${1:-$(get_window_id)}"
-    tmux display-message -p -t "$window_id" '#{window_name}' 2>/dev/null
-}
+# Core functions from tmux-utils.sh
+get_window_id() { tmux::window::id; }
 
-get_window_index() {
-    local window_id="${1:-$(get_window_id)}"
-    tmux display-message -p -t "$window_id" '#{window_index}' 2>/dev/null
-}
-
-get_window_id_by_index() {
-    local window_index="$1"
-    local session="${2:-$(get_session_id)}"
-    tmux list-windows -t "$session" -F "#{window_index} #{window_id}" 2>/dev/null | \
-        awk -v idx="$window_index" '$1 == idx {print $2}'
-}
-
-list_windows() {
-    local session="${1:-}"
-    if [ -n "$session" ]; then
-        tmux list-windows -t "$session" -F "#{window_index} #{window_id} #{window_name}" 2>/dev/null
-    else
-        tmux list-windows -a -F "#{session_name} #{window_index} #{window_id} #{window_name}" 2>/dev/null
-    fi
-}
-
-get_window_layout() {
-    local window_id="${1:-$(get_window_id)}"
-    tmux display-message -p -t "$window_id" '#{window_layout}' 2>/dev/null
-}
-
-# Export functions
+# Export functions for subshells
 export -f window_exists get_window_name get_window_index get_window_id_by_index
-export -f list_windows get_window_layout
+export -f list_windows get_window_layout get_window_id
