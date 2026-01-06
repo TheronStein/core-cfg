@@ -41,8 +41,10 @@ end
 -- end
 return {
   -- First plugin: tabline.nvim
+  -- DISABLED: Replaced by CoreLine
   {
     "kdheepak/tabline.nvim",
+    enabled = false,
     dependencies = {
       "nvim-lualine/lualine.nvim",
       "nvim-tree/nvim-web-devicons",
@@ -107,8 +109,10 @@ return {
   -- },
 
   -- Second plugin: lualine.nvim
+  -- DISABLED: Replaced by CoreLine
   {
     "nvim-lualine/lualine.nvim",
+    enabled = false,
     dependencies = {
       "nvim-tree/nvim-web-devicons",
       "kdheepak/tabline.nvim",

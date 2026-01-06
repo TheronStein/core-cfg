@@ -90,9 +90,9 @@ function bw-logout() {
 
 # Auto-unlock wrapper
 function bw-ensure-unlocked() {
-    local status=$(bw status 2>/dev/null | jq -r '.status')
-    
-    case "$status" in
+    local bw_status=$(bw status 2>/dev/null | jq -r '.status')
+
+    case "$bw_status" in
         "unlocked")
             return 0
             ;;
@@ -103,7 +103,7 @@ function bw-ensure-unlocked() {
             bw-login
             ;;
         *)
-            echo "Unknown status: $status"
+            echo "Unknown status: $bw_status"
             return 1
             ;;
     esac

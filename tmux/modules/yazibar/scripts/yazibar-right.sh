@@ -67,13 +67,13 @@ create_right_sidebar() {
     # Create right split (full height, after current pane)
     local new_pane_id=$(tmux split-window -fh -l "$width" -c "$start_dir" -P -F "#{pane_id}" "
         # Set pane title
-        printf '\033]2;%s\033\\\\' '$RIGHT_SIDEBAR_TITLE'
+        printf '\033]2;%s\033\\\\' \"$RIGHT_SIDEBAR_TITLE\"
 
         # Set yazi config location
-        export YAZI_CONFIG_HOME='$YAZI_CONFIG_DIR'
+        export YAZI_CONFIG_HOME=\"$YAZI_CONFIG_DIR\"
 
         # Run yazi in preview mode
-        exec '$SCRIPT_DIR/yazibar-run-yazi.sh' right '$start_dir'
+        exec \"$SCRIPT_DIR/yazibar-run-yazi.sh\" right \"$start_dir\"
     ")
 
     # Save pane ID

@@ -698,7 +698,7 @@ local yazibar_sync = safe_require_checked("yazibar-sync")
 if yazibar_sync then
 	yazibar_sync:setup({
 		debounce = true,  -- Skip publishing if URL unchanged
-		debug = false,    -- Enable for troubleshooting
+		debug = true,     -- Enable for troubleshooting
 	})
 end
 

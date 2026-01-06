@@ -4,8 +4,10 @@
 -- ╙────────────────────────────────────────────────────────────╜
 
 return {
+	-- DISABLED: Replaced by CoreLine session management
 	{
 		"rmagatti/auto-session",
+		enabled = false,
 		lazy = false,
 		-- dependencies removed - no longer using telescope
 		config = function()

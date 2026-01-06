@@ -24,7 +24,7 @@ source "$SCRIPT_DIR/layout.sh"
 # Legacy function name - maps to canonical pane_exists()
 # Used throughout yazibar scripts, was previously in modules/lib/tmux-panes.sh
 pane_exists_globally() {
-    pane_exists "$1"
+  pane_exists "$1"
 }
 
 # ============================================================================
@@ -35,8 +35,8 @@ pane_exists_globally() {
 YAZIBAR_SERVER="core-ide"
 YAZIBAR_LEFT_SESSION="left-sidebar"
 YAZIBAR_RIGHT_SESSION="right-sidebar"
-YAZIBAR_LEFT_WIDTH="30%"
-YAZIBAR_RIGHT_WIDTH="25%"
+YAZIBAR_LEFT_WIDTH="15%"
+YAZIBAR_RIGHT_WIDTH="30%"
 YAZIBAR_DATA_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/tmux/yazibar"
 YAZIBAR_WIDTH_FILE="$YAZIBAR_DATA_DIR/widths.txt"
 LAYOUT_MANAGER="$TMUX_CONF/scripts/layout-manager.sh"

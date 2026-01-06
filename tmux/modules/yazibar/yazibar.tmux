@@ -46,8 +46,8 @@ fi
 tmux set-option -gq @yazibar-server "core-ide" 2>/dev/null || true
 tmux set-option -gq @yazibar-left-session "left-sidebar" 2>/dev/null || true
 tmux set-option -gq @yazibar-right-session "right-sidebar" 2>/dev/null || true
-tmux set-option -gq @yazibar-left-width "30%" 2>/dev/null || true
-tmux set-option -gq @yazibar-right-width "25%" 2>/dev/null || true
+tmux set-option -gq @yazibar-left-width "15%" 2>/dev/null || true
+tmux set-option -gq @yazibar-right-width "30%" 2>/dev/null || true
 tmux set-option -gq @yazibar-right-needs-left "1" 2>/dev/null || true
 tmux set-option -gq @yazibar-debug "0" 2>/dev/null || true
 

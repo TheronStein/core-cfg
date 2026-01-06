@@ -17,6 +17,9 @@ function M.setup()
     { "<M-S-a>", "<cmd>vertical resize -2<cr>", desc = "Decrease width" },
     { "<M-S-d>", "<cmd>vertical resize +2<cr>", desc = "Increase width" },
 
+    -- Alt+n to quit neovim (closes tmux popup terminals)
+    { "<A-n>", "<cmd>qa<cr>", desc = "Quit neovim (close popup)" },
+
     -- { "<M-a>", "<C-w>h", desc = "Go left" },
     -- { "<M-s>", "<C-w>j", desc = "Go down" },
     -- { "<M-w>", "<C-w>k", desc = "Go up" },

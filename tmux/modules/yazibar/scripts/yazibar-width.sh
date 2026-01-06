@@ -27,7 +27,7 @@ ensure_width_file() {
 get_saved_width() {
   local dir="$1"
   local sidebar="${2:-left}"
-  local default="${3:-30%}"
+  local default="${3:-15%}"
 
   ensure_width_file
   local width_file=$(get_width_file)
@@ -35,7 +35,8 @@ get_saved_width() {
   # Format: directory<TAB>sidebar<TAB>width
   local saved=$(grep "^${dir}[[:space:]]${sidebar}[[:space:]]" "$width_file" | awk '{print $3}')
 
-  if [ -n "$saved" ]; then
+  # Validate saved width: must be non-empty and either a number or percentage
+  if [ -n "$saved" ] && [[ "$saved" =~ ^[0-9]+%?$ ]]; then
     echo "$saved"
   else
     echo "$default"

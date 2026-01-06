@@ -4,7 +4,7 @@ set realname = "Theron Steinbrecher"
 
 # IMAP Settings (Google)
 set imap_user = "tsteinbrecher@care-view.com"
-set my_careview_pass = "`$HOME/.core/.sys/scripts/neomutt-pass-cache.sh ewbxrqavrhibdmgby7wlfmxbfq`"
+set my_careview_pass = "`gpg -dq ~/.core/.sys/cfg/neomutt/passwords/careview.gpg`"
 set imap_pass = $my_careview_pass
 set folder = "imaps://imap.gmail.com:993"
 set spoolfile = "+INBOX"

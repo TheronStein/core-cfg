@@ -17,6 +17,14 @@ source "$SCRIPT_DIR/yazibar-utils.sh"
 SIDE="${1:-left}"  # left or right
 START_DIR="${2:-$HOME}"
 
+# Debug log function
+_debug_log() {
+    echo "[$(date '+%H:%M:%S')] $*" >> /tmp/yazibar-run-debug.log
+}
+
+_debug_log "=== yazibar-run-yazi.sh started ==="
+_debug_log "SIDE=$SIDE START_DIR=$START_DIR"
+
 # ============================================================================
 # YAZI CONFIGURATION
 # ============================================================================
@@ -24,16 +32,22 @@ START_DIR="${2:-$HOME}"
 # Set yazi config directory based on sidebar side
 # Use absolute path since CORE_CFG may not be set in all contexts
 CORE_CFG="${CORE_CFG:-$HOME/.core/.sys/cfg}"
+
+# Force set YAZI_CONFIG_HOME (don't use default if already set - we want our profile)
 if [ "$SIDE" = "left" ]; then
-    export YAZI_CONFIG_HOME="${YAZI_CONFIG_HOME:-${CORE_CFG}/yazi/profiles/sidebar-left}"
+    export YAZI_CONFIG_HOME="${CORE_CFG}/yazi/profiles/sidebar-left"
 else
-    export YAZI_CONFIG_HOME="${YAZI_CONFIG_HOME:-${CORE_CFG}/yazi/profiles/sidebar-right}"
+    export YAZI_CONFIG_HOME="${CORE_CFG}/yazi/profiles/sidebar-right"
 fi
+
+_debug_log "YAZI_CONFIG_HOME=$YAZI_CONFIG_HOME"
 
 # Export environment variables for yazibar-sync.yazi plugin
 export YAZIBAR_SIDE="$SIDE"
 export YAZIBAR_PANE_ID="$TMUX_PANE"
 export YAZIBAR_WINDOW_ID="$(tmux display-message -p '#{window_id}')"
+
+_debug_log "YAZIBAR_SIDE=$YAZIBAR_SIDE YAZIBAR_WINDOW_ID=$YAZIBAR_WINDOW_ID"
 
 # Change to start directory
 cd "$START_DIR" || exit 1

@@ -15,6 +15,7 @@ tmux display-menu -x C -y P -T "#[fg=#e0af68,bold] Main Menu " \
   " Copy Mode" / "run-shell '$TMUX_MENUS/modes/copy-mode.sh'" \
   "" \
   "󰒓 Config Management" c "$(om config-management.sh)" \
+  " Modules Management" m "$(om modules-management.sh)" \
   "󰂮 Pane Management" a "$(om mux/pane-menu.sh)" \
   "󰖯 Window Management" w "$(om mux/window-menu.sh)" \
   " Layout Management" l "$(om mux/layout-menu.sh)" \

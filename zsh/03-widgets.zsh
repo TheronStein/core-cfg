@@ -12,6 +12,38 @@ _widget_cleanup() {
   [[ -n "$pids" ]] && kill $pids 2>/dev/null
 }
 
+#=============================================================================
+# TMUX POPUP FZF WRAPPER
+#=============================================================================
+# Runs fzf in a tmux popup when inside tmux, otherwise runs directly.
+# Usage: echo "items" | _fzf_in_tmux_popup [fzf-args...]
+# The popup is 85% width/height with a border.
+_fzf_in_tmux_popup() {
+    if [[ -n "$TMUX" ]]; then
+        local input_file=$(mktemp)
+        local result_file=$(mktemp)
+
+        # Capture stdin to file
+        cat > "$input_file"
+
+        # Build fzf command - escape arguments properly
+        local fzf_args=""
+        for arg in "$@"; do
+            fzf_args+="${(qq)arg} "
+        done
+
+        # Run fzf in popup
+        tmux display-popup -E -w 85% -h 85% \
+            "cat ${(qq)input_file} | fzf $fzf_args > ${(qq)result_file} 2>/dev/null"
+
+        # Output result
+        cat "$result_file" 2>/dev/null
+        rm -f "$input_file" "$result_file"
+    else
+        fzf "$@"
+    fi
+}
+
 widget::universal-overlay() {
   # Setup cleanup trap
   trap _widget_cleanup EXIT INT TERM
@@ -35,8 +67,7 @@ widget::universal-overlay() {
     "Bookmarks       :: Jump to bookmarked dir" \
     "Quick Note      :: Add timestamped note" \
     "Calculator      :: Evaluate expression" \
-  | fzf \
-      --height=100% \
+  | _fzf_in_tmux_popup \
       --reverse \
       --border=rounded \
       --border-label=" Universal Command Palette " \
@@ -49,29 +80,29 @@ widget::universal-overlay() {
 
   case "$choice" in
     "Files           :: "*)
-      selected=$(fd --type f --hidden --follow --exclude .git | fzf $(_fzf_base_opts) --preview 'bat --style=numbers --color=always {}')
+      selected=$(fd --type f --hidden --follow --exclude .git | _fzf_in_tmux_popup $(_fzf_base_opts) --preview 'bat --style=numbers --color=always {}')
       [[ -n "$selected" ]] && LBUFFER+="${(q)selected}"
       ;;
     "Directories     :: "*)
-      selected=$(fd --type d --hidden --follow --exclude .git | fzf $(_fzf_base_opts) --preview 'eza -la --color=always --icons {}')
+      selected=$(fd --type d --hidden --follow --exclude .git | _fzf_in_tmux_popup $(_fzf_base_opts) --preview 'eza -la --color=always --icons {}')
       [[ -n "$selected" ]] && { [[ -z "$BUFFER" ]] && cd "$selected" || LBUFFER+="${(q)selected}" }
       ;;
     "History         :: "*)
-      selected=$(fc -rl 1 | awk '!seen[$0]++' | fzf $(_fzf_base_opts) --tiebreak=index --preview 'echo {2..}' --bind 'ctrl-y:execute-silent(echo -n {2..} | wl-copy)+abort')
+      selected=$(fc -rl 1 | awk '!seen[$0]++' | _fzf_in_tmux_popup $(_fzf_base_opts) --tiebreak=index --preview 'echo {2..}' --bind 'ctrl-y:execute-silent(echo -n {2..} | wl-copy)+abort')
       [[ -n "$selected" ]] && zle vi-fetch-history -n $(echo "$selected" | awk '{print $1}')
       ;;
     "Kill Process    :: "*)
-      pid=$(ps aux | sed 1d | fzf $(_fzf_base_opts) -m --preview 'echo {}' | awk '{print $2}')
+      pid=$(ps aux | sed 1d | _fzf_in_tmux_popup $(_fzf_base_opts) -m --preview 'echo {}' | awk '{print $2}')
       [[ -n "$pid" ]] && echo "$pid" | xargs -r kill -9
       ;;
     "Git Status      :: "*)
       git rev-parse --is-inside-work-tree >/dev/null || return
-      selected=$(git status --short | fzf $(_fzf_base_opts) -m --ansi --preview 'git diff --color=always -- {-1} | delta' | awk '{print $2}')
+      selected=$(git status --short | _fzf_in_tmux_popup $(_fzf_base_opts) -m --ansi --preview 'git diff --color=always -- {-1} | delta' | awk '{print $2}')
       [[ -n "$selected" ]] && LBUFFER+="$selected"
       ;;
     "Git Branch      :: "*)
       git rev-parse --is-inside-work-tree >/dev/null || return
-      branch=$(git branch --all --color=always --format='%(refname:short)' | grep -v HEAD | fzf $(_fzf_base_opts) --ansi --preview 'git log --oneline --graph {}' | sed 's#remotes/origin/##')
+      branch=$(git branch --all --color=always --format='%(refname:short)' | grep -v HEAD | _fzf_in_tmux_popup $(_fzf_base_opts) --ansi --preview 'git log --oneline --graph {}' | sed 's#remotes/origin/##')
       [[ -n "$branch" ]] && { [[ -z "$BUFFER" ]] && git checkout "$branch" || LBUFFER+="$branch" }
       ;;
     # … add the rest exactly like your old widgets …
@@ -103,7 +134,7 @@ zle -N widget::universal-overlay
 function widget::fzf-file-selector() {
     local selected
     selected=$(fd --type f --hidden --follow --exclude .git 2>/dev/null | \
-        fzf $(_fzf_base_opts) --height 40% \
+        _fzf_in_tmux_popup $(_fzf_base_opts) \
             --preview 'bat --style=numbers --color=always --line-range :300 {} 2>/dev/null || cat {}')
 
     if [[ -n "$selected" ]]; then
@@ -120,7 +151,7 @@ zle -N widget::fzf-file-selector
 function widget::fzf-directory-selector() {
     local selected
     selected=$(fd --type d --hidden --follow --exclude .git 2>/dev/null | \
-        fzf $(_fzf_base_opts) --height 40% \
+        _fzf_in_tmux_popup $(_fzf_base_opts) \
             --preview 'eza -la --color=always --icons {} 2>/dev/null')
 
     if [[ -n "$selected" ]]; then
@@ -198,8 +229,8 @@ function widget::fzf-history-search() {
         esac
 
         result=$(
-            env -u FZF_DEFAULT_OPTS fzf < "$tmpfile" \
-                --height=100% --layout=reverse --border=rounded --info=inline \
+            cat "$tmpfile" | _fzf_in_tmux_popup \
+                --layout=reverse --border=rounded --info=inline \
                 --color="$colors" \
                 --border-label="$label" \
                 --border-label-pos=2 \
@@ -245,7 +276,7 @@ zle -N widget::fzf-history-search
 #=============================================================================
 function widget::fzf-kill-process() {
     local pid
-    pid=$(ps aux | sed 1d | fzf $(_fzf_base_opts) --multi --height 40% \
+    pid=$(ps aux | sed 1d | _fzf_in_tmux_popup $(_fzf_base_opts) --multi \
         --header 'Select process(es) to kill' \
         --preview 'echo {}' \
         --preview-window 'down:3:wrap' | \
@@ -268,7 +299,7 @@ function widget::fzf-git-status() {
 
     local selected
     selected=$(git status --short | \
-        fzf $(_fzf_base_opts) --multi --ansi --height 60% \
+        _fzf_in_tmux_popup $(_fzf_base_opts) --multi --ansi \
             --preview 'git diff --color=always -- {-1} | delta' \
             --header 'Select files to add to buffer' | \
         awk '{print $2}')
@@ -290,7 +321,7 @@ function widget::fzf-git-branch() {
     local selected
     selected=$(git branch --all --color=always | \
         grep -v 'HEAD' | \
-        fzf $(_fzf_base_opts) --ansi --height 40% \
+        _fzf_in_tmux_popup $(_fzf_base_opts) --ansi \
             --preview 'git log --oneline --color=always --graph $(echo {} | sed "s/.* //")' | \
         sed 's/.* //' | sed 's#remotes/origin/##')
 
@@ -315,7 +346,7 @@ function widget::fzf-git-commits() {
 
     local selected
     selected=$(git log --oneline --color=always --graph | \
-        fzf $(_fzf_base_opts) --ansi --no-sort --height 80% \
+        _fzf_in_tmux_popup $(_fzf_base_opts) --ansi --no-sort \
             --tiebreak=index \
             --preview 'git show --color=always $(echo {} | grep -o "[a-f0-9]\{7\}" | head -1)' \
             --bind 'ctrl-o:execute(git show --color=always $(echo {} | grep -o "[a-f0-9]\{7\}" | head -1) | less -R)')
@@ -330,7 +361,8 @@ zle -N widget::fzf-git-commits
 
 #=============================================================================
 # WIDGET: TMUX SESSION MANAGER
-# Usage: Interactive session management with create/delete/rename/wezterm-tab
+# Usage: Interactive session management with create/delete/rename
+# Uses tmux popup when inside tmux for overlay experience
 #=============================================================================
 function widget::tmux-session-manager() {
     # Source global session library
@@ -340,15 +372,21 @@ function widget::tmux-session-manager() {
     BUFFER=""
     zle redisplay
 
-    if session::in_tmux; then
-        # Inside tmux - can switch directly via picker
-        local selected
-        selected=$(session::picker)
+    local selected
+    local result_file="/tmp/session-picker-result-$$"
+    rm -f "$result_file"
+
+    if [[ -n "$TMUX" ]]; then
+        # Inside tmux - use popup overlay
+        tmux display-popup -E -w 85% -h 85% -T " Sessions " \
+            "source ~/.core/.cortex/lib/session.sh && session::picker > $result_file"
+        selected=$(cat "$result_file" 2>/dev/null)
+        rm -f "$result_file"
+
         [[ -n "$selected" ]] && session::switch "$selected"
         zle reset-prompt
     else
-        # Outside tmux - select session then set BUFFER for attach
-        local selected
+        # Outside tmux - run picker directly
         selected=$(session::picker)
 
         if [[ -n "$selected" ]]; then
@@ -370,7 +408,7 @@ function widget::fzf-tmux-session() {
 
     if [[ -n "$TMUX" ]]; then
         session=$(tmux list-sessions -F "#{session_name}: #{session_windows} windows (#{session_attached} attached)" 2>/dev/null | \
-            fzf $(_fzf_base_opts) --height 40% \
+            _fzf_in_tmux_popup $(_fzf_base_opts) \
                 --header "Current: $(tmux display-message -p '#S')" \
                 --preview 'tmux capture-pane -ep -t $(echo {} | cut -d: -f1) 2>/dev/null' | \
             cut -d: -f1)
@@ -380,7 +418,7 @@ function widget::fzf-tmux-session() {
         fi
     else
         session=$(tmux list-sessions -F "#{session_name}" 2>/dev/null | \
-            fzf $(_fzf_base_opts) --height 40% \
+            _fzf_in_tmux_popup $(_fzf_base_opts) \
                 --header "Select session to attach" | \
             cut -d: -f1)
 
@@ -402,7 +440,7 @@ function widget::fzf-tmux-window() {
 
     local selected
     selected=$(tmux list-windows -F "#{window_index}: #{window_name} #{window_flags}" | \
-        fzf $(_fzf_base_opts) --height 40% \
+        _fzf_in_tmux_popup $(_fzf_base_opts) \
             --header "Current: $(tmux display-message -p '#I:#W')" | \
         cut -d: -f1)
 
@@ -438,7 +476,7 @@ function widget::command-palette() {
 
     local selected
     selected=$(printf '%s\n' "${commands[@]}" | \
-        fzf $(_fzf_base_opts) --height 50% \
+        _fzf_in_tmux_popup $(_fzf_base_opts) \
             --delimiter ':' \
             --with-nth 1,3 \
             --preview 'echo "Command: $(echo {} | cut -d: -f2)"' \
@@ -460,7 +498,7 @@ zle -N widget::command-palette
 function widget::fzf-ssh() {
     local host
     host=$(grep -E "^Host [^*]" ~/.ssh/config 2>/dev/null | awk '{print $2}' | \
-        fzf $(_fzf_base_opts) --height 40% \
+        _fzf_in_tmux_popup $(_fzf_base_opts) \
             --header "Select SSH host" \
             --preview 'grep -A 10 "^Host {}" ~/.ssh/config 2>/dev/null')
 
@@ -479,7 +517,7 @@ zle -N widget::fzf-ssh
 function widget::fzf-env() {
     local selected
     selected=$(env | sort | \
-        fzf $(_fzf_base_opts) --height 60% \
+        _fzf_in_tmux_popup $(_fzf_base_opts) \
             --header "Select environment variable" \
             --preview 'echo {} | cut -d= -f2-' \
             --preview-window 'down:3:wrap')
@@ -673,7 +711,7 @@ function widget::jump-bookmark() {
 
     local selected
     selected=$(cat "$bookmark_file" | \
-        fzf $(_fzf_base_opts) --height 40% \
+        _fzf_in_tmux_popup $(_fzf_base_opts) \
             --preview 'eza -la --color=always --icons {}')
 
     if [[ -n "$selected" && -d "$selected" ]]; then

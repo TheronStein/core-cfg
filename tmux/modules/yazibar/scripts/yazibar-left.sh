@@ -39,19 +39,19 @@ create_left_sidebar() {
     # Create left split (full height, before current pane)
     local new_pane_id=$(tmux split-window -fhb -l "$width" -c "$start_dir" -P -F "#{pane_id}" "
         # Set pane title
-        printf '\033]2;%s\033\\\\' '$LEFT_SIDEBAR_TITLE'
+        printf '\033]2;%s\033\\\\' \"$LEFT_SIDEBAR_TITLE\"
 
         # Set yazi config location
-        export YAZI_CONFIG_HOME='$YAZI_CONFIG_DIR'
+        export YAZI_CONFIG_HOME=\"$YAZI_CONFIG_DIR\"
 
         # Get nvim address for current window
-        NVIM_ADDR=\$('$SCRIPT_DIR/yazibar-nvim.sh' get-current)
+        NVIM_ADDR=\$(\"$SCRIPT_DIR/yazibar-nvim.sh\" get-current)
         if [ -n \"\$NVIM_ADDR\" ]; then
             export NVIM_LISTEN_ADDRESS=\"\$NVIM_ADDR\"
         fi
 
         # Run yazi with CWD sync
-        exec '$SCRIPT_DIR/yazibar-run-yazi.sh' left '$start_dir'
+        exec \"$SCRIPT_DIR/yazibar-run-yazi.sh\" left \"$start_dir\"
     ")
 
     # Save pane ID
