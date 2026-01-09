@@ -1,4 +1,0 @@
-#!/usr/bin/env zsh
-# Preview script for fzf-layout-select
-source "/home/theron/.core/.sys/cfg/zsh/functions/fzf-theme" 2>/dev/null
-_fzf_layout_diagram "$1"

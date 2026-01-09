@@ -725,6 +725,16 @@ safe_require_checked("gvfs")
 safe_require_checked("simple-mtpfs")
 
 -- ═══════════════════════════════════════════════════════════════
+-- CUSTOM CLOUD/SERVER MOUNT MODULE
+-- ═══════════════════════════════════════════════════════════════
+
+-- Cloud Mount Plugin - Custom development plugin for cloud/server mounting
+-- Mounts chaoscore SSH to ~/Mount/chaoscore/{user} (nested)
+-- Mounts rclone remotes to ~/Mount/{remote_name} (custom paths)
+-- Located at: dev/cloud-mount.yazi/main.lua
+safe_require_checked("cloud-mount")
+
+-- ═══════════════════════════════════════════════════════════════
 -- MEDIA/IMAGE VIEWERS
 -- ═══════════════════════════════════════════════════════════════
 

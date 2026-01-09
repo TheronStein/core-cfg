@@ -136,6 +136,55 @@ keymap = [
     "S",
     "p",
   ], run = "plugin kdeconnect-mount", desc = "Mount Galaxy ZFold & jump" },
+
+  # Cloud Mount - Unified cloud storage and server mounting
+  { on = [
+    "S",
+    "C",
+  ], run = "plugin cloud-mount -- menu", desc = "Cloud/Server mount menu" },
+  { on = [
+    "S",
+    "d",
+  ], run = "plugin cloud-mount -- rclone dropbox", desc = "Mount Dropbox" },
+  { on = [
+    "S",
+    "g",
+    "d",
+  ], run = "plugin cloud-mount -- rclone google-drive", desc = "Mount Google Drive" },
+  { on = [
+    "S",
+    "g",
+    "p",
+  ], run = "plugin cloud-mount -- rclone google-photos", desc = "Mount Google Photos" },
+  { on = [
+    "S",
+    "o",
+  ], run = "plugin cloud-mount -- rclone onedrive", desc = "Mount OneDrive" },
+  { on = [
+    "S",
+    "P",
+  ], run = "plugin cloud-mount -- rclone proton", desc = "Mount Proton Drive" },
+  { on = [
+    "S",
+    "A",
+  ], run = "plugin cloud-mount -- all", desc = "Mount all cloud storage" },
+  { on = [
+    "S",
+    "s",
+  ], run = "plugin cloud-mount -- status", desc = "Show mount status" },
+  { on = [
+    "S",
+    "x",
+  ], run = "plugin cloud-mount -- unmount", desc = "Unmount (FZF select)" },
+  { on = [
+    "S",
+    "t",
+  ], run = "plugin cloud-mount -- chaoscore theron", desc = "Mount chaoscore (theron)" },
+  { on = [
+    "S",
+    "R",
+  ], run = "plugin cloud-mount -- chaoscore rampage", desc = "Mount chaoscore (rampage)" },
+
   { on = [
     "b",
     "a",
@@ -509,16 +558,40 @@ keymap = [
   ], run = "cd ~/Downloads", desc = "Go to Downloads" },
   { on = [
     "g",
+    "n",
+  ], run = "cd ~/.core/.sys/cfg/nvim/lua", desc = "Go to Neovim" },
+  { on = [yazi
+    "g",
+    "y",
+  ], run = "cd ~/.core/.sys/cfg/yazi", desc = "Go to Yazi" },
+  { on = [
+    "g",
+    "w",
+  ], run = "cd ~/.core/.sys/cfg/wezterm", desc = "Go to Wezterm" },
+  { on = [
+    "g",
     "m",
   ], run = "cd ~/Mount", desc = "Go to Mount" },
+  { on = [
+    "g",
+    "t",
+  ], run = "cd ~/.core/.sys/cfg/tmux", desc = "Go to TMUX" },
+  { on = [
+    "g",
+    "z",
+  ], run = "cd ~/.core/.sys/cfg/zsh", desc = "Go to ZSH" },
   { on = [
     "g",
     "l",
   ], run = "cd ~/.local", desc = "Go to local" },
   { on = [
     "g",
+    "a",
+  ], run = "cd ~/.core/.cortex", desc = "Go to CORTEX" },
+  { on = [
+    "g",
     "c",
-  ], run = "cd $CORE_CFG/", desc = "Go to Configs" },
+  ], run = "cd $CORE/", desc = "Go to CORE" },
   { on = [
     "g",
     ".",
