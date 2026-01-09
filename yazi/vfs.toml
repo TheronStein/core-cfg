@@ -1,1 +1,6 @@
-
+[services.nfo]
+type = "sftp"
+host = "chaoscore.org"
+user = "theron"
+port = 22
+key_file = "~/.core/.vault/gnupg/id_chaoscore"

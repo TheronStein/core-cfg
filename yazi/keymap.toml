@@ -509,6 +509,14 @@ keymap = [
   ], run = "cd ~/Downloads", desc = "Go to Downloads" },
   { on = [
     "g",
+    "m",
+  ], run = "cd ~/Mount", desc = "Go to Mount" },
+  { on = [
+    "g",
+    "l",
+  ], run = "cd ~/.local", desc = "Go to local" },
+  { on = [
+    "g",
     "c",
   ], run = "cd $CORE_CFG/", desc = "Go to Configs" },
   { on = [

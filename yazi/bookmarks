@@ -1,3 +1,4 @@
+themes	/home/theron/.local/core/themes	
 plugins/yazi	/home/theron/.core/.proj/plugins	p,y
 omarchy	/home/theron/.core/.sys/env/.ref/omarchy	0
 nvim	/home/theron/.core/.sys/cfg/nvim/lua	c,n

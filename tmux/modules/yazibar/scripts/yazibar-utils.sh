@@ -80,6 +80,13 @@ yazibar_width_file() {
 # STATE MANAGEMENT
 # ============================================================================
 
+# Check if a tmux session exists on a given server
+session_exists() {
+  local server="$1"
+  local session="$2"
+  tmux -L "$server" has-session -t "$session" 2>/dev/null
+}
+
 # ============================================================================
 # WINDOW-SCOPED STATE MANAGEMENT
 # ============================================================================
@@ -87,6 +94,11 @@ yazibar_width_file() {
 # Get current window ID
 get_current_window() {
   tmux display-message -p '#{window_id}'
+}
+
+# Get current pane ID
+get_current_pane() {
+  tmux display-message -p '#{pane_id}'
 }
 
 # Get window-specific option key
@@ -174,7 +186,8 @@ export -f yazibar_server yazibar_left_session yazibar_right_session
 export -f yazibar_left_width yazibar_right_width yazibar_width_file
 export -f is_left_enabled set_left_enabled get_left_pane set_left_pane clear_left_pane
 export -f is_right_enabled set_right_enabled get_right_pane set_right_pane clear_right_pane
-export -f get_current_window get_window_option_key
+export -f get_current_window get_current_pane get_window_option_key
 export -f display_message debug_enabled debug_log
 export -f validate_tmux_version
 export -f pane_exists_globally
+export -f session_exists

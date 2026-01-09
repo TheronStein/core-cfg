@@ -1,7 +1,0 @@
-## Conflicting Issues
-
-While Yazi Bar aims to enhance your tmux experience, there are a few known issues that may arise when using it alongside other tmux plugins or configurations. Here are some of the major conflicting issues:
-
-1. **Multiple File Conlicts**
-   - You have multiple files across the entire configuration that define the same option or key binding. This can lead to unexpected behavior as tmux may not know which definition to prioritize.
-   - **Solution**: Review your tmux configuration files and ensure that each option or key binding is defined only once. Remove or comment out any duplicate definitions.

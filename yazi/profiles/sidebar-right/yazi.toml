@@ -13,3 +13,20 @@ ratio = [0, 0, 1]
 
 # Custom title to indicate this is the preview pane
 title_format = "Preview: {cwd}"
+
+# ============================================================================
+# CRITICAL: Disable ALL openers - this is a preview-only pane
+# ============================================================================
+# The right sidebar should NEVER open files. It only shows previews.
+# Without this, corrupted terminal state can accidentally trigger openers,
+# causing neovim to hijack the pane and break DDS sync.
+
+[opener]
+edit = []
+markdown = []
+fallback = []
+open = []
+extract = []
+
+[open]
+rules = []

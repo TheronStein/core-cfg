@@ -8,23 +8,23 @@ main() {
 
     case "$component" in
         transfers)
-            bash "$SCRIPT_DIR/transfer-monitor.sh"
+            bash "$SCRIPT_DIR/processes/transfer-monitor.sh"
             ;;
         storage)
-            bash "$SCRIPT_DIR/storage-monitor.sh"
+            bash "$SCRIPT_DIR/storage/storage-monitor.sh"
             ;;
         cloud)
-            bash "$SCRIPT_DIR/cloud-storage-monitor.sh"
+            bash "$SCRIPT_DIR/storage/cloud-storage-monitor.sh"
             ;;
         left)
             # Left side: local storage + cloud storage
-            local storage=$(bash "$SCRIPT_DIR/storage-monitor.sh")
-            local cloud=$(bash "$SCRIPT_DIR/cloud-storage-monitor.sh")
+            local storage=$(bash "$SCRIPT_DIR/storage/storage-monitor.sh")
+            local cloud=$(bash "$SCRIPT_DIR/storage/cloud-storage-monitor.sh")
             echo "${storage}${cloud}"
             ;;
         right|center)
             # Right/center: transfer progress
-            bash "$SCRIPT_DIR/transfer-monitor.sh"
+            bash "$SCRIPT_DIR/processes/transfer-monitor.sh"
             ;;
         *)
             echo "Usage: $0 {transfers|storage|cloud|left|right|center}"

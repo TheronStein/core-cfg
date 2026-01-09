@@ -5,4 +5,5 @@
 # Keep tasks aligned to the right with proper spacing
 # Output format: "  <tasks>" to ensure right alignment after cloud-storage tabs
 
-~/.core/env/bin/tmux-monitors/transfer-monitor.sh
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+"$SCRIPT_DIR/transfer-monitor.sh"

@@ -4,7 +4,7 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Get current mode/context
-mode_info=$(bash "$SCRIPT_DIR/get-tmux-mode.sh")
+mode_info=$(bash "$SCRIPT_DIR/modes/get-tmux-mode.sh")
 IFS=':' read -r _ mode_label mode_color <<< "$mode_info"
 
 # Set mode colors based on current state
@@ -19,7 +19,9 @@ esac
 
 # Get session name from argument (passed by tmux format expansion) or fallback
 # Using argument ensures correct session context, not just the focused client
-raw_session="${1:-#{session_name}}"
+# Note: Default is stored in variable to avoid bash misinterpreting # in parameter expansion
+default_session='#{session_name}'
+raw_session="${1:-$default_session}"
 session_name=$(echo " $raw_session " | sed 's/-view-.*//')
 
 # Build the status-left: Mode/Context → Session

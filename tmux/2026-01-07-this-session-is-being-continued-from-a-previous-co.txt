@@ -1,0 +1,2829 @@
+
+ * ▐▛███▜▌ *   Claude Code v2.0.76
+* ▝▜█████▛▘ *  Opus 4.5 · Claude Max
+ *  ▘▘ ▝▝  *   ~/.core/.sys/cfg/tmux
+══════════════════ Conversation compacted · ctrl+o for history ═════════════════
+
+● Continuing from where we left off. Based on the conversation summary, I've completed three fixes:
+
+  1. ✅ Replaced io.popen with native mux API (deadlock fix)
+  2. ✅ Removed duplicate module loading in leader.lua
+  3. ✅ Fixed tab:set_workspace() API error
+
+  Now I need to verify these fixes work before proceeding to refactor the menu to use FZF scripts. Let me first check the current state of the key files:
+
+● Search(pattern: "io\.popen", path: "~/.core/.sys/cfg/wezterm", output_mode:
+        "content")
+  ⎿  Found 44 lines (ctrl+o to expand)
+
+● Read(~/.core/.sys/cfg/wezterm/modules/sessions/workspace_isolation.lua)
+  ⎿  Read 285 lines
+
+● Read(~/.core/.sys/cfg/wezterm/modules/sessions/unified_workspace.lua)
+  ⎿  Read 884 lines
+
+● Good news - the deadlock fixes are in place in workspace_isolation.lua:
+  - get_running_clients() now uses wezterm.mux.all_windows() (line 23-43)
+  - get_workspace_stats() uses mux API (line 61-79)
+  - is_isolation_available() uses mux API (line 278-282)
+
+  There's still one io.popen in unified_workspace.lua at line 109 for listing session files, but this is a simple filesystem operation (ls), not a WezTerm CLI call, so it won't cause the deadlock.
+
+  Let me verify the Lua files have no syntax errors:
+
+● Bash(luac -p
+      /home/theron/.core/.sys/cfg/wezterm/modules/sessions/unified_workspace.lua
+       && echo "✅ unified_workspace.lua - OK" || echo "❌ unified_workspace.lua
+       - SYN…)
+  ⎿  ✅ unified_workspace.lua - OK
+
+● Bash(luac -p /home/theron/.core/.sys/cfg/wezterm/modules/sessions/workspace_is
+      olation.lua && echo "✅ workspace_isolation.lua - OK" || echo "❌
+      workspace_isolation.lua…)
+  ⎿  ✅ workspace_isolation.lua - OK
+
+● Bash(luac -p /home/theron/.core/.sys/cfg/wezterm/keymaps/mods/leader.lua &&
+      echo "✅ leader.lua - OK" || echo "❌ leader.lua - SYNTAX ERROR")
+  ⎿  ✅ leader.lua - OK
+
+● All files pass syntax validation. Now let me check if there are any recent WezTerm error logs:
+
+● Bash(ls -la ~/.local/share/wezterm/*.log 2>/dev/null | head -5)
+  ⎿  (eval):1: no matches found: /home/theron/.local/share/wezterm/*.log
+
+● Bash(tail -50 ~/.local/share/wezterm/wezterm-gui.log 2>/dev/null | grep -E
+      "(ERROR|WARN|unified_workspace|workspace_isolation)" | tail -20)
+  ⎿  (No content)
+
+● Bash(journalctl -t wezterm --no-pager -n 30 2>/dev/null || echo "No journalctl
+       logs")
+  ⎿  -- No entries --
+
+● The fixes are in place. Here's the summary of what was fixed:
+
+  Fixes Applied
+
+  | Issue                         | Fix                                                                                                        |
+  |-------------------------------|------------------------------------------------------------------------------------------------------------|
+  | Deadlock on menu open         | Replaced io.popen("wezterm cli list") with native wezterm.mux.all_windows() API in workspace_isolation.lua |
+  | tab:set_workspace() API error | Replaced with SwitchToWorkspace action - WezTerm moves entire window, not individual tabs                  |
+  | Duplicate module loading      | Removed old session_manager require from leader.lua                                                        |
+
+  Testing Required
+
+  Please test LEADER+F1 to open the workspace menu. If it opens without freezing, the deadlock fix is working.
+
+  Then test:
+  1. Create Workspace - should rename "default" to your new name
+  2. Rename Workspace - should work on any named workspace
+
+  ---
+  Note for future work: Per the conversation history, there are two remaining improvements you requested:
+  1. Refactor the menu to use FZF bash scripts (like other menus) instead of InputSelector
+  2. Restore the submenus that were removed from the old session_manager
+
+  Let me know the test results before proceeding with those changes.
+
+> okay, i remember why i stopped pursuing this. so essentially, we need to
+  create a custom script launcher (hence why i said refactor the menu to
+  use fzf bash scripts), and the idea is that we would have a environment
+  terminal TUI/sliding terminal that would be able to manage these wezterm
+  workspaces, my thinking was that, when wezterm is launched by default,
+  it inherits the "default" workspace which is what i think we want to
+  avoid, i've had requests of having you rename it, kill it, change it in
+  some way or form and it seems like we cant do that, so my idea was just
+  have wezterm instances launched without the "default workspace"" context
+  initialized into them as the GUIs are created. it is either we do this,
+  or we create a way to create a custom default workspace name that
+  increments if another wezterm gui window already has the "core-1"
+  workspace, increment and check for "core-2" unti an open workspace is
+  found. Honestly i dont even know if that will work regardless. i go to
+  rename the default workspace and it creates a new workspace, if i rename
+  the default workspace over a new one i just made. so the only way i
+  currently know to get around that is to invoke wezterm contextually
+  within a custom launcher, i planned on using ghostty, i have a custom
+  ghostty client launcher that starts ghostt up with the class 
+org.chaoscore.ghostty, i need to fix the hyprland integrations for it still,
+ but lets get the wezterm launch script for it working then i can worry 
+about stylizing it for the environment 
+
+● This makes total sense now. The "default" workspace is baked into WezTerm's initialization - you can't truly rename it, only switch away from it. The solution is to never let "default" be created by launching WezTerm with an explicit workspace from the start.
+
+  Let me find your Ghostty launcher to understand the pattern:
+
+● Search(pattern: "org\.chaoscore\.ghostty|ghostty.*class", path: "~/.core")
+  ⎿  Found 0 files 
+
+● Search(pattern: "**/*ghostty*", path: "~/.core")
+  ⎿  Found 26 files (ctrl+o to expand)
+
+● Read(~/.core/.sys/env/sbin/launch/core-launch-ghostty-tui)
+  ⎿  Read 32 lines
+
+● Read(~/.core/.sys/env/desktop/hypr/scripts/dropdowns/ghostty-dropdown.sh)
+  ⎿  Read 339 lines
+
+● Bash(ls -la /home/theron/.core/.sys/env/sbin/launch/)
+  ⎿  total 52                                       
+     drwxr-xr-x 1 theron theron  558 Dec  7 08:00 .
+     drwxr-xr-x 1 theron theron  270 Dec  9 14:48 ..
+     … +15 lines (ctrl+o to expand)
+
+● Read(~/.core/.sys/env/sbin/launch/core-launch-tui)
+  ⎿  Read 22 lines
+
+● Bash(wezterm --help 2>&1 | grep -E "(--workspace|--class|start)" | head -10)
+  ⎿  (No content)
+
+● Bash(wezterm start --help 2>&1 | head -40)
+  ⎿  (No content)
+
+● Bash(wezterm cli list-clients 2>&1 | head -20)
+  ⎿  (No content)
+
+● Bash(wezterm start 2>&1 | head -30 || wezterm --help 2>&1 | head -50)
+  ⎿  Interrupted · What should Claude do instead?
+
+> so do you see all of these scripts here, i need you to take this an extra 
+layer for me, those are modular scripts im trying to make for the core 
+environment to invoke applications using uwsm, i want you to create a 
+specification providing contextual details about it look in ~/.local/core, 
+where all the state management for the applications will end up going so 
+that i can centralized and crossover state handling with hyprland, ghostty 
+and other integrations i make into this environment, write out a 
+comprehensive document specification for this so i can have another agent 
+work on fully integrating this so you can finish the wezterm workspace, i'll
+ need to have this same context to fix my hyprland workspace 
+management/state handling. 
+
+● Let me explore the state management structure and create a comprehensive specification:
+
+● Bash(ls -laR ~/.local/core 2>/dev/null | head -100)
+  ⎿  (No content)
+
+● Bash(find ~/.local/core -type f 2>/dev/null | head -50)
+  ⎿  (No content)
+
+● Read(~/.core/.sys/env/sbin/launch/core-launch-or-focus)
+  ⎿  Read 17 lines
+
+● Bash(ls -la ~/.local/ | head -20)
+  ⎿  (No content)
+
+● Bash(ls -la /tmp/hypr* 2>/dev/null)
+  ⎿  Error: Exit code 1
+     (eval):1: no matches found: /tmp/hypr*
+
+● Bash(cat /home/theron/.core/.sys/env/sbin/launch/core-tui)
+  ⎿  #!/usr/bin/env bash                                            
+     # Template for launching centered TUI applications with Ghostty
+     … +29 lines (ctrl+o to expand)
+
+● Search(pattern: "**/*.sh", path: "~/.core/.sys/env/desktop/hypr")
+  ⎿  Found 89 files (ctrl+o to expand)
+
+● Bash(ls -la /home/theron/.core/.sys/env/)
+  ⎿  total 4                                       
+     drwxr-xr-x 1 theron theron 162 Dec  9 16:35 .
+     drwx------ 1 theron theron 152 Jan  3 08:53 ..
+     … +15 lines (ctrl+o to expand)
+
+● Bash(cat /home/theron/.core/.sys/env/sbin/launch/core-launch-browser
+      2>/dev/null)
+  ⎿  #!/bin/bash                                              
+
+     # default_browser=$(xdg-settings get default-web-browser)
+     … +10 lines (ctrl+o to expand)
+
+● Bash(ls -laR /home/theron/.core/.sys/env/state/)
+  ⎿  /home/theron/.core/.sys/env/state/:          
+     total 0
+     drwxr-xr-x 1 theron theron 106 Dec  7 16:34 .
+     … +571 lines (ctrl+o to expand)
+
+● Read(~/.core/.sys/env/desktop/hypr/scripts/core/utils/logger.sh)
+  ⎿  Read 15 lines
+
+● Read(~/.core/.sys/env/desktop/hypr/scripts/core/workspaces/ws-manager.sh)
+  ⎿  Read 512 lines
+
+● Now I have a clear picture. Let me update the todo list and create the comprehensive specification:
+
+● Write(~/.core/.sys/env/sbin/launch/.claude/CORE-LAUNCHER-SPEC.md)
+  ⎿  Wrote 764 lines to ../../env/sbin/launch/.claude/CORE-LAUNCHER-SPEC.md
+      1 # Core Environment App Launcher & State Management Specification
+      2 **Version:** 1.0.0
+      3 **Date:** 2026-01-04
+      4 **Status:** Draft for Implementation
+      5 ---
+      6 ## Executive Summary
+     … +754 lines (ctrl+o to expand)
+
+● The ~/.local/core structure already exists. Now let me create the actual WezTerm launcher script and the shared libraries:
+
+● Bash(mkdir -p /home/theron/.core/.sys/env/sbin/launch/lib)
+  ⎿  (No content)
+
+● Write(~/.core/.sys/env/sbin/launch/lib/state.sh)
+  ⎿  Wrote 78 lines to ../../env/sbin/launch/lib/state.sh       
+      1 #!/bin/bash
+      2 # Core State Management Library
+      3 # Centralized state operations for all Core launchers
+      4 STATE_ROOT="${CORE_STATE_ROOT:-$HOME/.local/core/state}"
+      5 # Ensure state root exists
+      6 mkdir -p "$STATE_ROOT"
+      7 # Read state file (returns empty string if not found)
+     … +68 lines (ctrl+o to expand)
+
+● Write(~/.core/.sys/env/sbin/launch/lib/logging.sh)
+  ⎿  Wrote 36 lines to ../../env/sbin/launch/lib/logging.sh
+      1 #!/bin/bash
+      2 # Core Logging Library
+      3 # Unified logging for all Core launchers
+      4 LOG_ROOT="${CORE_LOG_ROOT:-$HOME/.local/core/logs}"
+      5 # Ensure log root exists
+      6 mkdir -p "$LOG_ROOT"
+      7 # Main log function
+     … +26 lines (ctrl+o to expand)
+
+● Write(~/.core/.sys/env/sbin/launch/lib/wezterm.sh)
+  ⎿  Wrote 78 lines to ../../env/sbin/launch/lib/wezterm.sh              
+      1 #!/bin/bash
+      2 # WezTerm-specific helper functions for Core launchers
+      3 # Get list of active WezTerm workspaces
+      4 wezterm_get_workspaces() {
+      5     wezterm cli list --format json 2>/dev/null | jq -r '.[].works
+        pace' | sort -u
+      6 }
+      7 # Check if a workspace is currently running
+      8 wezterm_workspace_exists() {
+     … +68 lines (ctrl+o to expand)
+
+● Now the main WezTerm launcher:
+
+● Write(~/.core/.sys/env/sbin/launch/core-launch-wezterm)
+  ⎿  Wrote 160 lines to ../../env/sbin/launch/core-launch-wezterm        
+       1 #!/bin/bash
+       2 # core-launch-wezterm - Launch WezTerm with isolated workspace
+       3 #
+       4 # Solves the "default workspace" problem by launching WezTerm wi
+         th an
+       5 # explicit --workspace argument, bypassing the hardcoded "defaul
+         t" name.
+       6 #
+       7 # Usage:
+       8 #   core-launch-wezterm                    # New workspace (auto
+         -named core-N)
+       9 #   core-launch-wezterm --workspace NAME   # Specific workspace 
+         name
+      10 #   core-launch-wezterm --attach NAME      # Focus existing or c
+         reate new
+     … +150 lines (ctrl+o to expand)
+
+● Bash(chmod +x /home/theron/.core/.sys/env/sbin/launch/core-launch-wezterm
+      /home/theron/.core/.sys/env/sbin/launch/lib/*.sh)
+  ⎿  (No content)
+
+● Bash(mkdir -p /home/theron/.local/core/state/wezterm/workspaces)
+  ⎿  (No content)
+
+● Done. Here's what I created:
+
+  Files Created
+
+  Specification Document:
+  ~/.core/.sys/env/sbin/launch/.claude/CORE-LAUNCHER-SPEC.md
+  Comprehensive 400+ line spec covering:
+  - Directory structure for ~/.local/core/state/
+  - State management API
+  - WezTerm workspace launcher architecture
+  - Hyprland integration patterns
+  - Cross-terminal state sync
+  - Ghostty TUI integration
+  - Implementation phases
+
+  Shared Libraries:
+  ~/.core/.sys/env/sbin/launch/lib/
+  ├── state.sh      # state_get, state_set, state_json_*
+  ├── logging.sh    # log_info, log_warn, log_error
+  └── wezterm.sh    # wezterm_next_workspace, wezterm_focus_workspace, etc.
+
+  WezTerm Launcher:
+  ~/.core/.sys/env/sbin/launch/core-launch-wezterm
+  Usage:
+  core-launch-wezterm                    # Auto-named: core-1, core-2, etc.
+  core-launch-wezterm -w dev-main        # Specific workspace name
+  core-launch-wezterm -a core-1          # Focus existing or create new
+  core-launch-wezterm --cwd ~/projects   # With starting directory
+
+  Key Insight
+
+  The launcher bypasses WezTerm's "default" workspace by always passing --workspace NAME at launch time. The workspace name is auto-incremented (core-1, core-2, ...) by checking which workspaces are already running.
+
+  State Directories Created
+
+  ~/.local/core/state/wezterm/workspaces/
+
+  Next Steps (for environment-integration agent)
+
+  1. Update Hyprland keybinds to use core-launch-wezterm instead of bare wezterm
+  2. Create Hyprland window rules for workspace-named WezTerm windows
+  3. Integrate the focus stack for terminal switching
+  4. Wire up the spec's event handlers in WezTerm Lua config
+
+  You can now have another agent implement Phase 2-4 from the spec while you test the launcher works with core-launch-wezterm.
+
+> at this point i think you should just continue the integration you have 
+all the context of everything. can you continue the integration? when trying
+ to migrate all of the state files for everything, it messed up my hyprland 
+workspace/special workspace management scripts and they dont work properly 
+like they use to. i was trying create generalized "lib" functions for 
+hyprland state handling rather than them being specifically in these 
+workspace manager scripts, specifically because i was having issues with the
+ custom ghostty sliding terminal not following and changing workspace 
+context as i would navigate through them with the workspace/speical 
+workspace manager scripts, which i have keybinds specifically invoking them.
+ 
+
+● I'll continue the integration. Let me first understand what's broken by examining the current state of your Hyprland scripts and where state mismatches exist:
+
+● Bash(ls -la /home/theron/.local/core/state/)
+  ⎿  total 0                                      
+     drwxr-xr-x 1 theron theron 30 Jan  4 09:59 .
+     drwxr-xr-x 1 theron theron 50 Dec  7 19:27 ..
+     … +2 lines (ctrl+o to expand)
+
+● Bash(ls -laR /home/theron/.local/core/state/hyprland/ 2>/dev/null || echo "No
+      hyprland state dir")
+  ⎿  /home/theron/.local/core/state/hyprland/:    
+     total 0
+     drwxr-xr-x 1 theron theron  68 Dec  7 14:44 .
+     … +22 lines (ctrl+o to expand)
+
+● Bash(ls -la /tmp/hypr* 2>/dev/null || echo "No /tmp/hypr* directories")
+  ⎿  No /tmp/hypr* directories             
+     (eval):1: no matches found: /tmp/hypr*
+
+● Bash(cat /home/theron/.local/core/state/hyprland/special-workspaces/visible_sp
+      ecial)
+  ⎿  none
+
+● Bash(cat /home/theron/.local/core/state/hyprland/special-workspaces/last_activ
+      e_group)
+  ⎿  (No content)
+
+● Read(~/.core/.sys/env/desktop/hypr/scripts/dropdowns/sliding-dropdown.sh)
+  ⎿  Read 390 lines
+
+● I found several critical issues. Let me check the ghostty dropdown too and see the full scope:
+
+● Read(~/.core/.sys/env/desktop/hypr/scripts/dropdowns/dropdown.sh)
+  ⎿  Read 43 lines
+
+● Bash(grep -r "STATE_DIR\|CACHE_DIR"
+      /home/theron/.core/.sys/env/desktop/hypr/scripts/ 2>/dev/null | grep -v
+      ".archv" | head -30)
+  ⎿  (No content)
+
+● Bash(grep -rn "STATE_DIR\|CACHE_DIR\|\.local/core"
+      /home/theron/.core/.sys/env/desktop/hypr/scripts/*.sh
+      /home/theron/.core/.sys/env/desktop/hypr/scripts/**/*.sh 2>/…)
+  ⎿  (No content)
+
+● Bash(grep -rn "special-workspace"
+      /home/theron/.core/.sys/env/desktop/hypr/scripts/*.sh
+      /home/theron/.core/.sys/env/desktop/hypr/scripts/**/*.sh 2>/dev/null |
+      grep -…)
+  ⎿  (No content)
+
+● Bash(find /home/theron/.core/.sys/env/desktop/hypr/scripts -name "*.sh" -type
+      f ! -path "*/.archv/*" -exec grep -l "STATE_DIR\|CACHE_DIR\|\.local/core"
+      {} \;)
+  ⎿ /home/theron/.core/.sys/env/desktop/hypr/scripts/env/window-manager.sh 
+    /home/theron/.core/.sys/env/desktop/hypr/scripts/env/workspace-debug.sh
+    /home/theron/.core/.sys/env/desktop/hypr/scripts/env/workspace-monitor-
+    … +34 lines (ctrl+o to expand)
+
+
+
+● Bash(for f in /home/theron/.core/.sys/env/desktop/hypr/scripts/env/special-wor
+      kspace-manager.sh
+      /home/theron/.core/.sys/env/desktop/hypr/scripts/env/special-workspac…)
+  ⎿  Error: Exit code 1
+     ===  ===
+     ===  ===
+     ===  ===
+     ===  ===
+     ===  ===
+
+● Bash(head -20 /home/theron/.core/.sys/env/desktop/hypr/scripts/env/special-wor
+      kspace-manager.sh 2>/dev/null || echo "File not found")
+  ⎿  (No content)
+
+● Bash(head -20 /home/theron/.core/.sys/env/desktop/hypr/scripts/core/workspaces
+      /special-manager.sh 2>/dev/null || echo "File not found")
+  ⎿  (No content)
+
+● Bash(head -40 /home/theron/.core/.sys/env/desktop/hypr/scripts/dropdowns/ghost
+      ty-dropdown.sh 2>/dev/null || echo "File not found")
+  ⎿  (No content)
+
+● Read(~/.core/.sys/env/desktop/hypr/scripts/core/workspaces/special-manager.sh)
+  ⎿  Read 539 lines
+
+● Read(~/.core/.sys/env/desktop/hypr/scripts/dropdowns/dropdown-watcher.sh)
+  ⎿  Read 111 lines
+
+● Now I understand the issues. Let me summarize what I found:
+
+  Issues Found
+
+  | Script                    | Problem                                                                   |
+  |---------------------------|---------------------------------------------------------------------------|
+  | sliding-dropdown.sh:9     | STATE_DIR="/.local/core/..." - missing $HOME (writes to root!)            |
+  | special-manager.sh:6      | LOG_DIR="$CORE_ENV/.local/core/logs" - wrong path (uses CORE_ENV as base) |
+  | dropdown-watcher.sh:5     | Uses /tmp/hypr-trays - old pattern, not centralized                       |
+  | ghostty-dropdown.sh:29-32 | Uses /tmp/hypr-dropdown - old pattern                                     |
+  | Various                   | Reference ~/.config/hypr/scripts/ which may not exist                     |
+
+  The scripts also need to subscribe to workspace change events to properly follow the user when switching between regular and special workspaces.
+
+  Let me create the centralized library and fix these scripts:
+
+● Write(~/.core/.sys/env/sbin/launch/lib/hyprland.sh)
+  ⎿  Wrote 315 lines to ../../env/sbin/launch/lib/hyprland.sh
+      1 #!/bin/bash
+      2 # Hyprland State Management Library
+      3 # Centralized state operations for Hyprland scripts
+      4 #
+      5 # This library provides:
+      6 # - Unified state directory paths
+      7 # - Window/workspace utilities
+      8 # - Dropdown/tray management helpers
+      9 # - IPC event subscription
+     … +305 lines (ctrl+o to expand)
+
+● Now let me fix the special workspace manager to use the library:
+
+● Write(~/.core/.sys/env/desktop/hypr/scripts/core/workspaces/special-manager.sh
+       )
+  ⎿  Added 336 lines, removed 441 lines                                  
+        1  #!/bin/bash
+        2 -# "$CORE_ENV/desktop/hypr/scripts/special-workspace-manager.sh
+        2 +# Special Workspace Manager                                   
+        3  # Enhanced with smart window focus and visual feedback
+        4 -# DEBUG_MODE="$HYPR_SPEC_DEBUG"                               
+        5 -CACHE_DIR="$HOME/.local/core/state/hyprland/special-workspaces
+          -"                                                             
+        6 -LOG_DIR="$CORE_ENV/.local/core/logs"                          
+        7 -SESSION_SCRIPT="$CORE_ENV/desktop/hypr/scripts/env/group-sessi
+          -on-swap.sh"                                                   
+        8 -mkdir -p "$CACHE_DIR" "$LOG_DIR"                              
+        4 +# Now uses centralized state library                          
+        5  
+       10 -# Get actual group name based on current session mapping      
+       11 -resolve_group_from_keybind() {                                
+       12 -  local keybind="$1" # e.g., "MOD3_TAB", "ALT_TAB", "SUPER_TAB
+          -"                                                             
+        6 +# Source the centralized library                              
+        7 +SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"                 
+        8 +LIB_DIR="${CORE_ENV:-$HOME/.core/.sys/env}/sbin/launch/lib"   
+        9  
+       14 -  # Get the current group mapped to this keybind              
+       15 -  if [[ -x "$SESSION_SCRIPT" ]]; then                         
+       16 -    "$SESSION_SCRIPT" get "$keybind"                          
+       17 -  else                                                        
+       18 -    # Fallback to default if script not available             
+       19 -    case "$keybind" in                                        
+       20 -      "MOD3_TAB") echo "hyper" ;;                             
+       21 -      "ALT_TAB") echo "alt" ;;                                
+       22 -      "SUPER_TAB") echo "meta" ;;                             
+       23 -      *) echo "$keybind" ;;                                   
+       24 -    esac                                                      
+       25 -  fi                                                          
+       26 -}                                                             
+       10 +if [[ -f "$LIB_DIR/hyprland.sh" ]]; then                      
+       11 +    source "$LIB_DIR/hyprland.sh"                             
+       12 +else                                                          
+       13 +    echo "ERROR: Cannot find hyprland.sh library at $LIB_DIR" 
+          +>&2                                                           
+       14 +    exit 1                                                    
+       15 +fi                                                            
+       16  
+       28 -log_action() {                                                
+       29 -  echo "$(date '+%Y-%m-%d %H:%M:%S') $1" >>"$LOG_DIR/workspace
+          --navigation.log"                                              
+       30 -}                                                             
+       17 +# Session swap script for keybind resolution                  
+       18 +SESSION_SCRIPT="${CORE_ENV:-$HOME/.core/.sys/env}/desktop/hypr
+          +/scripts/env/group-session-swap.sh"                           
+       19  
+       32 -debug_notify() {                                              
+       33 -  # notify-send "$1" "$2" -t 1500 -u low                      
+       34 -  log_action "NOTIFY: $1 - $2"                                
+       35 -}                                                             
+       20 +# ============================================================
+          +================                                              
+       21 +# KEYBIND RESOLUTION                                          
+       22 +# ============================================================
+          +================                                              
+       23  
+       37 -# Get current visible special workspace                       
+       38 -get_visible_special() {                                       
+       39 -  if [[ -f "$CACHE_DIR/visible_special" ]]; then              
+       40 -    cat "$CACHE_DIR/visible_special"                          
+       41 -  else                                                        
+       42 -    echo "none"                                               
+       43 -  fi                                                          
+       44 -}                                                             
+       24 +# Get actual group name based on current session mapping      
+       25 +resolve_group_from_keybind() {                                
+       26 +    local keybind="$1" # e.g., "MOD3_TAB", "ALT_TAB", "SUPER_T
+          +AB"                                                           
+       27  
+       46 -set_visible_special() {                                       
+       47 -  echo "$1" >"$CACHE_DIR/visible_special"                     
+       48 -}                                                             
+       49 -                                                              
+       50 -# Get active window address                                   
+       51 -get_active_window_address() {                                 
+       52 -  hyprctl activewindow -j | jq -r '.address'                  
+       53 -}                                                             
+       54 -                                                              
+       55 -# Save focused window for a special workspace                 
+       56 -save_special_focus() {                                        
+       57 -  local workspace_name="$1"                                   
+       58 -  local window_address=$(get_active_window_address)           
+       59 -                                                              
+       60 -  if [[ -n "$window_address" && "$window_address" != "null" ]]
+          -; then                                                        
+       61 -    echo "$window_address" >"$CACHE_DIR/${workspace_name}.focu
+          -s"                                                            
+       62 -    log_action "FOCUS-SAVE: Saved window $window_address for s
+          -pecial:$workspace_name"                                       
+       63 -  fi                                                          
+       64 -}                                                             
+       65 -                                                              
+       66 -# Restore focus to last window in special workspace           
+       67 -restore_special_focus() {                                     
+       68 -  local workspace_name="$1"                                   
+       69 -  local focus_file="$CACHE_DIR/${workspace_name}.focus"       
+       70 -                                                              
+       71 -  if [[ -f "$focus_file" ]]; then                             
+       72 -    local window_address=$(cat "$focus_file")                 
+       73 -                                                              
+       74 -    # Small delay to let workspace show first                 
+       75 -    sleep 0.05                                                
+       76 -                                                              
+       77 -    # Check if window still exists in this special workspace  
+       78 -    if hyprctl clients -j | jq -e ".[] | select(.address == \"
+          -$window_address\" and .workspace.name == \"special:$workspace_
+          -name\")" >/dev/null 2>&1; then                                
+       79 -      hyprctl dispatch focuswindow address:"$window_address"  
+       80 -      log_action "FOCUS-RESTORE: Focused window $window_addres
+          -s in special:$workspace_name"                                 
+       28 +    if [[ -x "$SESSION_SCRIPT" ]]; then                       
+       29 +        "$SESSION_SCRIPT" get "$keybind"                      
+       30      else
+       82 -      log_action "FOCUS-RESTORE: Stale focus for special:$work
+          -space_name (window not found)"                                
+       83 -      rm -f "$focus_file"                                     
+       31 +        # Fallback to default if script not available         
+       32 +        case "$keybind" in                                    
+       33 +            "MOD3_TAB") echo "hyper" ;;                       
+       34 +            "ALT_TAB") echo "alt" ;;                          
+       35 +            "SUPER_TAB") echo "meta" ;;                       
+       36 +            *) echo "$keybind" ;;                             
+       37 +        esac                                                  
+       38      fi
+       85 -  else                                                        
+       86 -    log_action "FOCUS-RESTORE: No saved focus for special:$wor
+          -kspace_name"                                                  
+       87 -  fi                                                          
+       39  }
+       40  
+       90 -# Get current sub-index for a group                           
+       91 -get_group_index() {                                           
+       92 -  local group="$1"                                            
+       93 -  if [[ -f "$CACHE_DIR/${group}_index" ]]; then               
+       94 -    cat "$CACHE_DIR/${group}_index"                           
+       95 -  else                                                        
+       96 -    echo "1"                                                  
+       97 -  fi                                                          
+       98 -}                                                             
+       41 +# ============================================================
+          +================                                              
+       42 +# CANVAS UTILITIES                                            
+       43 +# ============================================================
+          +================                                              
+       44  
+      100 -set_group_index() {                                           
+      101 -  local group="$1"                                            
+      102 -  local index="$2"                                            
+      103 -  echo "$index" >"$CACHE_DIR/${group}_index"                  
+      104 -}                                                             
+      105 -                                                              
+      106 -# Get the last active group (for MOD3+TAB global toggle)      
+      107 -get_last_active_group() {                                     
+      108 -  if [[ -f "$CACHE_DIR/last_active_group" ]]; then            
+      109 -    cat "$CACHE_DIR/last_active_group"                        
+      110 -  else                                                        
+      111 -    echo "hyper" # Default to hyper                           
+      112 -  fi                                                          
+      113 -}                                                             
+      114 -                                                              
+      115 -set_last_active_group() {                                     
+      116 -  local group="$1"                                            
+      117 -  echo "$group" >"$CACHE_DIR/last_active_group"               
+      118 -}                                                             
+      119 -                                                              
+      120 -# 0xff00ffff #00c8ff                                          
+      121 -# 0xffff00ff #8800ff                                          
+      122 -# 0xffffaa00 #ff6600                                          
+      123 -# Set border colors based on special workspace group          
+      124 -set_special_borders() {                                       
+      125 -  local group="$1"                                            
+      126 -  case "$group" in                                            
+      127 -    "hyper")                                                  
+      128 -      # Cyan/Blue gradient for hyper                          
+      129 -      hyprctl keyword general:col.active_border "0xffff00ff 0x
+          -ff8800ff 45deg"                                               
+      130 -      hyprctl keyword general:col.inactive_border "0xff660088"
+      131 -      ;;                                                      
+      132 -    "alt")                                                    
+      133 -      # Purple/Pink gradient for alt                          
+      134 -      hyprctl keyword general:col.active_border "0xff00ffff 0x
+          -ff00c8ff 45deg"                                               
+      135 -      hyprctl keyword general:col.inactive_border "rgba(006688
+          -ee) rgba(6c7086cc) 45deg"                                     
+      136 -      ;;                                                      
+      137 -    "meta")                                                   
+      138 -      # Blue gradient for meta                                
+      139 -      hyprctl keyword general:col.active_border "rgba(b4befecc
+          -) rgba(6698ffee) 45deg"                                       
+      140 -      hyprctl keyword general:col.inactive_border "rgba(b4befe
+          -cc) rgba(6c7086cc) 45deg"                                     
+      141 -      ;;                                                      
+      142 -    *)                                                        
+      143 -      # Default borders #6698ff                               
+      144 -      hyprctl keyword general:col.active_border "rgba(01f9C6ee
+          -) rgba(00ff99ee) 45deg"                                       
+      145 -      hyprctl keyword general:col.inactive_border "rgba(74c7ec
+          -cc) rgba(6c7086cc) 45deg"                                     
+      146 -      ;;                                                      
+      147 -  esac                                                        
+      148 -}                                                             
+      149 -                                                              
+      150 -# Reset to default borders                                    
+      151 -reset_borders() { #01f9C6                                     
+      152 -  hyprctl keyword general:col.active_border "rgba(01f9C6ee) rg
+          -ba(00ff99ee) 45deg"                                           
+      153 -  hyprctl keyword general:col.inactive_border "rgba(74c7eccc) 
+          -rgba(6c7086cc) 45deg"                                         
+      154 -}                                                             
+      155 -                                                              
+       45  # Find canvas with windows for a group
+       46  find_populated_canvas() {
+      158 -  local group="$1"                                            
+      159 -  local best_canvas=""                                        
+      160 -  local max_windows=0                                         
+       47 +    local group="$1"                                          
+       48 +    local best_canvas=""                                      
+       49 +    local max_windows=0                                       
+       50  
+      162 -  # Check each canvas (1-3)                                   
+      163 -  for i in 1 2 3; do                                          
+      164 -    local workspace_name="special:${group}${i}"               
+      165 -    local window_count=$(hyprctl workspaces -j | jq ".[] | sel
+          -ect(.name == \"$workspace_name\") | .windows // 0")           
+       51 +    for i in 1 2 3; do                                        
+       52 +        local workspace_name="special:${group}${i}"           
+       53 +        local window_count                                    
+       54 +        window_count=$(hyprctl workspaces -j | jq ".[] | selec
+          +t(.name == \"$workspace_name\") | .windows // 0")             
+       55  
+      167 -    if [[ "$window_count" -gt "$max_windows" ]]; then         
+      168 -      max_windows="$window_count"                             
+      169 -      best_canvas="$i"                                        
+      170 -    fi                                                        
+      171 -  done                                                        
+       56 +        if [[ "$window_count" -gt "$max_windows" ]]; then     
+       57 +            max_windows="$window_count"                       
+       58 +            best_canvas="$i"                                  
+       59 +        fi                                                    
+       60 +    done                                                      
+       61  
+      173 -  # Return the canvas with most windows, or 1 if all empty    
+      174 -  if [[ -n "$best_canvas" ]] && [[ "$max_windows" -gt 0 ]]; th
+          -en                                                            
+      175 -    echo "$best_canvas"                                       
+      176 -  else                                                        
+      177 -    echo "1"                                                  
+      178 -  fi                                                          
+       62 +    if [[ -n "$best_canvas" ]] && [[ "$max_windows" -gt 0 ]]; 
+          +then                                                          
+       63 +        echo "$best_canvas"                                   
+       64 +    else                                                      
+       65 +        echo "1"                                              
+       66 +    fi                                                        
+       67  }
+       68  
+       69 +# ============================================================
+          +================                                              
+       70 +# SPECIAL WORKSPACE OPERATIONS                                
+       71 +# ============================================================
+          +================                                              
+       72 +                                                              
+       73  # Toggle special workspace group
+       74  toggle_special_group() {
+      183 -  local group="$1"                                            
+      184 -  local current_visible=$(get_visible_special)                
+       75 +    local group="$1"                                          
+       76 +    local current_visible                                     
+       77 +    current_visible=$(hypr_get_visible_special)               
+       78  
+      186 -  # Check if this EXACT group is already visible (not just pre
+          -fix match)                                                    
+      187 -  local is_same_group=false                                   
+      188 -  if [[ "$current_visible" =~ ^(hyper|alt|meta)([1-3])$ ]]; th
+          -en                                                            
+      189 -    local visible_group="${BASH_REMATCH[1]}"                  
+      190 -    if [[ "$visible_group" == "$group" ]]; then               
+      191 -      is_same_group=true                                      
+       79 +    # Check if this EXACT group is already visible            
+       80 +    local is_same_group=false                                 
+       81 +    if [[ "$current_visible" =~ ^(hyper|alt|meta)([1-3])$ ]]; 
+          +then                                                          
+       82 +        local visible_group="${BASH_REMATCH[1]}"              
+       83 +        if [[ "$visible_group" == "$group" ]]; then           
+       84 +            is_same_group=true                                
+       85 +        fi                                                    
+       86      fi
+      193 -  fi                                                          
+       87  
+      195 -  if [[ "$is_same_group" == "true" ]]; then                   
+      196 -    # Save focus before hiding                                
+      197 -    save_special_focus "$current_visible"                     
+       88 +    if [[ "$is_same_group" == "true" ]]; then                 
+       89 +        # Save focus before hiding                            
+       90 +        hypr_save_workspace_focus "$current_visible"          
+       91  
+      199 -    # Hide the current special workspace                      
+      200 -    hyprctl dispatch togglespecialworkspace "$current_visible"
+      201 -    set_visible_special "none"                                
+      202 -    reset_borders                                             
+      203 -    debug_notify "Hidden $group" "Returned to normal workspace
+          -"                                                             
+      204 -    log_action "Hidden special:$current_visible"              
+      205 -  else                                                        
+      206 -    # Hide any other visible special                          
+      207 -    if [[ "$current_visible" != "none" ]]; then               
+      208 -      save_special_focus "$current_visible"                   
+      209 -      hyprctl dispatch togglespecialworkspace "$current_visibl
+          -e"                                                            
+      210 -      reset_borders                                           
+      211 -    fi                                                        
+       92 +        # Hide the current special workspace                  
+       93 +        hyprctl dispatch togglespecialworkspace "$current_visi
+          +ble"                                                          
+       94 +        hypr_set_visible_special "none"                       
+       95 +        hypr_reset_borders                                    
+       96  
+      213 -    # Get the last used index for this group, or find best can
+          -vas                                                           
+      214 -    local last_index=$(get_group_index "$group")              
+      215 -    local workspace_name="${group}${last_index}"              
+       97 +        hypr_log_info "special-ws" "Hidden special:$current_vi
+          +sible"                                                        
+       98 +    else                                                      
+       99 +        # Hide any other visible special                      
+      100 +        if [[ "$current_visible" != "none" ]]; then           
+      101 +            hypr_save_workspace_focus "$current_visible"      
+      102 +            hyprctl dispatch togglespecialworkspace "$current_
+          +visible"                                                      
+      103 +            hypr_reset_borders                                
+      104 +        fi                                                    
+      105  
+      217 -    # Check if last used canvas has windows, otherwise find po
+          -pulated one                                                   
+      218 -    local window_count=$(hyprctl workspaces -j | jq ".[] | sel
+          -ect(.name == \"special:$workspace_name\") | .windows // 0")   
+      219 -    if [[ "$window_count" -eq 0 ]]; then                      
+      220 -      local best_index=$(find_populated_canvas "$group")      
+      221 -      workspace_name="${group}${best_index}"                  
+      222 -      last_index="$best_index"                                
+      223 -      window_count=$(hyprctl workspaces -j | jq ".[] | select(
+          -.name == \"special:$workspace_name\") | .windows // 0")       
+      224 -    fi                                                        
+      106 +        # Get the last used index for this group, or find best
+          + canvas                                                       
+      107 +        local last_index                                      
+      108 +        last_index=$(hypr_get_group_index "$group")           
+      109 +        local workspace_name="${group}${last_index}"          
+      110  
+      226 -    # Show the special workspace                              
+      227 -    hyprctl dispatch togglespecialworkspace "$workspace_name" 
+      228 -    set_visible_special "$workspace_name"                     
+      229 -    set_group_index "$group" "$last_index"                    
+      230 -    set_last_active_group "$group" # Track this as last active
+          - group                                                        
+      231 -    set_special_borders "$group"                              
+      111 +        # Check if last used canvas has windows, otherwise fin
+          +d populated one                                               
+      112 +        local window_count                                    
+      113 +        window_count=$(hyprctl workspaces -j | jq ".[] | selec
+          +t(.name == \"special:$workspace_name\") | .windows // 0")     
+      114  
+      233 -    # Restore focus to last used window                       
+      234 -    restore_special_focus "$workspace_name"                   
+      115 +        if [[ "$window_count" -eq 0 ]]; then                  
+      116 +            local best_index                                  
+      117 +            best_index=$(find_populated_canvas "$group")      
+      118 +            workspace_name="${group}${best_index}"            
+      119 +            last_index="$best_index"                          
+      120 +            window_count=$(hyprctl workspaces -j | jq ".[] | s
+          +elect(.name == \"special:$workspace_name\") | .windows // 0") 
+      121 +        fi                                                    
+      122  
+      236 -    debug_notify "Showing $group" "Canvas $last_index (${windo
+          -w_count} windows)"                                            
+      237 -    log_action "Showing special:$workspace_name with $window_c
+          -ount windows"                                                 
+      238 -  fi                                                          
+      123 +        # Show the special workspace                          
+      124 +        hyprctl dispatch togglespecialworkspace "$workspace_na
+          +me"                                                           
+      125 +        hypr_set_visible_special "$workspace_name"            
+      126 +        hypr_set_group_index "$group" "$last_index"           
+      127 +        hypr_set_last_special_group "$group"                  
+      128 +        hypr_set_special_borders "$group"                     
+      129 +                                                              
+      130 +        # Restore focus to last used window                   
+      131 +        hypr_restore_workspace_focus "$workspace_name"        
+      132 +                                                              
+      133 +        hypr_log_info "special-ws" "Showing special:$workspace
+          +_name with $window_count windows"                             
+      134 +    fi                                                        
+      135  }
+      136  
+      137  # Navigate between special workspace groups (hyper ↔ alt ↔ met
+           a)
+      138  navigate_between_groups() {
+      243 -  local direction="$1"                                        
+      244 -  local current_visible=$(get_visible_special)                
+      139 +    local direction="$1"                                      
+      140 +    local current_visible                                     
+      141 +    current_visible=$(hypr_get_visible_special)               
+      142  
+      246 -  if [[ "$current_visible" == "none" ]]; then                 
+      247 -    debug_notify "No Special Active" "Use MOD3/ALT/SUPER+TAB f
+          -irst"                                                         
+      248 -    return                                                    
+      249 -  fi                                                          
+      143 +    if [[ "$current_visible" == "none" ]]; then               
+      144 +        return                                                
+      145 +    fi                                                        
+      146  
+      251 -  # Extract current group                                     
+      252 -  local current_group=""                                      
+      253 -  if [[ "$current_visible" =~ ^(hyper|alt|meta)([1-3])$ ]]; th
+          -en                                                            
+      254 -    current_group="${BASH_REMATCH[1]}"                        
+      255 -  else                                                        
+      256 -    return                                                    
+      257 -  fi                                                          
+      147 +    # Extract current group                                   
+      148 +    local current_group=""                                    
+      149 +    if [[ "$current_visible" =~ ^(hyper|alt|meta)([1-3])$ ]]; 
+          +then                                                          
+      150 +        current_group="${BASH_REMATCH[1]}"                    
+      151 +    else                                                      
+      152 +        return                                                
+      153 +    fi                                                        
+      154  
+      259 -  # Determine next group                                      
+      260 -  local next_group=""                                         
+      261 -  if [[ "$direction" == "next" ]]; then                       
+      262 -    case "$current_group" in                                  
+      263 -      "hyper") next_group="alt" ;;                            
+      264 -      "alt") next_group="meta" ;;                             
+      265 -      "meta") next_group="hyper" ;;                           
+      266 -    esac                                                      
+      267 -  else # prev                                                 
+      268 -    case "$current_group" in                                  
+      269 -      "hyper") next_group="meta" ;;                           
+      270 -      "meta") next_group="alt" ;;                             
+      271 -      "alt") next_group="hyper" ;;                            
+      272 -    esac                                                      
+      273 -  fi                                                          
+      155 +    # Determine next group                                    
+      156 +    local next_group=""                                       
+      157 +    if [[ "$direction" == "next" ]]; then                     
+      158 +        case "$current_group" in                              
+      159 +            "hyper") next_group="alt" ;;                      
+      160 +            "alt") next_group="meta" ;;                       
+      161 +            "meta") next_group="hyper" ;;                     
+      162 +        esac                                                  
+      163 +    else                                                      
+      164 +        case "$current_group" in                              
+      165 +            "hyper") next_group="meta" ;;                     
+      166 +            "meta") next_group="alt" ;;                       
+      167 +            "alt") next_group="hyper" ;;                      
+      168 +        esac                                                  
+      169 +    fi                                                        
+      170  
+      275 -  # Save focus for current workspace before switching         
+      276 -  save_special_focus "$current_visible"                       
+      171 +    # Save focus for current workspace before switching       
+      172 +    hypr_save_workspace_focus "$current_visible"              
+      173  
+      278 -  # Get the last used canvas index for the target group       
+      279 -  local next_index=$(get_group_index "$next_group")           
+      280 -  local next_workspace="${next_group}${next_index}"           
+      174 +    # Get the last used canvas index for the target group     
+      175 +    local next_index                                          
+      176 +    next_index=$(hypr_get_group_index "$next_group")          
+      177 +    local next_workspace="${next_group}${next_index}"         
+      178  
+      282 -  # Quick transition: hide current, show next                 
+      283 -  hyprctl dispatch togglespecialworkspace "$current_visible"  
+      284 -  reset_borders                                               
+      179 +    # Quick transition: hide current, show next               
+      180 +    hyprctl dispatch togglespecialworkspace "$current_visible"
+      181 +    hypr_reset_borders                                        
+      182  
+      286 -  # Small delay for smoother transition                       
+      287 -  sleep 0.02                                                  
+      183 +    sleep 0.02                                                
+      184  
+      289 -  hyprctl dispatch togglespecialworkspace "$next_workspace"   
+      290 -  set_visible_special "$next_workspace"                       
+      291 -  set_last_active_group "$next_group"                         
+      292 -  set_special_borders "$next_group"                           
+      185 +    hyprctl dispatch togglespecialworkspace "$next_workspace" 
+      186 +    hypr_set_visible_special "$next_workspace"                
+      187 +    hypr_set_last_special_group "$next_group"                 
+      188 +    hypr_set_special_borders "$next_group"                    
+      189  
+      294 -  # Restore focus for new group                               
+      295 -  restore_special_focus "$next_workspace"                     
+      190 +    # Restore focus for new group                             
+      191 +    hypr_restore_workspace_focus "$next_workspace"            
+      192  
+      297 -  # Get window count                                          
+      298 -  local window_count=$(hyprctl workspaces -j | jq ".[] | selec
+          -t(.name == \"special:$next_workspace\") | .windows // 0")     
+      299 -                                                              
+      300 -  debug_notify "→ $next_group" "Canvas $next_index (${window_c
+          -ount} windows)"                                               
+      301 -  log_action "Switched groups: $current_group → $next_group (c
+          -anvas $next_index)"                                           
+      193 +    hypr_log_info "special-ws" "Switched groups: $current_grou
+          +p → $next_group (canvas $next_index)"                         
+      194  }
+      195  
+      196  # Toggle the last active group (universal toggle)
+      197  toggle_last_active_group() {
+      306 -  local current_visible=$(get_visible_special)                
+      198 +    local current_visible                                     
+      199 +    current_visible=$(hypr_get_visible_special)               
+      200  
+      308 -  if [[ "$current_visible" != "none" ]]; then                 
+      309 -    # Something is visible, hide it                           
+      310 -    save_special_focus "$current_visible"                     
+      311 -    hyprctl dispatch togglespecialworkspace "$current_visible"
+      312 -    set_visible_special "none"                                
+      313 -    reset_borders                                             
+      314 -    debug_notify "Hidden" "Returned to normal workspace"      
+      315 -    log_action "Hidden special:$current_visible (universal tog
+          -gle)"                                                         
+      316 -  else                                                        
+      317 -    # Nothing visible, show last active group                 
+      318 -    local last_group=$(get_last_active_group)                 
+      319 -    toggle_special_group "$last_group"                        
+      320 -  fi                                                          
+      201 +    if [[ "$current_visible" != "none" ]]; then               
+      202 +        hypr_save_workspace_focus "$current_visible"          
+      203 +        hyprctl dispatch togglespecialworkspace "$current_visi
+          +ble"                                                          
+      204 +        hypr_set_visible_special "none"                       
+      205 +        hypr_reset_borders                                    
+      206 +        hypr_log_info "special-ws" "Hidden special:$current_vi
+          +sible (universal toggle)"                                     
+      207 +    else                                                      
+      208 +        local last_group                                      
+      209 +        last_group=$(hypr_get_last_special_group)             
+      210 +        toggle_special_group "$last_group"                    
+      211 +    fi                                                        
+      212  }
+      213  
+      323 -# Navigate between sub-workspaces                             
+      214 +# Navigate between sub-workspaces (canvases 1-3)              
+      215  navigate_within_special() {
+      325 -  local direction="$1"                                        
+      326 -  local current_visible=$(get_visible_special)                
+      216 +    local direction="$1"                                      
+      217 +    local current_visible                                     
+      218 +    current_visible=$(hypr_get_visible_special)               
+      219  
+      328 -  if [[ "$current_visible" == "none" ]]; then                 
+      329 -    debug_notify "No Special Active" "Use MOD3/ALT/SUPER+TAB f
+          -irst"                                                         
+      330 -    return                                                    
+      331 -  fi                                                          
+      220 +    if [[ "$current_visible" == "none" ]]; then               
+      221 +        return                                                
+      222 +    fi                                                        
+      223  
+      333 -  # Extract group and index from current visible              
+      334 -  local group=""                                              
+      335 -  local current_index=""                                      
+      224 +    local group=""                                            
+      225 +    local current_index=""                                    
+      226  
+      337 -  if [[ "$current_visible" =~ ^(hyper|alt|meta)([1-3])$ ]]; th
+          -en                                                            
+      338 -    group="${BASH_REMATCH[1]}"                                
+      339 -    current_index="${BASH_REMATCH[2]}"                        
+      340 -  else                                                        
+      341 -    debug_notify "Error" "Invalid special workspace state"    
+      342 -    return                                                    
+      343 -  fi                                                          
+      227 +    if [[ "$current_visible" =~ ^(hyper|alt|meta)([1-3])$ ]]; 
+          +then                                                          
+      228 +        group="${BASH_REMATCH[1]}"                            
+      229 +        current_index="${BASH_REMATCH[2]}"                    
+      230 +    else                                                      
+      231 +        return                                                
+      232 +    fi                                                        
+      233  
+      345 -  # Calculate new index                                       
+      346 -  local new_index="$current_index"                            
+      347 -  if [[ "$direction" == "next" ]]; then                       
+      348 -    new_index=$((current_index + 1))                          
+      349 -    [[ "$new_index" -gt 3 ]] && new_index=1                   
+      350 -  else                                                        
+      351 -    new_index=$((current_index - 1))                          
+      352 -    [[ "$new_index" -lt 1 ]] && new_index=3                   
+      353 -  fi                                                          
+      234 +    local new_index="$current_index"                          
+      235 +    if [[ "$direction" == "next" ]]; then                     
+      236 +        new_index=$((current_index + 1))                      
+      237 +        [[ "$new_index" -gt 3 ]] && new_index=1               
+      238 +    else                                                      
+      239 +        new_index=$((current_index - 1))                      
+      240 +        [[ "$new_index" -lt 1 ]] && new_index=3               
+      241 +    fi                                                        
+      242  
+      355 -  # Don't switch if we're already there                       
+      356 -  if [[ "$new_index" == "$current_index" ]]; then             
+      357 -    return                                                    
+      358 -  fi                                                          
+      243 +    if [[ "$new_index" == "$current_index" ]]; then           
+      244 +        return                                                
+      245 +    fi                                                        
+      246  
+      360 -  # Save focus for current canvas before switching            
+      361 -  save_special_focus "$current_visible"                       
+      247 +    hypr_save_workspace_focus "$current_visible"              
+      248  
+      363 -  # Switch to the new sub-workspace                           
+      364 -  local new_workspace="${group}${new_index}"                  
+      249 +    local new_workspace="${group}${new_index}"                
+      250  
+      366 -  # Hide current special                                      
+      367 -  hyprctl dispatch togglespecialworkspace "$current_visible"  
+      251 +    hyprctl dispatch togglespecialworkspace "$current_visible"
+      252 +    hyprctl dispatch togglespecialworkspace "$new_workspace"  
+      253  
+      369 -  # Show new special                                          
+      370 -  hyprctl dispatch togglespecialworkspace "$new_workspace"    
+      254 +    hypr_set_visible_special "$new_workspace"                 
+      255 +    hypr_set_group_index "$group" "$new_index"                
+      256  
+      372 -  set_visible_special "$new_workspace"                        
+      373 -  set_group_index "$group" "$new_index"                       
+      257 +    hypr_restore_workspace_focus "$new_workspace"             
+      258  
+      375 -  # Restore focus for new canvas                              
+      376 -  restore_special_focus "$new_workspace"                      
+      377 -                                                              
+      378 -  # Get window count for new canvas                           
+      379 -  local window_count=$(hyprctl workspaces -j | jq ".[] | selec
+          -t(.name == \"special:$new_workspace\") | .windows // 0")      
+      380 -                                                              
+      381 -  debug_notify "$group Canvas $new_index" "${window_count} win
+          -dows"                                                         
+      382 -  log_action "Switched from special:$current_visible to specia
+          -l:$new_workspace"                                             
+      259 +    hypr_log_info "special-ws" "Switched canvas: $current_visi
+          +ble → $new_workspace"                                         
+      260  }
+      261  
+      262  # Move window between sub-workspaces
+      263  move_within_special() {
+      387 -  local direction="$1"                                        
+      388 -  local current_visible=$(get_visible_special)                
+      264 +    local direction="$1"                                      
+      265 +    local current_visible                                     
+      266 +    current_visible=$(hypr_get_visible_special)               
+      267  
+      390 -  if [[ "$current_visible" == "none" ]]; then                 
+      391 -    debug_notify "No Special Active" "Cannot move window"     
+      392 -    return                                                    
+      393 -  fi                                                          
+      268 +    if [[ "$current_visible" == "none" ]]; then               
+      269 +        return                                                
+      270 +    fi                                                        
+      271  
+      395 -  # Extract group and index                                   
+      396 -  local group=""                                              
+      397 -  local current_index=""                                      
+      272 +    local group=""                                            
+      273 +    local current_index=""                                    
+      274  
+      399 -  if [[ "$current_visible" =~ ^(hyper|alt|meta)([1-3])$ ]]; th
+          -en                                                            
+      400 -    group="${BASH_REMATCH[1]}"                                
+      401 -    current_index="${BASH_REMATCH[2]}"                        
+      402 -  else                                                        
+      403 -    return                                                    
+      404 -  fi                                                          
+      275 +    if [[ "$current_visible" =~ ^(hyper|alt|meta)([1-3])$ ]]; 
+          +then                                                          
+      276 +        group="${BASH_REMATCH[1]}"                            
+      277 +        current_index="${BASH_REMATCH[2]}"                    
+      278 +    else                                                      
+      279 +        return                                                
+      280 +    fi                                                        
+      281  
+      406 -  # Calculate target index                                    
+      407 -  local new_index="$current_index"                            
+      408 -  if [[ "$direction" == "next" ]]; then                       
+      409 -    new_index=$((current_index + 1))                          
+      410 -    [[ "$new_index" -gt 3 ]] && new_index=1                   
+      411 -  else                                                        
+      412 -    new_index=$((current_index - 1))                          
+      413 -    [[ "$new_index" -lt 1 ]] && new_index=3                   
+      414 -  fi                                                          
+      282 +    local new_index="$current_index"                          
+      283 +    if [[ "$direction" == "next" ]]; then                     
+      284 +        new_index=$((current_index + 1))                      
+      285 +        [[ "$new_index" -gt 3 ]] && new_index=1               
+      286 +    else                                                      
+      287 +        new_index=$((current_index - 1))                      
+      288 +        [[ "$new_index" -lt 1 ]] && new_index=3               
+      289 +    fi                                                        
+      290  
+      416 -  local target_workspace="${group}${new_index}"               
+      291 +    local target_workspace="${group}${new_index}"             
+      292  
+      418 -  # Move window to target special workspace                   
+      419 -  hyprctl dispatch movetoworkspacesilent "special:$target_work
+          -space"                                                        
+      293 +    hyprctl dispatch movetoworkspacesilent "special:$target_wo
+          +rkspace"                                                      
+      294  
+      421 -  # Switch view to target workspace                           
+      422 -  hyprctl dispatch togglespecialworkspace "$current_visible"  
+      423 -  hyprctl dispatch togglespecialworkspace "$target_workspace" 
+      295 +    hyprctl dispatch togglespecialworkspace "$current_visible"
+      296 +    hyprctl dispatch togglespecialworkspace "$target_workspace
+          +"                                                             
+      297  
+      425 -  set_visible_special "$target_workspace"                     
+      426 -  set_group_index "$group" "$new_index"                       
+      298 +    hypr_set_visible_special "$target_workspace"              
+      299 +    hypr_set_group_index "$group" "$new_index"                
+      300  
+      428 -  debug_notify "Window Moved" "To $group canvas $new_index"   
+      429 -  log_action "Moved window from special:$current_visible to sp
+          -ecial:$target_workspace"                                      
+      301 +    hypr_log_info "special-ws" "Moved window: $current_visible
+          + → $target_workspace"                                         
+      302  }
+      303  
+      304  # Move window to special workspace
+      305  move_to_special() {
+      434 -  local group="$1"                                            
+      306 +    local group="$1"                                          
+      307  
+      436 -  # Find canvas with least windows for balanced distribution  
+      437 -  local min_windows=999                                       
+      438 -  local best_index=1                                          
+      308 +    # Find canvas with least windows                          
+      309 +    local min_windows=999                                     
+      310 +    local best_index=1                                        
+      311  
+      440 -  for i in 1 2 3; do                                          
+      441 -    local workspace_name="special:${group}${i}"               
+      442 -    local window_count=$(hyprctl workspaces -j | jq ".[] | sel
+          -ect(.name == \"$workspace_name\") | .windows // 0")           
+      312 +    for i in 1 2 3; do                                        
+      313 +        local workspace_name="special:${group}${i}"           
+      314 +        local window_count                                    
+      315 +        window_count=$(hyprctl workspaces -j | jq ".[] | selec
+          +t(.name == \"$workspace_name\") | .windows // 0")             
+      316  
+      444 -    if [[ "$window_count" -lt "$min_windows" ]]; then         
+      445 -      min_windows="$window_count"                             
+      446 -      best_index="$i"                                         
+      447 -    fi                                                        
+      448 -  done                                                        
+      317 +        if [[ "$window_count" -lt "$min_windows" ]]; then     
+      318 +            min_windows="$window_count"                       
+      319 +            best_index="$i"                                   
+      320 +        fi                                                    
+      321 +    done                                                      
+      322  
+      450 -  local workspace_name="${group}${best_index}"                
+      323 +    local workspace_name="${group}${best_index}"              
+      324  
+      452 -  # Move window                                               
+      453 -  hyprctl dispatch movetoworkspacesilent "special:$workspace_n
+          -ame"                                                          
+      325 +    hyprctl dispatch movetoworkspacesilent "special:$workspace
+          +_name"                                                        
+      326  
+      455 -  # Show the special workspace if not visible                 
+      456 -  local current_visible=$(get_visible_special)                
+      457 -  if [[ "$current_visible" != "$workspace_name" ]]; then      
+      458 -    if [[ "$current_visible" != "none" ]]; then               
+      459 -      hyprctl dispatch togglespecialworkspace "$current_visibl
+          -e"                                                            
+      460 -      reset_borders                                           
+      327 +    local current_visible                                     
+      328 +    current_visible=$(hypr_get_visible_special)               
+      329 +                                                              
+      330 +    if [[ "$current_visible" != "$workspace_name" ]]; then    
+      331 +        if [[ "$current_visible" != "none" ]]; then           
+      332 +            hyprctl dispatch togglespecialworkspace "$current_
+          +visible"                                                      
+      333 +            hypr_reset_borders                                
+      334 +        fi                                                    
+      335 +        hyprctl dispatch togglespecialworkspace "$workspace_na
+          +me"                                                           
+      336 +        hypr_set_visible_special "$workspace_name"            
+      337 +        hypr_set_special_borders "$group"                     
+      338      fi
+      462 -    hyprctl dispatch togglespecialworkspace "$workspace_name" 
+      463 -    set_visible_special "$workspace_name"                     
+      464 -    set_special_borders "$group"                              
+      465 -  fi                                                          
+      339  
+      467 -  debug_notify "Window Placed" "Moved to $group canvas $best_i
+          -ndex"                                                         
+      468 -  log_action "Placed window in special:$workspace_name"       
+      340 +    hypr_log_info "special-ws" "Placed window in special:$work
+          +space_name"                                                   
+      341  }
+      342  
+      343  # Hide all special workspaces
+      344  hide_all() {
+      473 -  local visible=$(get_visible_special)                        
+      474 -  if [[ "$visible" != "none" ]]; then                         
+      475 -    hyprctl dispatch togglespecialworkspace "$visible"        
+      476 -    set_visible_special "none"                                
+      477 -    reset_borders                                             
+      478 -  fi                                                          
+      345 +    local visible                                             
+      346 +    visible=$(hypr_get_visible_special)                       
+      347 +    if [[ "$visible" != "none" ]]; then                       
+      348 +        hyprctl dispatch togglespecialworkspace "$visible"    
+      349 +        hypr_set_visible_special "none"                       
+      350 +        hypr_reset_borders                                    
+      351 +    fi                                                        
+      352  }
+      353  
+      354 +# ============================================================
+          +================                                              
+      355 +# MAIN COMMAND DISPATCH                                       
+      356 +# ============================================================
+          +================                                              
+      357 +                                                              
+      358  case "$1" in
+      482 -  "toggle-hyper")                                             
+      483 -    actual_group=$(resolve_group_from_keybind "MOD3_TAB")     
+      484 -    toggle_special_group "$actual_group"                      
+      485 -    ;;                                                        
+      486 -  "toggle-alt")                                               
+      487 -    actual_group=$(resolve_group_from_keybind "ALT_TAB")      
+      488 -    toggle_special_group "$actual_group"                      
+      489 -    ;;                                                        
+      490 -  "toggle-meta")                                              
+      491 -    actual_group=$(resolve_group_from_keybind "SUPER_TAB")    
+      492 -    toggle_special_group "$actual_group"                      
+      493 -    ;;                                                        
+      494 -  "toggle-last")                                              
+      495 -    toggle_last_active_group                                  
+      496 -    ;;                                                        
+      497 -  "navigate-canvas-next")                                     
+      498 -    navigate_within_special "next"                            
+      499 -    ;;                                                        
+      500 -  "navigate-canvas-prev")                                     
+      501 -    navigate_within_special "prev"                            
+      502 -    ;;                                                        
+      503 -  "navigate-group-next")                                      
+      504 -    navigate_between_groups "next"                            
+      505 -    ;;                                                        
+      506 -  "navigate-group-prev")                                      
+      507 -    navigate_between_groups "prev"                            
+      508 -    ;;                                                        
+      509 -  "move-next")                                                
+      510 -    move_within_special "next"                                
+      511 -    ;;                                                        
+      512 -  "move-prev")                                                
+      513 -    move_within_special "prev"                                
+      514 -    ;;                                                        
+      515 -  "move-hyper")                                               
+      516 -    actual_group=$(resolve_group_from_keybind "MOD3_TAB")     
+      517 -    move_to_special "$actual_group"                           
+      518 -    ;;                                                        
+      519 -  "move-alt")                                                 
+      520 -    actual_group=$(resolve_group_from_keybind "ALT_TAB")      
+      521 -    move_to_special "$actual_group"                           
+      522 -    ;;                                                        
+      523 -  "move-meta")                                                
+      524 -    actual_group=$(resolve_group_from_keybind "SUPER_TAB")    
+      525 -    move_to_special "$actual_group"                           
+      526 -    ;;                                                        
+      527 -  "move-to-last-active")                                      
+      528 -    # Move window to the last active special workspace group  
+      529 -    last_group=$(get_last_active_group)                       
+      530 -    move_to_special "$last_group"                             
+      531 -    ;;                                                        
+      532 -  "hide-all")                                                 
+      533 -    hide_all                                                  
+      534 -    ;;                                                        
+      535 -  *)                                                          
+      536 -    echo "Usage: $0 {toggle-hyper|toggle-alt|toggle-meta|toggl
+          -e-last|navigate-canvas-next|navigate-canvas-prev|navigate-grou
+          -p-next|navigate-group-prev|move-next|move-prev|move-hyper|move
+          --alt|move-meta|move-to-last-active|hide-all}"                 
+      537 -    ;;                                                        
+      359 +    "toggle-hyper")                                           
+      360 +        actual_group=$(resolve_group_from_keybind "MOD3_TAB") 
+      361 +        toggle_special_group "$actual_group"                  
+      362 +        ;;                                                    
+      363 +    "toggle-alt")                                             
+      364 +        actual_group=$(resolve_group_from_keybind "ALT_TAB")  
+      365 +        toggle_special_group "$actual_group"                  
+      366 +        ;;                                                    
+      367 +    "toggle-meta")                                            
+      368 +        actual_group=$(resolve_group_from_keybind "SUPER_TAB")
+      369 +        toggle_special_group "$actual_group"                  
+      370 +        ;;                                                    
+      371 +    "toggle-last")                                            
+      372 +        toggle_last_active_group                              
+      373 +        ;;                                                    
+      374 +    "navigate-canvas-next")                                   
+      375 +        navigate_within_special "next"                        
+      376 +        ;;                                                    
+      377 +    "navigate-canvas-prev")                                   
+      378 +        navigate_within_special "prev"                        
+      379 +        ;;                                                    
+      380 +    "navigate-group-next")                                    
+      381 +        navigate_between_groups "next"                        
+      382 +        ;;                                                    
+      383 +    "navigate-group-prev")                                    
+      384 +        navigate_between_groups "prev"                        
+      385 +        ;;                                                    
+      386 +    "move-next")                                              
+      387 +        move_within_special "next"                            
+      388 +        ;;                                                    
+      389 +    "move-prev")                                              
+      390 +        move_within_special "prev"                            
+      391 +        ;;                                                    
+      392 +    "move-hyper")                                             
+      393 +        actual_group=$(resolve_group_from_keybind "MOD3_TAB") 
+      394 +        move_to_special "$actual_group"                       
+      395 +        ;;                                                    
+      396 +    "move-alt")                                               
+      397 +        actual_group=$(resolve_group_from_keybind "ALT_TAB")  
+      398 +        move_to_special "$actual_group"                       
+      399 +        ;;                                                    
+      400 +    "move-meta")                                              
+      401 +        actual_group=$(resolve_group_from_keybind "SUPER_TAB")
+      402 +        move_to_special "$actual_group"                       
+      403 +        ;;                                                    
+      404 +    "move-to-last-active")                                    
+      405 +        last_group=$(hypr_get_last_special_group)             
+      406 +        move_to_special "$last_group"                         
+      407 +        ;;                                                    
+      408 +    "hide-all")                                               
+      409 +        hide_all                                              
+      410 +        ;;                                                    
+      411 +    *)                                                        
+      412 +        echo "Special Workspace Manager"                      
+      413 +        echo "Usage: $0 <command>"                            
+      414 +        echo ""                                               
+      415 +        echo "Toggle Commands:"                               
+      416 +        echo "  toggle-hyper    Toggle hyper group (MOD3+TAB)"
+      417 +        echo "  toggle-alt      Toggle alt group (ALT+TAB)"   
+      418 +        echo "  toggle-meta     Toggle meta group (SUPER+TAB)"
+      419 +        echo "  toggle-last     Toggle last active group"     
+      420 +        echo ""                                               
+      421 +        echo "Navigation:"                                    
+      422 +        echo "  navigate-canvas-next/prev  Switch between canv
+          +ases 1-3"                                                     
+      423 +        echo "  navigate-group-next/prev   Switch between grou
+          +ps"                                                           
+      424 +        echo ""                                               
+      425 +        echo "Move Window:"                                   
+      426 +        echo "  move-next/prev            Move to next/prev ca
+          +nvas"                                                         
+      427 +        echo "  move-hyper/alt/meta       Move to specific gro
+          +up"                                                           
+      428 +        echo "  move-to-last-active       Move to last active 
+          +group"                                                        
+      429 +        echo ""                                               
+      430 +        echo "Other:"                                         
+      431 +        echo "  hide-all                  Hide all special wor
+          +kspaces"                                                      
+      432 +        ;;                                                    
+      433  esac
+
+● Now let me fix the ghostty dropdown script to properly follow workspace changes:
+
+> tmux server died, continue where you left off. 
+
+● Continuing. I had just updated the special-manager.sh. Now let me fix the ghostty dropdown to properly follow workspace changes:
+
+● Write(~/.core/.sys/env/desktop/hypr/scripts/dropdowns/ghostty-dropdown.sh)
+  ⎿  Added 303 lines, removed 250 lines                                  
+        2  #
+        3  # Ghostty Sliding Dropdown Terminal
+        4  # =================================
+        5 -# A smooth sliding console that follows across all workspaces 
+          -using special workspace                                       
+        6 -# approach for native Hyprland slide animations.              
+        5 +# A smooth sliding console that follows across all workspaces.
+        6 +# Uses centralized state management and properly handles works
+          +pace transitions.                                             
+        7  #
+        8  # Features:
+        9 -# - Slides down from top of screen with native slidevert anima
+          -tion                                                          
+       10 -# - Uses special workspace for reliable animation             
+       11 -# - Pins window after showing to follow across all workspaces 
+       12 -# - Smooth show/hide using Hyprland's native animation system 
+       13 -# - Proper state management with cache files                  
+        9 +# - Slides down from top with native animation                
+       10 +# - Follows workspace changes (regular ↔ special)             
+       11 +# - Pin/unpin based on workspace type                         
+       12 +# - Centralized state management                              
+       13  #
+       15 -# Usage: ghostty-dropdown.sh [toggle|show|hide|status]        
+       14 +# Usage: ghostty-dropdown.sh [toggle|show|hide|status|follow] 
+       15  
+       16  set -euo pipefail
+       17  
+       18 +# Source the centralized library                              
+       19 +LIB_DIR="${CORE_ENV:-$HOME/.core/.sys/env}/sbin/launch/lib"   
+       20 +                                                              
+       21 +if [[ -f "$LIB_DIR/hyprland.sh" ]]; then                      
+       22 +    source "$LIB_DIR/hyprland.sh"                             
+       23 +else                                                          
+       24 +    echo "ERROR: Cannot find hyprland.sh library" >&2         
+       25 +    exit 1                                                    
+       26 +fi                                                            
+       27 +                                                              
+       28  # Configuration
+       29 +DROPDOWN_NAME="ghostty"                                       
+       30  DROPDOWN_CLASS="dropdown-terminal"
+       31  DROPDOWN_TITLE="dropdown-terminal"
+       22 -# GHOSTTY_CONFIG="/home/theron/.config/ghostty/dropdown-config
+          -"                                                             
+       23 -TERM_CMD="kitty --class ${DROPDOWN_CLASS}"                    
+       32 +SPECIAL_WS="dropdown"  # Special workspace for hiding         
+       33  
+       25 -# Special workspace name for the dropdown                     
+       26 -SPECIAL_WS="dropdown"                                         
+       34 +# Terminal command (Ghostty or fallback to kitty)             
+       35 +if command -v ghostty &>/dev/null; then                       
+       36 +    TERM_CMD="ghostty --class=${DROPDOWN_CLASS}"              
+       37 +else                                                          
+       38 +    TERM_CMD="kitty --class ${DROPDOWN_CLASS}"                
+       39 +fi                                                            
+       40  
+       28 -# State management                                            
+       29 -STATE_DIR="/tmp/hypr-dropdown"                                
+       30 -STATE_FILE="${STATE_DIR}/ghostty.state"                       
+       31 -LOG_DIR="${CORE_ENV:-/home/theron/.core/.sys/env}/desktop/hypr
+          -/logs"                                                        
+       32 -LOG_FILE="${LOG_DIR}/dropdown.log"                            
+       33 -                                                              
+       41  # Screen dimensions (percentages)
+       42  WIDTH_PERCENT=75
+       43  HEIGHT_PERCENT=45
+       37 -LEFT_MARGIN_PERCENT=12.5                                      
+       44  
+       39 -# Ensure directories exist                                    
+       40 -mkdir -p "$STATE_DIR" "$LOG_DIR"                              
+       45 +# ============================================================
+          +================                                              
+       46 +# DROPDOWN WINDOW MANAGEMENT                                  
+       47 +# ============================================================
+          +================                                              
+       48  
+       42 -log() {                                                       
+       43 -  echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*" >>"$LOG_FILE"      
+       44 -}                                                             
+       45 -                                                              
+       49  # Get the dropdown window address if it exists
+       50  get_dropdown_window() {
+       48 -  hyprctl clients -j 2>/dev/null | jq -r \                    
+       49 -    ".[] | select(.class == \"${DROPDOWN_CLASS}\" and .title =
+          -= \"${DROPDOWN_TITLE}\") | .address" \                        
+       50 -    | head -1                                                 
+       51 +    hyprctl clients -j 2>/dev/null | jq -r \                  
+       52 +        --arg class "$DROPDOWN_CLASS" \                       
+       53 +        '.[] | select(.class == $class) | .address' \         
+       54 +        | head -1                                             
+       55  }
+       56  
+       53 -# Check if window exists                                      
+       54 -window_exists() {                                             
+       55 -  local addr="$1"                                             
+       56 -  [[ -n "$addr" ]] && hyprctl clients -j 2>/dev/null | jq -e "
+          -.[] | select(.address == \"$addr\")" >/dev/null 2>&1          
+       57 +# Check if dropdown window exists                             
+       58 +dropdown_exists() {                                           
+       59 +    local addr                                                
+       60 +    addr=$(get_dropdown_window)                               
+       61 +    [[ -n "$addr" ]]                                          
+       62  }
+       63  
+       59 -# Get current state from file                                 
+       60 -get_state() {                                                 
+       61 -  if [[ -f "$STATE_FILE" ]]; then                             
+       62 -    cat "$STATE_FILE"                                         
+       63 -  else                                                        
+       64 -    echo "hidden"                                             
+       65 -  fi                                                          
+       64 +# Get dropdown's current workspace                            
+       65 +get_dropdown_workspace() {                                    
+       66 +    local addr                                                
+       67 +    addr=$(get_dropdown_window)                               
+       68 +    if [[ -n "$addr" ]]; then                                 
+       69 +        hypr_get_window_prop "$addr" "workspace.name"         
+       70 +    fi                                                        
+       71  }
+       72  
+       68 -# Save state to file                                          
+       69 -set_state() {                                                 
+       70 -  echo "$1" >"$STATE_FILE"                                    
+       71 -  log "State changed to: $1"                                  
+       73 +# Check if dropdown is currently pinned                       
+       74 +is_dropdown_pinned() {                                        
+       75 +    local addr                                                
+       76 +    addr=$(get_dropdown_window)                               
+       77 +    if [[ -n "$addr" ]]; then                                 
+       78 +        hypr_is_window_pinned "$addr"                         
+       79 +    else                                                      
+       80 +        return 1                                              
+       81 +    fi                                                        
+       82  }
+       83  
+       74 -# Check if dropdown special workspace is currently visible    
+       75 -is_special_visible() {                                        
+       76 -  local active_ws                                             
+       77 -  active_ws=$(hyprctl activeworkspace -j 2>/dev/null | jq -r '
+          -.name // empty')                                              
+       78 -  [[ "$active_ws" == "special:${SPECIAL_WS}" ]]               
+       79 -}                                                             
+       84 +# Check if dropdown is effectively visible (pinned or on curre
+          +nt workspace)                                                 
+       85 +is_dropdown_visible() {                                       
+       86 +    local addr                                                
+       87 +    addr=$(get_dropdown_window)                               
+       88 +    [[ -z "$addr" ]] && return 1                              
+       89  
+       81 -# Check if dropdown window is currently pinned (visible everyw
+          -here)                                                         
+       82 -is_pinned() {                                                 
+       83 -  local window_addr                                           
+       84 -  window_addr=$(get_dropdown_window)                          
+       90 +    # If pinned, it's visible everywhere                      
+       91 +    if hypr_is_window_pinned "$addr"; then                    
+       92 +        return 0                                              
+       93 +    fi                                                        
+       94  
+       86 -  if [[ -z "$window_addr" ]]; then                            
+       87 -    return 1                                                  
+       88 -  fi                                                          
+       95 +    # Check if it's on the current workspace                  
+       96 +    local dropdown_ws current_ws                              
+       97 +    dropdown_ws=$(get_dropdown_workspace)                     
+       98 +    current_ws=$(hypr_get_current_workspace)                  
+       99  
+       90 -  local pinned                                                
+       91 -  pinned=$(hyprctl clients -j 2>/dev/null | jq -r \           
+       92 -    ".[] | select(.address == \"${window_addr}\") | .pinned") 
+       93 -                                                              
+       94 -  [[ "$pinned" == "true" ]]                                   
+      100 +    [[ "$dropdown_ws" == "$current_ws" ]]                     
+      101  }
+      102  
+       97 -# Check if dropdown is currently visible (either pinned or spe
+          -cial workspace visible)                                       
+       98 -is_visible() {                                                
+       99 -  is_pinned || is_special_visible                             
+      100 -}                                                             
+      103 +# ============================================================
+          +================                                              
+      104 +# SPAWN / TOGGLE OPERATIONS                                   
+      105 +# ============================================================
+          +================                                              
+      106  
+      102 -# Spawn the dropdown terminal                                 
+      107  spawn_dropdown() {
+      104 -  log "Spawning new dropdown terminal..."                     
+      108 +    hypr_log_info "dropdown" "Spawning new dropdown terminal..
+          +."                                                            
+      109  
+      106 -  # Launch ghostty with the dropdown config                   
+      107 -  $TERM_CMD &                                                 
+      110 +    local current_ws                                          
+      111 +    current_ws=$(hypr_get_current_workspace)                  
+      112  
+      109 -  # Wait for window to appear (with timeout)                  
+      110 -  local attempts=0                                            
+      111 -  local max_attempts=30 # 3 seconds max                       
+      112 -  local window_addr=""                                        
+      113 +    # Launch the terminal                                     
+      114 +    $TERM_CMD &                                               
+      115  
+      114 -  while [[ $attempts -lt $max_attempts ]]; do                 
+      115 -    sleep 0.1                                                 
+      116 -    window_addr=$(get_dropdown_window)                        
+      117 -    if [[ -n "$window_addr" ]]; then                          
+      118 -      break                                                   
+      119 -    fi                                                        
+      120 -    ((attempts++))                                            
+      121 -  done                                                        
+      116 +    # Wait for window to appear (with timeout)                
+      117 +    local attempts=0                                          
+      118 +    local max_attempts=30                                     
+      119 +    local window_addr=""                                      
+      120  
+      123 -  if [[ -z "$window_addr" ]]; then                            
+      124 -    log "ERROR: Failed to spawn dropdown terminal"            
+      125 -    return 1                                                  
+      126 -  fi                                                          
+      121 +    while [[ $attempts -lt $max_attempts ]]; do               
+      122 +        sleep 0.1                                             
+      123 +        window_addr=$(get_dropdown_window)                    
+      124 +        if [[ -n "$window_addr" ]]; then                      
+      125 +            break                                             
+      126 +        fi                                                    
+      127 +        ((attempts++))                                        
+      128 +    done                                                      
+      129  
+      128 -  log "Dropdown spawned with address: $window_addr"           
+      130 +    if [[ -z "$window_addr" ]]; then                          
+      131 +        hypr_log_error "dropdown" "Failed to spawn dropdown te
+          +rminal"                                                       
+      132 +        return 1                                              
+      133 +    fi                                                        
+      134  
+      130 -  # Small delay to let window rules apply                     
+      131 -  sleep 0.1                                                   
+      135 +    hypr_log_info "dropdown" "Dropdown spawned with address: $
+          +window_addr"                                                  
+      136  
+      133 -  # Move to special workspace first (for animation staging)   
+      134 -  hyprctl dispatch movetoworkspacesilent "special:${SPECIAL_WS
+          -},address:${window_addr}"                                     
+      137 +    # Save the window address                                 
+      138 +    hypr_save_dropdown_window "$DROPDOWN_NAME" "$window_addr" 
+      139  
+      136 -  # Small delay                                               
+      137 -  sleep 0.05                                                  
+      140 +    # Small delay to let window rules apply                   
+      141 +    sleep 0.1                                                 
+      142  
+      139 -  # Now toggle the special workspace to show with animation   
+      140 -  hyprctl dispatch togglespecialworkspace "$SPECIAL_WS"       
+      143 +    # Determine if we're on a special workspace               
+      144 +    if hypr_is_special_workspace "$current_ws"; then          
+      145 +        # On special workspace: move to that workspace, don't 
+          +pin                                                           
+      146 +        hyprctl dispatch movetoworkspacesilent "$current_ws,ad
+          +dress:$window_addr"                                           
+      147 +    else                                                      
+      148 +        # On regular workspace: pin it to float above         
+      149 +        hyprctl dispatch pin "address:$window_addr"           
+      150 +    fi                                                        
+      151  
+      142 -  # Wait for animation to complete                            
+      143 -  sleep 0.15                                                  
+      152 +    # Focus the window                                        
+      153 +    hyprctl dispatch focuswindow "address:$window_addr"       
+      154  
+      145 -  # Now pin the window so it follows everywhere               
+      146 -  hyprctl dispatch pin "address:${window_addr}"               
+      147 -                                                              
+      148 -  # Focus the window                                          
+      149 -  hyprctl dispatch focuswindow "address:${window_addr}"       
+      150 -                                                              
+      151 -  set_state "visible"                                         
+      152 -  log "Dropdown spawned and shown"                            
+      153 -                                                              
+      154 -  echo "$window_addr"                                         
+      155 +    hypr_set_dropdown_visible "$DROPDOWN_NAME" true           
+      156 +    hypr_log_info "dropdown" "Dropdown spawned and shown"     
+      157  }
+      158  
+      157 -# Show the dropdown (slide down from top)                     
+      159  show_dropdown() {
+      159 -  local window_addr                                           
+      160 -  window_addr=$(get_dropdown_window)                          
+      160 +    local window_addr                                         
+      161 +    window_addr=$(get_dropdown_window)                        
+      162  
+      162 -  if [[ -z "$window_addr" ]]; then                            
+      163 -    spawn_dropdown                                            
+      164 -    return                                                    
+      165 -  fi                                                          
+      163 +    if [[ -z "$window_addr" ]]; then                          
+      164 +        spawn_dropdown                                        
+      165 +        return                                                
+      166 +    fi                                                        
+      167  
+      167 -  log "Showing dropdown: $window_addr"                        
+      168 +    hypr_log_info "dropdown" "Showing dropdown: $window_addr" 
+      169  
+      169 -  # Check current state                                       
+      170 -  local is_currently_pinned                                   
+      171 -  is_currently_pinned=$(hyprctl clients -j 2>/dev/null | jq -r
+          - \                                                            
+      172 -    ".[] | select(.address == \"${window_addr}\") | .pinned") 
+      170 +    local current_ws                                          
+      171 +    current_ws=$(hypr_get_current_workspace)                  
+      172 +    local is_pinned                                           
+      173 +    is_pinned=$(hypr_is_window_pinned "$window_addr" && echo "
+          +true" || echo "false")                                        
+      174  
+      174 -  if [[ "$is_currently_pinned" == "true" ]]; then             
+      175 -    # Already pinned (visible), just focus it                 
+      176 -    hyprctl dispatch focuswindow "address:${window_addr}"     
+      177 -    log "Already visible, focused"                            
+      178 -  else                                                        
+      179 -    # Currently in special workspace (hidden)                 
+      180 -    # First unpin if somehow pinned                           
+      181 -    if [[ "$is_currently_pinned" == "true" ]]; then           
+      182 -      hyprctl dispatch pin "address:${window_addr}"           
+      175 +    if [[ "$is_pinned" == "true" ]]; then                     
+      176 +        # Already pinned (visible everywhere), just focus it  
+      177 +        hyprctl dispatch focuswindow "address:$window_addr"   
+      178 +        hypr_log_info "dropdown" "Already visible, focused"   
+      179 +    else                                                      
+      180 +        # Currently hidden in special workspace               
+      181 +        if hypr_is_special_workspace "$current_ws"; then      
+      182 +            # Moving to special workspace - move there, don't 
+          +pin                                                           
+      183 +            hyprctl dispatch movetoworkspacesilent "$current_w
+          +s,address:$window_addr"                                       
+      184 +        else                                                  
+      185 +            # Moving to regular workspace - move and pin      
+      186 +            hyprctl dispatch movetoworkspacesilent "$current_w
+          +s,address:$window_addr"                                       
+      187 +            sleep 0.05                                        
+      188 +            hyprctl dispatch pin "address:$window_addr"       
+      189 +        fi                                                    
+      190 +                                                              
+      191 +        hyprctl dispatch focuswindow "address:$window_addr"   
+      192      fi
+      193  
+      185 -    # Toggle special workspace to show with animation         
+      186 -    hyprctl dispatch togglespecialworkspace "$SPECIAL_WS"     
+      194 +    hypr_set_dropdown_visible "$DROPDOWN_NAME" true           
+      195 +    hypr_log_info "dropdown" "Dropdown shown"                 
+      196 +}                                                             
+      197  
+      188 -    # Wait for animation                                      
+      189 -    sleep 0.15                                                
+      198 +hide_dropdown() {                                             
+      199 +    local window_addr                                         
+      200 +    window_addr=$(get_dropdown_window)                        
+      201  
+      191 -    # Pin the window to keep it visible everywhere            
+      192 -    hyprctl dispatch pin "address:${window_addr}"             
+      202 +    if [[ -z "$window_addr" ]]; then                          
+      203 +        hypr_log_info "dropdown" "No dropdown to hide"        
+      204 +        hypr_set_dropdown_visible "$DROPDOWN_NAME" false      
+      205 +        return                                                
+      206 +    fi                                                        
+      207  
+      194 -    # Focus                                                   
+      195 -    hyprctl dispatch focuswindow "address:${window_addr}"     
+      196 -  fi                                                          
+      208 +    hypr_log_info "dropdown" "Hiding dropdown: $window_addr"  
+      209  
+      198 -  set_state "visible"                                         
+      199 -  log "Dropdown shown"                                        
+      210 +    # If pinned, unpin first                                  
+      211 +    if hypr_is_window_pinned "$window_addr"; then             
+      212 +        hyprctl dispatch pin "address:$window_addr"           
+      213 +        sleep 0.02                                            
+      214 +    fi                                                        
+      215 +                                                              
+      216 +    # Move to special workspace (hidden)                      
+      217 +    hyprctl dispatch movetoworkspacesilent "special:$SPECIAL_W
+          +S,address:$window_addr"                                       
+      218 +                                                              
+      219 +    hypr_set_dropdown_visible "$DROPDOWN_NAME" false          
+      220 +    hypr_log_info "dropdown" "Dropdown hidden"                
+      221  }
+      222  
+      202 -# Hide the dropdown (slide up off-screen)                     
+      203 -hide_dropdown() {                                             
+      204 -  local window_addr                                           
+      205 -  window_addr=$(get_dropdown_window)                          
+      223 +toggle_dropdown() {                                           
+      224 +    local window_addr                                         
+      225 +    window_addr=$(get_dropdown_window)                        
+      226  
+      207 -  if [[ -z "$window_addr" ]]; then                            
+      208 -    log "No dropdown to hide"                                 
+      209 -    set_state "hidden"                                        
+      210 -    return                                                    
+      211 -  fi                                                          
+      227 +    if [[ -z "$window_addr" ]]; then                          
+      228 +        hypr_log_info "dropdown" "Toggle: No window found, spa
+          +wning..."                                                     
+      229 +        spawn_dropdown                                        
+      230 +        return                                                
+      231 +    fi                                                        
+      232  
+      213 -  log "Hiding dropdown: $window_addr"                         
+      233 +    if is_dropdown_visible; then                              
+      234 +        hypr_log_info "dropdown" "Toggle: Visible, hiding..." 
+      235 +        hide_dropdown                                         
+      236 +    else                                                      
+      237 +        hypr_log_info "dropdown" "Toggle: Hidden, showing..." 
+      238 +        show_dropdown                                         
+      239 +    fi                                                        
+      240 +}                                                             
+      241  
+      215 -  # Check if pinned                                           
+      216 -  local is_currently_pinned                                   
+      217 -  is_currently_pinned=$(hyprctl clients -j 2>/dev/null | jq -r
+          - \                                                            
+      218 -    ".[] | select(.address == \"${window_addr}\") | .pinned") 
+      242 +# ============================================================
+          +================                                              
+      243 +# WORKSPACE FOLLOWING (for special ↔ regular transitions)     
+      244 +# ============================================================
+          +================                                              
+      245  
+      220 -  if [[ "$is_currently_pinned" == "true" ]]; then             
+      221 -    # Unpin first                                             
+      222 -    hyprctl dispatch pin "address:${window_addr}"             
+      246 +# Called when workspace changes - moves dropdown to follow use
+          +r                                                             
+      247 +follow_workspace() {                                          
+      248 +    local window_addr                                         
+      249 +    window_addr=$(get_dropdown_window)                        
+      250  
+      224 -    # Small delay                                             
+      225 -    sleep 0.02                                                
+      251 +    # No dropdown? Nothing to do                              
+      252 +    [[ -z "$window_addr" ]] && return                         
+      253  
+      227 -    # Move to special workspace                               
+      228 -    hyprctl dispatch movetoworkspacesilent "special:${SPECIAL_
+          -WS},address:${window_addr}"                                   
+      254 +    # Not visible? Don't follow                               
+      255 +    if ! hypr_is_dropdown_visible "$DROPDOWN_NAME"; then      
+      256 +        return                                                
+      257 +    fi                                                        
+      258  
+      230 -    # The special workspace will auto-hide since we moved wind
+          -ow there                                                      
+      231 -    # but the window is no longer visible on current workspace
+      232 -  fi                                                          
+      259 +    local current_ws                                          
+      260 +    current_ws=$(hypr_get_current_workspace)                  
+      261 +    local is_pinned                                           
+      262 +    is_pinned=$(hypr_is_window_pinned "$window_addr" && echo "
+          +true" || echo "false")                                        
+      263  
+      234 -  # If special workspace is visible, toggle it off            
+      235 -  if is_special_visible; then                                 
+      236 -    hyprctl dispatch togglespecialworkspace "$SPECIAL_WS"     
+      237 -  fi                                                          
+      264 +    hypr_log_debug "dropdown" "Following workspace change to: 
+          +$current_ws (pinned: $is_pinned)"                             
+      265  
+      239 -  set_state "hidden"                                          
+      240 -  log "Dropdown hidden"                                       
+      266 +    if hypr_is_special_workspace "$current_ws"; then          
+      267 +        # Moving TO special workspace                         
+      268 +        if [[ "$is_pinned" == "true" ]]; then                 
+      269 +            # Unpin (can't be pinned in special workspace)    
+      270 +            hyprctl dispatch pin "address:$window_addr"       
+      271 +            sleep 0.02                                        
+      272 +        fi                                                    
+      273 +        # Move to the special workspace                       
+      274 +        hyprctl dispatch movetoworkspacesilent "$current_ws,ad
+          +dress:$window_addr"                                           
+      275 +        hypr_log_info "dropdown" "Moved dropdown to special wo
+          +rkspace: $current_ws"                                         
+      276 +    else                                                      
+      277 +        # Moving TO regular workspace                         
+      278 +        local dropdown_ws                                     
+      279 +        dropdown_ws=$(get_dropdown_workspace)                 
+      280 +                                                              
+      281 +        # If it's in a special workspace, move it out and pin 
+      282 +        if [[ "$dropdown_ws" =~ ^special: ]]; then            
+      283 +            hyprctl dispatch movetoworkspacesilent "$current_w
+          +s,address:$window_addr"                                       
+      284 +            sleep 0.02                                        
+      285 +            hyprctl dispatch pin "address:$window_addr"       
+      286 +            hypr_log_info "dropdown" "Moved dropdown from spec
+          +ial to regular, pinned"                                       
+      287 +        elif [[ "$is_pinned" != "true" ]]; then               
+      288 +            # On regular but not pinned - pin it              
+      289 +            hyprctl dispatch pin "address:$window_addr"       
+      290 +            hypr_log_info "dropdown" "Pinned dropdown on regul
+          +ar workspace"                                                 
+      291 +        fi                                                    
+      292 +    fi                                                        
+      293  }
+      294  
+      243 -# Toggle the dropdown visibility                              
+      244 -toggle_dropdown() {                                           
+      245 -  local window_addr                                           
+      246 -  window_addr=$(get_dropdown_window)                          
+      295 +# Watch workspace changes and follow                          
+      296 +start_watcher() {                                             
+      297 +    hypr_log_info "dropdown" "Starting workspace watcher..."  
+      298  
+      248 -  if [[ -z "$window_addr" ]]; then                            
+      249 -    # Window doesn't exist, spawn and show                    
+      250 -    log "Toggle: No window found, spawning..."                
+      251 -    spawn_dropdown                                            
+      252 -    return                                                    
+      253 -  fi                                                          
+      299 +    local socket                                              
+      300 +    socket=$(hypr_get_socket_path)                            
+      301  
+      255 -  # Check if currently pinned (visible on current workspace)  
+      256 -  local is_currently_pinned                                   
+      257 -  is_currently_pinned=$(hyprctl clients -j 2>/dev/null | jq -r
+          - \                                                            
+      258 -    ".[] | select(.address == \"${window_addr}\") | .pinned") 
+      302 +    local last_ws=""                                          
+      303  
+      260 -  if [[ "$is_currently_pinned" == "true" ]]; then             
+      261 -    log "Toggle: Window pinned (visible), hiding..."          
+      262 -    hide_dropdown                                             
+      263 -  elif is_special_visible; then                               
+      264 -    log "Toggle: Special workspace visible, hiding..."        
+      265 -    hide_dropdown                                             
+      266 -  else                                                        
+      267 -    log "Toggle: Window hidden, showing..."                   
+      268 -    show_dropdown                                             
+      269 -  fi                                                          
+      304 +    socat -u "UNIX-CONNECT:$socket" - 2>/dev/null | while read
+          + -r line; do                                                  
+      305 +        case "$line" in                                       
+      306 +            workspace\>\>*|activespecial\>\>*)                
+      307 +                local current_ws                              
+      308 +                current_ws=$(hypr_get_current_workspace)      
+      309 +                                                              
+      310 +                if [[ "$current_ws" != "$last_ws" ]]; then    
+      311 +                    last_ws="$current_ws"                     
+      312 +                    follow_workspace                          
+      313 +                fi                                            
+      314 +                ;;                                            
+      315 +        esac                                                  
+      316 +    done                                                      
+      317  }
+      318  
+      272 -# Get status information                                      
+      319 +# ============================================================
+          +================                                              
+      320 +# STATUS                                                      
+      321 +# ============================================================
+          +================                                              
+      322 +                                                              
+      323  status_dropdown() {
+      274 -  local window_addr                                           
+      275 -  window_addr=$(get_dropdown_window)                          
+      324 +    local window_addr                                         
+      325 +    window_addr=$(get_dropdown_window)                        
+      326  
+      277 -  if [[ -z "$window_addr" ]]; then                            
+      278 -    echo "STATUS: Not spawned"                                
+      279 -    echo "State file: $(get_state)"                           
+      280 -    return                                                    
+      281 -  fi                                                          
+      327 +    if [[ -z "$window_addr" ]]; then                          
+      328 +        echo "STATUS: Not spawned"                            
+      329 +        echo "State visible: $(hypr_is_dropdown_visible "$DROP
+          +DOWN_NAME" && echo 'yes' || echo 'no')"                       
+      330 +        return                                                
+      331 +    fi                                                        
+      332  
+      283 -  local is_pinned_val                                         
+      284 -  is_pinned_val=$(hyprctl clients -j 2>/dev/null | jq -r \    
+      285 -    ".[] | select(.address == \"${window_addr}\") | .pinned") 
+      333 +    local is_pinned                                           
+      334 +    is_pinned=$(hypr_is_window_pinned "$window_addr" && echo "
+          +true" || echo "false")                                        
+      335  
+      287 -  local position                                              
+      288 -  position=$(hyprctl clients -j 2>/dev/null | jq -r \         
+      289 -    ".[] | select(.address == \"${window_addr}\") | \"x:\(.at[
+          -0]) y:\(.at[1])\"")                                           
+      336 +    local position size workspace                             
+      337 +    position=$(hyprctl clients -j | jq -r ".[] | select(.addre
+          +ss == \"$window_addr\") | \"x:\(.at[0]) y:\(.at[1])\"")       
+      338 +    size=$(hyprctl clients -j | jq -r ".[] | select(.address =
+          += \"$window_addr\") | \"w:\(.size[0]) h:\(.size[1])\"")       
+      339 +    workspace=$(get_dropdown_workspace)                       
+      340  
+      291 -  local size                                                  
+      292 -  size=$(hyprctl clients -j 2>/dev/null | jq -r \             
+      293 -    ".[] | select(.address == \"${window_addr}\") | \"w:\(.siz
+          -e[0]) h:\(.size[1])\"")                                       
+      294 -                                                              
+      295 -  local workspace                                             
+      296 -  workspace=$(hyprctl clients -j 2>/dev/null | jq -r \        
+      297 -    ".[] | select(.address == \"${window_addr}\") | .workspace
+          -.name")                                                       
+      298 -                                                              
+      299 -  echo "STATUS: Spawned"                                      
+      300 -  echo "Address: $window_addr"                                
+      301 -  echo "Pinned: $is_pinned_val"                               
+      302 -  echo "Position: $position"                                  
+      303 -  echo "Size: $size"                                          
+      304 -  echo "Workspace: $workspace"                                
+      305 -  echo "Special WS visible: $(is_special_visible && echo 'yes'
+          - || echo 'no')"                                               
+      306 -  echo "State file: $(get_state)"                             
+      307 -  echo "Effectively visible: $(is_visible && echo 'yes' || ech
+          -o 'no')"                                                      
+      341 +    echo "STATUS: Spawned"                                    
+      342 +    echo "Address: $window_addr"                              
+      343 +    echo "Pinned: $is_pinned"                                 
+      344 +    echo "Position: $position"                                
+      345 +    echo "Size: $size"                                        
+      346 +    echo "Workspace: $workspace"                              
+      347 +    echo "State visible: $(hypr_is_dropdown_visible "$DROPDOWN
+          +_NAME" && echo 'yes' || echo 'no')"                           
+      348 +    echo "Effectively visible: $(is_dropdown_visible && echo '
+          +yes' || echo 'no')"                                           
+      349  }
+      350  
+      310 -# Main                                                        
+      351 +# ============================================================
+          +================                                              
+      352 +# MAIN                                                        
+      353 +# ============================================================
+          +================                                              
+      354 +                                                              
+      355  case "${1:-toggle}" in
+      312 -  toggle)                                                     
+      313 -    toggle_dropdown                                           
+      314 -    ;;                                                        
+      315 -  show)                                                       
+      316 -    show_dropdown                                             
+      317 -    ;;                                                        
+      318 -  hide)                                                       
+      319 -    hide_dropdown                                             
+      320 -    ;;                                                        
+      321 -  status)                                                     
+      322 -    status_dropdown                                           
+      323 -    ;;                                                        
+      324 -  spawn)                                                      
+      325 -    spawn_dropdown                                            
+      326 -    ;;                                                        
+      327 -  *)                                                          
+      328 -    echo "Usage: $0 [toggle|show|hide|status|spawn]"          
+      329 -    echo ""                                                   
+      330 -    echo "Commands:"                                          
+      331 -    echo "  toggle  - Toggle dropdown visibility (default)"   
+      332 -    echo "  show    - Show the dropdown"                      
+      333 -    echo "  hide    - Hide the dropdown"                      
+      334 -    echo "  status  - Show current status"                    
+      335 -    echo "  spawn   - Force spawn a new dropdown"             
+      336 -    exit 1                                                    
+      337 -    ;;                                                        
+      356 +    toggle)                                                   
+      357 +        toggle_dropdown                                       
+      358 +        ;;                                                    
+      359 +    show)                                                     
+      360 +        show_dropdown                                         
+      361 +        ;;                                                    
+      362 +    hide)                                                     
+      363 +        hide_dropdown                                         
+      364 +        ;;                                                    
+      365 +    status)                                                   
+      366 +        status_dropdown                                       
+      367 +        ;;                                                    
+      368 +    spawn)                                                    
+      369 +        spawn_dropdown                                        
+      370 +        ;;                                                    
+      371 +    follow)                                                   
+      372 +        follow_workspace                                      
+      373 +        ;;                                                    
+      374 +    watch)                                                    
+      375 +        start_watcher                                         
+      376 +        ;;                                                    
+      377 +    *)                                                        
+      378 +        echo "Ghostty Dropdown Terminal"                      
+      379 +        echo "Usage: $0 [command]"                            
+      380 +        echo ""                                               
+      381 +        echo "Commands:"                                      
+      382 +        echo "  toggle  - Toggle dropdown visibility (default)
+          +"                                                             
+      383 +        echo "  show    - Show the dropdown"                  
+      384 +        echo "  hide    - Hide the dropdown"                  
+      385 +        echo "  status  - Show current status"                
+      386 +        echo "  spawn   - Force spawn a new dropdown"         
+      387 +        echo "  follow  - Manually trigger workspace follow"  
+      388 +        echo "  watch   - Start background workspace watcher" 
+      389 +        exit 1                                                
+      390 +        ;;                                                    
+      391  esac
+
+● Now let me make the scripts executable and create the necessary state directories:
+
+● Bash(chmod +x /home/theron/.core/.sys/env/desktop/hypr/scripts/core/workspaces
+      /special-manager.sh
+      /home/theron/.core/.sys/env/desktop/hypr/scripts/dropdowns/ghostty-…)
+  ⎿  (No content)
+
+● Bash(mkdir -p
+      ~/.local/core/state/hyprland/{special-workspaces,dropdowns,trays,windows}
+      ~/.local/core/logs/hyprland ~/.local/core/cache/hyprland)
+  ⎿  (No content)
+
+● Now let me fix the remaining broken scripts. First, let me fix the sliding-dropdown.sh (it has a missing $HOME bug):
+
+● Write(~/.core/.sys/env/desktop/hypr/scripts/dropdowns/sliding-dropdown.sh)
+  ⎿  Added 218 lines, removed 312 lines                                  
+        1  #!/usr/bin/env bash
+        2 +#                                                             
+        3 +# Sliding Tray Manager                                        
+        4 +# ====================                                        
+        5 +# Manages sliding panel windows (top, bottom, left, right) tha
+          +t follow                                                      
+        6 +# workspace transitions.                                      
+        7 +#                                                             
+        8 +# Usage: sliding-dropdown.sh <position> <action> [window-addre
+          +ss]                                                           
+        9 +#                                                             
+       10 +# Positions: top, bottom, left, right                         
+       11 +# Actions: add, remove, show, hide, toggle, list              
+       12  
+        3 -# Usage: sliding-tray.sh <position> <action> [window-address] 
+       13 +set -euo pipefail                                             
+       14  
+        5 -POSITION="$1"                                                 
+        6 -ACTION="${2:-toggle}"                                         
+        7 -WINDOW_ADDR="$3"                                              
+       15 +# Source the centralized library                              
+       16 +LIB_DIR="${CORE_ENV:-$HOME/.core/.sys/env}/sbin/launch/lib"   
+       17  
+        9 -STATE_DIR="/.local/core/state/hypr-trays"                     
+       10 -mkdir -p "$STATE_DIR"                                         
+       11 -STATE_FILE="${STATE_DIR}/${POSITION}.windows"                 
+       12 -VISIBLE_FILE="${STATE_DIR}/${POSITION}.visible"               
+       13 -LOG_DIR="${HYPR_CONFIG:-/home/theron/.core/.sys/env}/desktop/h
+          -ypr/.logs"                                                    
+       14 -LOG_FILE="${LOG_DIR}/dropdown.log"                            
+       15 -SLIDING_TERMINAL="${STATE_DIR}/sliding-terminal"              
+       18 +if [[ -f "$LIB_DIR/hyprland.sh" ]]; then                      
+       19 +    source "$LIB_DIR/hyprland.sh"                             
+       20 +else                                                          
+       21 +    echo "ERROR: Cannot find hyprland.sh library" >&2         
+       22 +    exit 1                                                    
+       23 +fi                                                            
+       24  
+       17 -get_current_workspace() {                                     
+       18 -  hyprctl activeworkspace -j | jq -r '.id'                    
+       19 -}                                                             
+       25 +POSITION="${1:-}"                                             
+       26 +ACTION="${2:-toggle}"                                         
+       27 +WINDOW_ADDR="${3:-}"                                          
+       28  
+       21 -get_workspace_type() {                                        
+       22 -  local ws="$1"                                               
+       23 -  if [[ "$ws" =~ ^special: ]]; then                           
+       24 -    echo "special"                                            
+       25 -  else                                                        
+       26 -    echo "regular"                                            
+       27 -  fi                                                          
+       28 -}                                                             
+       29 +# Validate position                                           
+       30 +if [[ -z "$POSITION" ]] || [[ ! "$POSITION" =~ ^(top|bottom|le
+          +ft|right)$ ]]; then                                           
+       31 +    echo "Usage: $0 <position> <action> [window-address]"     
+       32 +    echo "Positions: top, bottom, left, right"                
+       33 +    echo "Actions: add, remove, show, hide, toggle, list"     
+       34 +    exit 1                                                    
+       35 +fi                                                            
+       36  
+       30 -is_tray_visible() {                                           
+       31 -  local pos="$1"                                              
+       32 -  [[ -f "${STATE_DIR}/${pos}.visible" ]]                      
+       33 -}                                                             
+       34 -                                                              
+       35 -get_tray_windows() {                                          
+       36 -  local pos="$1"                                              
+       37 -  local state_file="${STATE_DIR}/${pos}.windows"              
+       38 -                                                              
+       39 -  if [[ -f "$state_file" ]]; then                             
+       40 -    cat "$state_file"                                         
+       41 -  fi                                                          
+       42 -}                                                             
+       43 -                                                              
+       44 -window_exists() {                                             
+       45 -  hyprctl clients -j | jq -r '.[].address' | grep -q "^${1}$" 
+       46 -}                                                             
+       47 -                                                              
+       48 -move_tray_to_workspace() {                                    
+       49 -  local pos="$1"                                              
+       50 -  local target_ws="$2"                                        
+       51 -  local should_pin="$3"                                       
+       52 -                                                              
+       53 -  local windows=$(get_tray_windows "$pos")                    
+       54 -  [[ -z "$windows" ]] && return                               
+       55 -                                                              
+       56 -  local visible=$(is_tray_visible "$pos" && echo "true" || ech
+          -o "false")                                                    
+       57 -                                                              
+       58 -  while IFS= read -r addr; do                                 
+       59 -    if window_exists "$addr"; then                            
+       60 -      # Move to target workspace                              
+       61 -      hyprctl dispatch movetoworkspacesilent "${target_ws},add
+          -ress:${addr}"                                                 
+       62 -                                                              
+       63 -      # Handle pinning                                        
+       64 -      if [[ "$should_pin" == "true" ]]; then                  
+       65 -        # Pin it (for regular workspaces)                     
+       66 -        hyprctl dispatch pin "address:${addr}"                
+       67 -      else                                                    
+       68 -        # Ensure it's not pinned (for special workspaces)     
+       69 -        local is_pinned=$(hyprctl clients -j | jq -r ".[] | se
+          -lect(.address == \"$addr\") | .pinned")                       
+       70 -        if [[ "$is_pinned" == "true" ]]; then                 
+       71 -          hyprctl dispatch pin "address:${addr}"              
+       72 -        fi                                                    
+       73 -      fi                                                      
+       74 -                                                              
+       75 -      # Reapply positioning based on visibility               
+       76 -      if [[ "$visible" == "true" ]]; then                     
+       77 -        ~/.config/hypr/scripts/sliding-tray.sh "$pos" show >/d
+          -ev/null 2>&1                                                  
+       78 -      fi                                                      
+       79 -    fi                                                        
+       80 -  done <<<"$windows"                                          
+       81 -}                                                             
+       82 -                                                              
+       83 -handle_workspace_change() {                                   
+       84 -  local current_ws=$(get_current_workspace)                   
+       85 -  local current_type=$(get_workspace_type "$current_ws")      
+       86 -                                                              
+       87 -  # Skip if same workspace                                    
+       88 -  [[ "$current_ws" == "$LAST_WS" ]] && return                 
+       89 -                                                              
+       90 -  local last_type=$(get_workspace_type "$LAST_WS")            
+       91 -                                                              
+       92 -  # If workspace type changed, update all trays               
+       93 -  if [[ "$current_type" != "$last_type" ]] || [[ -z "$LAST_WS"
+          - ]]; then                                                     
+       94 -    for pos in "${POSITIONS[@]}"; do                          
+       95 -      if [[ "$current_type" == "special" ]]; then             
+       96 -        # Moving to special workspace - unpin and move        
+       97 -        move_tray_to_workspace "$pos" "$current_ws" "false"   
+       98 -      else                                                    
+       99 -        # Moving to regular workspace - move and pin          
+      100 -        move_tray_to_workspace "$pos" "$current_ws" "true"    
+      101 -      fi                                                      
+      102 -    done                                                      
+      103 -  fi                                                          
+      104 -                                                              
+      105 -  LAST_WS="$current_ws"                                       
+      106 -}                                                             
+      107 -                                                              
+      108 -# Initial setup                                               
+      109 -handle_workspace_change                                       
+      110 -                                                              
+      111 -# Watch for workspace changes                                 
+      112 -socat -u UNIX-CONNECT:/tmp/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.
+          -socket2.sock - | while read -r line; do                       
+      113 -  if [[ "$line" =~ ^workspace\>\> ]] || [[ "$line" =~ ^focused
+          -mon\>\> ]]; then                                              
+      114 -    handle_workspace_change                                   
+      115 -  fi                                                          
+      116 -done                                                          
+      117 -                                                              
+      118 -TERM_CMD="${SLIDING_TERMINAL}                                 
+      119 -  --class ${DROPDOWN_CLASS}"                                  
+      120 -                                                              
+      121 -# Special workspace name for the dropdown                     
+      122 -SPECIAL_WS="dropdown"                                         
+      123 -                                                              
+      124 -# Panel dimensions                                            
+       37 +# Panel dimensions by position                                
+       38  declare -A PANEL_SIZE=(
+      126 -  [top]="100% 40%"                                            
+      127 -  [bottom]="100% 40%"                                         
+      128 -  [left]="30% 100%"                                           
+      129 -  [right]="30% 100%"                                          
+       39 +    [top]="100% 40%"                                          
+       40 +    [bottom]="100% 40%"                                       
+       41 +    [left]="30% 100%"                                         
+       42 +    [right]="30% 100%"                                        
+       43  )
+       44  
+       45  # On-screen positions
+       46  declare -A VISIBLE_POS=(
+      134 -  [top]="0 0"                                                 
+      135 -  [bottom]="0 60%"                                            
+      136 -  [left]="0 0"                                                
+      137 -  [right]="70% 0"                                             
+       47 +    [top]="0 0"                                               
+       48 +    [bottom]="0 60%"                                          
+       49 +    [left]="0 0"                                              
+       50 +    [right]="70% 0"                                           
+       51  )
+       52  
+       53  # Off-screen positions
+       54  declare -A HIDDEN_POS=(
+      142 -  [top]="0 -100%"                                             
+      143 -  [bottom]="0 100%"                                           
+      144 -  [left]="-100% 0"                                            
+      145 -  [right]="100% 0"                                            
+       55 +    [top]="0 -100%"                                           
+       56 +    [bottom]="0 100%"                                         
+       57 +    [left]="-100% 0"                                          
+       58 +    [right]="100% 0"                                          
+       59  )
+       60  
+      148 -get_active_window() {                                         
+      149 -  hyprctl activewindow -j | jq -r '.address'                  
+       61 +# ============================================================
+          +================                                              
+       62 +# TRAY STATE FUNCTIONS                                        
+       63 +# ============================================================
+          +================                                              
+       64 +                                                              
+       65 +get_tray_state_file() {                                       
+       66 +    echo "$HYPR_TRAY_STATE/${POSITION}.windows"               
+       67  }
+       68  
+      152 -window_exists() {                                             
+      153 -  hyprctl clients -j | jq -r '.[].address' | grep -q "^${1}$" 
+       69 +get_tray_visible_file() {                                     
+       70 +    echo "$HYPR_TRAY_STATE/${POSITION}.visible"               
+       71  }
+       72  
+      156 -is_visible() {                                                
+      157 -  [[ -f "$VISIBLE_FILE" ]]                                    
+       73 +is_tray_visible() {                                           
+       74 +    [[ -f "$(get_tray_visible_file)" ]]                       
+       75  }
+       76  
+       77 +get_tray_windows() {                                          
+       78 +    local state_file                                          
+       79 +    state_file=$(get_tray_state_file)                         
+       80 +    if [[ -f "$state_file" ]]; then                           
+       81 +        cat "$state_file"                                     
+       82 +    fi                                                        
+       83 +}                                                             
+       84 +                                                              
+       85 +# ============================================================
+          +================                                              
+       86 +# WINDOW OPERATIONS                                           
+       87 +# ============================================================
+          +================                                              
+       88 +                                                              
+       89  setup_window() {
+      161 -  local addr="$1"                                             
+      162 -  local visible="${2:-false}"                                 
+       90 +    local addr="$1"                                           
+       91 +    local visible="${2:-false}"                               
+       92  
+      164 -  local pos                                                   
+      165 -  if [[ "$visible" == "true" ]]; then                         
+      166 -    pos="${VISIBLE_POS[$POSITION]}"                           
+      167 -  else                                                        
+      168 -    pos="${HIDDEN_POS[$POSITION]}"                            
+      169 -  fi                                                          
+       93 +    local pos                                                 
+       94 +    if [[ "$visible" == "true" ]]; then                       
+       95 +        pos="${VISIBLE_POS[$POSITION]}"                       
+       96 +    else                                                      
+       97 +        pos="${HIDDEN_POS[$POSITION]}"                        
+       98 +    fi                                                        
+       99  
+      171 -  hyprctl --batch "\                                          
+      100 +    hyprctl --batch "\                                        
+      101          dispatch setfloating address:${addr}; \
+      102          dispatch resizewindowpixel exact ${PANEL_SIZE[$POSITIO
+           N]},address:${addr}; \
+      103          dispatch movewindowpixel exact ${pos},address:${addr}"
+      104  }
+      105  
+      106  slide_to() {
+      178 -  local addr="$1"                                             
+      179 -  local target="$2"                                           
+      107 +    local addr="$1"                                           
+      108 +    local target="$2"                                         
+      109  
+      181 -  local pos                                                   
+      182 -  if [[ "$target" == "visible" ]]; then                       
+      183 -    pos="${VISIBLE_POS[$POSITION]}"                           
+      184 -  else                                                        
+      185 -    pos="${HIDDEN_POS[$POSITION]}"                            
+      186 -  fi                                                          
+      110 +    local pos                                                 
+      111 +    if [[ "$target" == "visible" ]]; then                     
+      112 +        pos="${VISIBLE_POS[$POSITION]}"                       
+      113 +    else                                                      
+      114 +        pos="${HIDDEN_POS[$POSITION]}"                        
+      115 +    fi                                                        
+      116  
+      188 -  if window_exists "$addr"; then                              
+      189 -    hyprctl dispatch movewindowpixel exact "${pos},address:${a
+          -ddr}"                                                         
+      190 -  fi                                                          
+      117 +    if hypr_window_exists "$addr"; then                       
+      118 +        hyprctl dispatch movewindowpixel exact "${pos},address
+          +:${addr}"                                                     
+      119 +    fi                                                        
+      120  }
+      121  
+      193 -case "$ACTION" in                                             
+      194 -  add)                                                        
+      195 -    ADDR="${WINDOW_ADDR:-$(get_active_window)}"               
+      122 +# ============================================================
+          +================                                              
+      123 +# WORKSPACE FOLLOWING                                         
+      124 +# ============================================================
+          +================                                              
+      125  
+      197 -    if [[ -z "$ADDR" ]] || [[ "$ADDR" == "null" ]]; then      
+      198 -      notify-send "Sliding Tray" "No window selected"         
+      199 -      exit 1                                                  
+      126 +move_tray_to_workspace() {                                    
+      127 +    local target_ws="$1"                                      
+      128 +    local should_pin="$2"                                     
+      129 +                                                              
+      130 +    local windows                                             
+      131 +    windows=$(get_tray_windows)                               
+      132 +    [[ -z "$windows" ]] && return                             
+      133 +                                                              
+      134 +    local visible                                             
+      135 +    visible=$(is_tray_visible && echo "true" || echo "false") 
+      136 +                                                              
+      137 +    while IFS= read -r addr; do                               
+      138 +        if hypr_window_exists "$addr"; then                   
+      139 +            # Move to target workspace                        
+      140 +            hyprctl dispatch movetoworkspacesilent "${target_w
+          +s},address:${addr}"                                           
+      141 +                                                              
+      142 +            # Handle pinning                                  
+      143 +            if [[ "$should_pin" == "true" ]]; then            
+      144 +                hyprctl dispatch pin "address:${addr}"        
+      145 +            else                                              
+      146 +                # Ensure not pinned on special workspaces     
+      147 +                if hypr_is_window_pinned "$addr"; then        
+      148 +                    hyprctl dispatch pin "address:${addr}"    
+      149 +                fi                                            
+      150 +            fi                                                
+      151 +                                                              
+      152 +            # Reapply positioning                             
+      153 +            if [[ "$visible" == "true" ]]; then               
+      154 +                slide_to "$addr" "visible"                    
+      155 +            fi                                                
+      156 +        fi                                                    
+      157 +    done <<< "$windows"                                       
+      158 +}                                                             
+      159 +                                                              
+      160 +# ============================================================
+          +================                                              
+      161 +# ACTIONS                                                     
+      162 +# ============================================================
+          +================                                              
+      163 +                                                              
+      164 +action_add() {                                                
+      165 +    local addr="${WINDOW_ADDR:-$(hypr_get_active_window)}"    
+      166 +                                                              
+      167 +    if [[ -z "$addr" ]] || [[ "$addr" == "null" ]]; then      
+      168 +        notify-send "Sliding Tray" "No window selected"       
+      169 +        exit 1                                                
+      170      fi
+      171  
+      172 +    local state_file                                          
+      173 +    state_file=$(get_tray_state_file)                         
+      174 +                                                              
+      175      # Check if already in this tray
+      203 -    if grep -q "^${ADDR}$" "$STATE_FILE" 2>/dev/null; then    
+      204 -      notify-send "Sliding Tray" "Window already in ${POSITION
+          -} tray"                                                       
+      205 -      exit 0                                                  
+      176 +    if grep -q "^${addr}$" "$state_file" 2>/dev/null; then    
+      177 +        notify-send "Sliding Tray" "Window already in ${POSITI
+          +ON} tray"                                                     
+      178 +        exit 0                                                
+      179      fi
+      180  
+      181      # Add to state file
+      209 -    echo "$ADDR" >>"$STATE_FILE"                              
+      182 +    echo "$addr" >> "$state_file"                             
+      183  
+      184      # Setup window (hidden initially)
+      212 -    setup_window "$ADDR" "false"                              
+      185 +    setup_window "$addr" "false"                              
+      186  
+      214 -    # Tell watcher to update                                  
+      215 -    touch "${STATE_DIR}/.update_trigger"                      
+      216 -                                                              
+      187 +    hypr_log_info "tray" "Added window $addr to ${POSITION} tr
+          +ay"                                                           
+      188      notify-send "Sliding Tray" "Added to ${POSITION} tray"
+      218 -    ;;                                                        
+      189 +}                                                             
+      190  
+      220 -  remove)                                                     
+      221 -    ADDR="${WINDOW_ADDR:-$(get_active_window)}"               
+      191 +action_remove() {                                             
+      192 +    local addr="${WINDOW_ADDR:-$(hypr_get_active_window)}"    
+      193  
+      223 -    if [[ -z "$ADDR" ]] || [[ "$ADDR" == "null" ]]; then      
+      224 -      notify-send "Sliding Tray" "No window selected"         
+      225 -      exit 1                                                  
+      194 +    if [[ -z "$addr" ]] || [[ "$addr" == "null" ]]; then      
+      195 +        notify-send "Sliding Tray" "No window selected"       
+      196 +        exit 1                                                
+      197      fi
+      198  
+      199 +    local state_file                                          
+      200 +    state_file=$(get_tray_state_file)                         
+      201 +                                                              
+      202      # Remove from state
+      229 -    if [[ -f "$STATE_FILE" ]]; then                           
+      230 -      grep -v "^${ADDR}$" "$STATE_FILE" >"${STATE_FILE}.tmp" |
+          -| true                                                        
+      231 -      mv "${STATE_FILE}.tmp" "$STATE_FILE"                    
+      203 +    if [[ -f "$state_file" ]]; then                           
+      204 +        grep -v "^${addr}$" "$state_file" > "${state_file}.tmp
+          +" || true                                                     
+      205 +        mv "${state_file}.tmp" "$state_file"                  
+      206      fi
+      207  
+      208      # Untile the window
+      235 -    if window_exists "$ADDR"; then                            
+      236 -      hyprctl dispatch togglefloating "address:${ADDR}"       
+      209 +    if hypr_window_exists "$addr"; then                       
+      210 +        hyprctl dispatch togglefloating "address:${addr}"     
+      211      fi
+      212  
+      239 -    touch "${STATE_DIR}/.update_trigger"                      
+      213 +    hypr_log_info "tray" "Removed window $addr from ${POSITION
+          +} tray"                                                       
+      214      notify-send "Sliding Tray" "Removed from ${POSITION} tray"
+      241 -    ;;                                                        
+      215 +}                                                             
+      216  
+      243 -  show)                                                       
+      244 -    [[ ! -f "$STATE_FILE" ]] && exit 0                        
+      217 +action_show() {                                               
+      218 +    local state_file                                          
+      219 +    state_file=$(get_tray_state_file)                         
+      220 +    [[ ! -f "$state_file" ]] && exit 0                        
+      221  
+      222      while IFS= read -r addr; do
+      247 -      window_exists "$addr" && slide_to "$addr" "visible"     
+      248 -    done <"$STATE_FILE"                                       
+      223 +        hypr_window_exists "$addr" && slide_to "$addr" "visibl
+          +e"                                                            
+      224 +    done < "$state_file"                                      
+      225  
+      250 -    touch "$VISIBLE_FILE"                                     
+      251 -    ;;                                                        
+      226 +    touch "$(get_tray_visible_file)"                          
+      227 +    hypr_log_info "tray" "Showed ${POSITION} tray"            
+      228 +}                                                             
+      229  
+      253 -  hide)                                                       
+      254 -    [[ ! -f "$STATE_FILE" ]] && exit 0                        
+      230 +action_hide() {                                               
+      231 +    local state_file                                          
+      232 +    state_file=$(get_tray_state_file)                         
+      233 +    [[ ! -f "$state_file" ]] && exit 0                        
+      234  
+      235      while IFS= read -r addr; do
+      257 -      window_exists "$addr" && slide_to "$addr" "hidden"      
+      258 -    done <"$STATE_FILE"                                       
+      236 +        hypr_window_exists "$addr" && slide_to "$addr" "hidden
+          +"                                                             
+      237 +    done < "$state_file"                                      
+      238  
+      260 -    rm -f "$VISIBLE_FILE"                                     
+      261 -    ;;                                                        
+      239 +    rm -f "$(get_tray_visible_file)"                          
+      240 +    hypr_log_info "tray" "Hid ${POSITION} tray"               
+      241 +}                                                             
+      242  
+      263 -  toggle)                                                     
+      264 -    if is_visible; then                                       
+      265 -      "$0" "$POSITION" hide                                   
+      243 +action_toggle() {                                             
+      244 +    if is_tray_visible; then                                  
+      245 +        action_hide                                           
+      246      else
+      267 -      "$0" "$POSITION" show                                   
+      247 +        action_show                                           
+      248      fi
+      269 -    ;;                                                        
+      270 -                                                              
+      271 -  list)                                                       
+      272 -    if [[ -f "$STATE_FILE" ]] && [[ -s "$STATE_FILE" ]]; then 
+      273 -      echo "=== ${POSITION^^} TRAY $(is_visible && echo '[VISI
+          -BLE]' || echo '[HIDDEN]') ==="                                
+      274 -      while IFS= read -r addr; do                             
+      275 -        if window_exists "$addr"; then                        
+      276 -          hyprctl clients -j | jq -r ".[] | select(.address ==
+          - \"$addr\") | \"\(.class) - \(.title)\""                      
+      277 -        fi                                                    
+      278 -      done <"$STATE_FILE"                                     
+      279 -    else                                                      
+      280 -      echo "No windows in ${POSITION} tray"                   
+      281 -    fi                                                        
+      282 -    ;;                                                        
+      283 -                                                              
+      284 -  *)                                                          
+      285 -    echo "Usage: $0 <position> <action> [window-address]"     
+      286 -    exit 1                                                    
+      287 -    ;;                                                        
+      288 -esac                                                          
+      289 -                                                              
+      290 -get_current_workspace() {                                     
+      291 -  hyprctl activeworkspace -j | jq -r '.id'                    
+      249  }
+      250  
+      294 -get_workspace_type() {                                        
+      295 -  local ws="$1"                                               
+      296 -  if [[ "$ws" =~ ^special: ]]; then                           
+      297 -    echo "special"                                            
+      298 -  else                                                        
+      299 -    echo "regular"                                            
+      300 -  fi                                                          
+      301 -}                                                             
+      251 +action_list() {                                               
+      252 +    local state_file                                          
+      253 +    state_file=$(get_tray_state_file)                         
+      254  
+      303 -is_tray_visible() {                                           
+      304 -  local pos="$1"                                              
+      305 -  [[ -f "${STATE_DIR}/${pos}.visible" ]]                      
+      306 -}                                                             
+      307 -                                                              
+      308 -get_tray_windows() {                                          
+      309 -  local pos="$1"                                              
+      310 -  local state_file="${STATE_DIR}/${pos}.windows"              
+      311 -                                                              
+      312 -  if [[ -f "$state_file" ]]; then                             
+      313 -    cat "$state_file"                                         
+      314 -  fi                                                          
+      315 -}                                                             
+      316 -                                                              
+      317 -window_exists() {                                             
+      318 -  hyprctl clients -j | jq -r '.[].address' | grep -q "^${1}$" 
+      319 -}                                                             
+      320 -                                                              
+      321 -move_tray_to_workspace() {                                    
+      322 -  local pos="$1"                                              
+      323 -  local target_ws="$2"                                        
+      324 -  local should_pin="$3"                                       
+      325 -                                                              
+      326 -  local windows=$(get_tray_windows "$pos")                    
+      327 -  [[ -z "$windows" ]] && return                               
+      328 -                                                              
+      329 -  local visible=$(is_tray_visible "$pos" && echo "true" || ech
+          -o "false")                                                    
+      330 -                                                              
+      331 -  while IFS= read -r addr; do                                 
+      332 -    if window_exists "$addr"; then                            
+      333 -      # Move to target workspace                              
+      334 -      hyprctl dispatch movetoworkspacesilent "${target_ws},add
+          -ress:${addr}"                                                 
+      335 -                                                              
+      336 -      # Handle pinning                                        
+      337 -      if [[ "$should_pin" == "true" ]]; then                  
+      338 -        # Pin it (for regular workspaces)                     
+      339 -        hyprctl dispatch pin "address:${addr}"                
+      340 -      else                                                    
+      341 -        # Ensure it's not pinned (for special workspaces)     
+      342 -        local is_pinned=$(hyprctl clients -j | jq -r ".[] | se
+          -lect(.address == \"$addr\") | .pinned")                       
+      343 -        if [[ "$is_pinned" == "true" ]]; then                 
+      344 -          hyprctl dispatch pin "address:${addr}"              
+      345 -        fi                                                    
+      346 -      fi                                                      
+      347 -                                                              
+      348 -      # Reapply positioning based on visibility               
+      349 -      if [[ "$visible" == "true" ]]; then                     
+      350 -        ~/.config/hypr/scripts/sliding-tray.sh "$pos" show >/d
+          -ev/null 2>&1                                                  
+      351 -      fi                                                      
+      255 +    if [[ -f "$state_file" ]] && [[ -s "$state_file" ]]; then 
+      256 +        echo "=== ${POSITION^^} TRAY $(is_tray_visible && echo
+          + '[VISIBLE]' || echo '[HIDDEN]') ==="                         
+      257 +        while IFS= read -r addr; do                           
+      258 +            if hypr_window_exists "$addr"; then               
+      259 +                hyprctl clients -j | jq -r ".[] | select(.addr
+          +ess == \"$addr\") | \"\(.class) - \(.title)\""                
+      260 +            fi                                                
+      261 +        done < "$state_file"                                  
+      262 +    else                                                      
+      263 +        echo "No windows in ${POSITION} tray"                 
+      264      fi
+      353 -  done <<<"$windows"                                          
+      265  }
+      266  
+      356 -handle_workspace_change() {                                   
+      357 -  local current_ws=$(get_current_workspace)                   
+      358 -  local current_type=$(get_workspace_type "$current_ws")      
+      267 +# ============================================================
+          +================                                              
+      268 +# MAIN                                                        
+      269 +# ============================================================
+          +================                                              
+      270  
+      360 -  # Skip if same workspace                                    
+      361 -  [[ "$current_ws" == "$LAST_WS" ]] && return                 
+      362 -                                                              
+      363 -  local last_type=$(get_workspace_type "$LAST_WS")            
+      364 -                                                              
+      365 -  # If workspace type changed, update all trays               
+      366 -  if [[ "$current_type" != "$last_type" ]] || [[ -z "$LAST_WS"
+          - ]]; then                                                     
+      367 -    for pos in "${POSITIONS[@]}"; do                          
+      368 -      if [[ "$current_type" == "special" ]]; then             
+      369 -        # Moving to special workspace - unpin and move        
+      370 -        move_tray_to_workspace "$pos" "$current_ws" "false"   
+      371 -      else                                                    
+      372 -        # Moving to regular workspace - move and pin          
+      373 -        move_tray_to_workspace "$pos" "$current_ws" "true"    
+      374 -      fi                                                      
+      375 -    done                                                      
+      376 -  fi                                                          
+      377 -                                                              
+      378 -  LAST_WS="$current_ws"                                       
+      379 -}                                                             
+      380 -                                                              
+      381 -# Initial setup                                               
+      382 -handle_workspace_change                                       
+      383 -                                                              
+      384 -# Watch for workspace changes                                 
+      385 -socat -u UNIX-CONNECT:/tmp/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.
+          -socket2.sock - | while read -r line; do                       
+      386 -  if [[ "$line" =~ ^workspace\>\> ]] || [[ "$line" =~ ^focused
+          -mon\>\> ]]; then                                              
+      387 -    handle_workspace_change                                   
+      388 -  fi                                                          
+      389 -done                                                          
+      271 +case "$ACTION" in                                             
+      272 +    add)                                                      
+      273 +        action_add                                            
+      274 +        ;;                                                    
+      275 +    remove)                                                   
+      276 +        action_remove                                         
+      277 +        ;;                                                    
+      278 +    show)                                                     
+      279 +        action_show                                           
+      280 +        ;;                                                    
+      281 +    hide)                                                     
+      282 +        action_hide                                           
+      283 +        ;;                                                    
+      284 +    toggle)                                                   
+      285 +        action_toggle                                         
+      286 +        ;;                                                    
+      287 +    list)                                                     
+      288 +        action_list                                           
+      289 +        ;;                                                    
+      290 +    *)                                                        
+      291 +        echo "Unknown action: $ACTION"                        
+      292 +        echo "Actions: add, remove, show, hide, toggle, list" 
+      293 +        exit 1                                                
+      294 +        ;;                                                    
+      295 +esac                                                          
+
+> /resume 
+  ⎿  Resume cancelled
+
+> /rename dropdown-terminal 
+  ⎿  Session renamed to: dropdown-terminal
+
+
+

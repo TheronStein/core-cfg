@@ -1,0 +1,29 @@
+# Workspace Manager TUI Config
+# Fast, minimal config for FZF browser popups
+
+# Base config
+config-file = /home/theron/.config/ghostty/config
+
+# Window identification
+title = Workspace Manager
+
+# No decorations for clean popup
+gtk-titlebar = false
+window-decoration = false
+
+# Size - 160 cols x 40 rows (comfortable for FZF browser with preview)
+window-width = 160
+window-height = 40
+
+# Minimal padding
+window-padding-x = 5
+window-padding-y = 5
+
+# Slightly larger font for readability
+font-size = 12
+
+# No confirm on close (browser handles this)
+confirm-close-surface = false
+
+# Quick startup
+wait-after-command = false

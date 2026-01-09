@@ -656,7 +656,7 @@ safe_require_checked("relative-motions")
 -- safe_require_checked("dual-pane")
 
 -- Toggle/Zoom (called on-demand, no pre-loading needed)
-safe_require_checked("toggle-pane") -- sync plugin, loaded on use
+-- safe_require_checked("toggle-pane") -- NOT INSTALLED
 safe_require_checked("zoom")
 
 -- ═══════════════════════════════════════════════════════════════
@@ -694,13 +694,14 @@ safe_require_checked("thumbnail")
 
 -- Yazibar Sync - DDS-based synchronization for left/right sidebar pairs
 -- Only activates when YAZIBAR_SIDE and YAZIBAR_WINDOW_ID env vars are set
-local yazibar_sync = safe_require_checked("yazibar-sync")
-if yazibar_sync then
-	yazibar_sync:setup({
-		debounce = true,  -- Skip publishing if URL unchanged
-		debug = true,     -- Enable for troubleshooting
-	})
-end
+-- Yazibar sync disabled for right sidebar - it only receives :reveal commands
+-- local yazibar_sync = safe_require_checked("yazibar-sync")
+-- if yazibar_sync then
+-- 	yazibar_sync:setup({
+-- 		debounce = true,
+-- 		debug = false,
+-- 	})
+-- end
 
 safe_require_checked("kdeconnect-send")
 -- safe_require_checked("kdeconnect-mount")
