@@ -22,7 +22,7 @@ function M.setup(config)
     -- 	mods = "SHIFT",
     -- 	action = wezterm.action.DisableDefaultAssignment,
     -- },
-    { key = "Enter", mods = "SHIFT", action = wezterm.action({ SendString = "\x1b\r" }) },
+    -- { key = "Enter", mods = "SHIFT", action = wezterm.action({ SendString = "\x1b\r" }) },
     { key = "PageUp", mods = "SHIFT", action = act.ScrollByPage(-1) },
     { key = "PageDown", mods = "SHIFT", action = act.ScrollByPage(1) },
     -- { key = "Enter", mods = "SHIFT", action = wezterm.action({ SendString = "\x1b\r" }) },

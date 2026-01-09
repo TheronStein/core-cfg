@@ -560,7 +560,7 @@ keymap = [
     "g",
     "n",
   ], run = "cd ~/.core/.sys/cfg/nvim/lua", desc = "Go to Neovim" },
-  { on = [yazi
+  { on = [
     "g",
     "y",
   ], run = "cd ~/.core/.sys/cfg/yazi", desc = "Go to Yazi" },

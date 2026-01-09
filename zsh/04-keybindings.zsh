@@ -47,45 +47,28 @@ bindkey -M menuselect 'i' vi-up-line-or-history     # i: Up
 bindkey -M menuselect 'l' vi-forward-char           # l: Right
 
 #=============================================================================
-# VI COMMAND MODE - IJKL NAVIGATION
+# VI COMMAND MODE - see zvm_after_init() in 02-zinit.zsh
 #=============================================================================
-# Custom navigation: i=up, j=left, k=down, l=right (rotated from hjkl)
-# NOTE: 'i' is remapped from insert-mode entry to up-navigation
-#       Use 'a' (append), 'o'/'O' (open line), 's' (substitute) to enter insert mode
-
-# Character/line movement
-bindkey -M vicmd 'j' vi-backward-char           # j: Left (was h)
-bindkey -M vicmd 'l' vi-forward-char            # l: Right (default)
-bindkey -M vicmd 'i' vi-up-line-or-history      # i: Up (was k)
-bindkey -M vicmd 'k' vi-down-line-or-history    # k: Down (was j)
-
-# Unbind h from left movement (replaced by j)
-bindkey -M vicmd 'h' undefined-key
-
-# Line start/end (Shift versions)
-bindkey -M vicmd 'J' beginning-of-line          # J: Line start
-bindkey -M vicmd 'L' end-of-line                # L: Line end
-
-# Undo/Redo
-bindkey -M vicmd '^U' undo
-bindkey -M vicmd '^R' redo
-
-# FZF history search from command mode
-bindkey -M vicmd '/' widget::fzf-history-search
-
-# Edit command in $EDITOR
-bindkey -M vicmd 'v' widget::edit-command
+# All vicmd bindings are in zvm_after_init() because zsh-vi-mode plugin
+# overwrites bindings set here. See 02-zinit.zsh for the full mapping.
 
 #=============================================================================
 # INSERT MODE - MULTILINE & RECOVERY
 #=============================================================================
-# Shift+Enter: Insert newline without executing (for multiline commands)
-bindkey -M viins '^[[13;2u' self-insert-unmeta  # Shift+Enter (kitty/wezterm)
-bindkey -M viins '\e[13;2~' self-insert-unmeta  # Shift+Enter (alternate)
-bindkey -M viins '\eOM' accept-line             # Fallback if terminal sends this
+
+# Widget to insert a literal newline (for multiline commands)
+function _insert_newline() {
+    LBUFFER+=$'\n'
+}
+zle -N _insert_newline
+
+# Shift+Enter: Insert newline without executing
+bindkey -M viins '^[[13;2u' _insert_newline     # Shift+Enter (kitty protocol)
+bindkey -M viins '\e[13;2~' _insert_newline     # Shift+Enter (alternate)
 
 # Alt+Enter: Insert newline (common alternative)
-bindkey -M viins '\e^M' self-insert-unmeta
+bindkey -M viins '\e^M' _insert_newline
+bindkey -M viins '^[^M' _insert_newline         # Alt+Enter (alternate encoding)
 
 # Ctrl+C: Cancel and reset to clean insert mode
 # Handles the "stuck in mode" issue by forcing a clean state

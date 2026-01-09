@@ -91,6 +91,6 @@ keybind = ctrl+alt+v=new_split:right
 keybind = ctrl+alt+d=new_split:down
 # theme = Banana Blueberry
 # theme = 0x96f
-keybind = shift+enter=text:\x1b\r
+# keybind = shift+enter=text:\x1b\r
 keybind = super+alt+c=write_screen_file:copy
 keybind = super+alt+f=write_screen_file:open

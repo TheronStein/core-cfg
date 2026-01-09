@@ -230,16 +230,49 @@ esac
 # This function MUST be defined before zsh-vi-mode loads
 function zvm_after_init() {
     # Vi-mode only keybindings
-    # All custom widgets use Ctrl+ or Alt+Ctrl+ prefixes to avoid conflicts
-    # No Alt+letter bindings (those conflict with vi-mode or cause confusion)
+    # MUST be set here because zsh-vi-mode overwrites bindings on init
 
-    #--- MENU SYSTEM ---
+    #=== VI COMMAND MODE (vicmd) - IJKL NAVIGATION ===
+    # Navigation: i=up, j=left, k=down, l=right
+    # NOTE: 'i' no longer enters insert mode - use 'a', 'o', 's' instead
+
+    # Basic movement (ijkl)
+    bindkey -M vicmd 'i' vi-up-line-or-history      # i: Up
+    bindkey -M vicmd 'k' vi-down-line-or-history    # k: Down
+    bindkey -M vicmd 'j' vi-backward-char           # j: Left
+    bindkey -M vicmd 'l' vi-forward-char            # l: Right
+
+    # Word movement
+    bindkey -M vicmd '^J' vi-backward-word          # Ctrl+j: Previous word start
+    bindkey -M vicmd 'J' vi-backward-word-end       # J: Previous word end
+    bindkey -M vicmd '^L' vi-forward-word           # Ctrl+l: Next word start
+    bindkey -M vicmd 'L' vi-forward-word-end        # L: Next word end
+
+    # Line movement
+    bindkey -M vicmd '\ej' beginning-of-line        # Alt+j: Line start
+    bindkey -M vicmd '\el' end-of-line              # Alt+l: Line end
+
+    # Unbind h (replaced by j)
+    bindkey -M vicmd 'h' undefined-key
+
+    # Undo/Redo
+    bindkey -M vicmd '^U' undo
+    bindkey -M vicmd '^R' redo
+
+    # Visual mode and editing
+    bindkey -M vicmd 'v' visual-mode                # v: Enter visual mode
+    bindkey -M vicmd 'V' visual-line-mode           # V: Enter visual line mode
+
+    # Edit in $EDITOR
+    bindkey -M vicmd '\ev' edit-command-line        # Alt+v: Edit in $EDITOR
+
+    #=== MENU SYSTEM ===
     bindkey -M viins '\e ' widget::universal-overlay   # Alt+Space
     bindkey -M vicmd '\e ' _core_menu_widget
     bindkey -M viins '\e/' widget::universal-overlay   # Alt+/
     bindkey -M vicmd '\e/' _core_menu_widget
 
-    #--- FZF WIDGETS (Ctrl+ prefix) ---
+    #=== FZF WIDGETS (Ctrl+ prefix in insert mode) ===
     bindkey -M viins '^R' widget::fzf-history-search   # Ctrl+R: History
     bindkey -M viins '^F' widget::fzf-file-selector    # Ctrl+F: Files
     bindkey -M viins '^G' widget::fzf-git-status       # Ctrl+G: Git status
@@ -249,29 +282,94 @@ function zvm_after_init() {
     bindkey -M viins '^P' widget::command-palette      # Ctrl+P: Command palette
     bindkey -M viins '^L' widget::clear-scrollback     # Ctrl+L: Clear
 
-    #--- EXTENDED WIDGETS (Alt+Ctrl+ prefix) ---
+    #=== EXTENDED WIDGETS (Alt+Ctrl+ prefix) ===
     bindkey -M viins '^[^B' widget::bitwarden          # Alt+Ctrl+B: Bitwarden
     bindkey -M viins '^[^G' widget::fzf-git-commits    # Alt+Ctrl+G: Git commits
     bindkey -M viins '^[^T' widget::fzf-tmux-window    # Alt+Ctrl+T: Tmux windows
     bindkey -M viins '^[^S' widget::fzf-ssh            # Alt+Ctrl+S: SSH
     bindkey -M viins '^[^E' widget::fzf-env            # Alt+Ctrl+E: Environment
 
-    #--- INSERTIONS (Ctrl+X prefix) ---
+    #=== INSERTIONS (Ctrl+X prefix) ===
     bindkey -M viins '^X^E' widget::edit-command       # Ctrl+X Ctrl+E: Edit in $EDITOR
     bindkey -M viins '^X^D' widget::insert-date        # Ctrl+X Ctrl+D: Insert date
     bindkey -M viins '^X^T' widget::insert-timestamp   # Ctrl+X Ctrl+T: Insert timestamp
     bindkey -M viins '^X^N' widget::quick-note         # Ctrl+X Ctrl+N: Quick note
 
-    #--- HISTORY (arrow keys) ---
+    #=== HISTORY (arrow keys) ===
     bindkey -M viins '^[[A' history-substring-search-up
     bindkey -M viins '^[[B' history-substring-search-down
 
-    #--- SUDO TOGGLE ---
+    #=== SUDO TOGGLE ===
     bindkey -M viins '\e\e' widget::toggle-sudo        # Esc Esc
     bindkey -M vicmd '\e\e' widget::toggle-sudo
+
+    #=== MULTILINE INPUT ===
+    # Shift+Enter: Insert newline without executing (kitty keyboard protocol)
+    bindkey -M viins $'\e[13;2u' _insert_newline
+    bindkey -M viins '\e[13;2u' _insert_newline
+    # Alt+Enter alternatives
+    bindkey -M viins '\e^M' _insert_newline
+    bindkey -M viins $'\e\r' _insert_newline
 }
 
-# IMPORTANT: Load vi-mode immediately (not deferred) so zvm_after_init hook works
+# This hook runs AFTER all lazy keybindings - the FINAL word on all bindings
+function zvm_after_lazy_keybindings() {
+    #=== COMMAND MODE (vicmd) ===
+    # IJKL navigation
+    bindkey -M vicmd 'i' vi-up-line-or-history      # i: Up (overrides insert)
+    bindkey -M vicmd 'k' vi-down-line-or-history    # k: Down
+    bindkey -M vicmd 'j' vi-backward-char           # j: Left
+    bindkey -M vicmd 'l' vi-forward-char            # l: Right
+    bindkey -M vicmd 'h' undefined-key              # h: Unbound
+
+    # Word movement
+    bindkey -M vicmd '^J' vi-backward-word          # Ctrl+j: Previous word start
+    bindkey -M vicmd 'J' vi-backward-word-end       # J: Previous word end
+    bindkey -M vicmd '^L' vi-forward-word           # Ctrl+l: Next word start
+    bindkey -M vicmd 'L' vi-forward-word-end        # L: Next word end
+
+    # Line movement
+    bindkey -M vicmd '\ej' beginning-of-line        # Alt+j: Line start
+    bindkey -M vicmd '\el' end-of-line              # Alt+l: Line end
+
+    #=== VISUAL MODE (visual) ===
+    # IJKL navigation for selection expansion
+    bindkey -M visual 'i' vi-up-line-or-history     # i: Expand up
+    bindkey -M visual 'k' vi-down-line-or-history   # k: Expand down
+    bindkey -M visual 'j' vi-backward-char          # j: Expand left
+    bindkey -M visual 'l' vi-forward-char           # l: Expand right
+    bindkey -M visual 'h' undefined-key             # h: Unbound
+
+    # Word movement in visual
+    bindkey -M visual '^J' vi-backward-word         # Ctrl+j: Expand to prev word start
+    bindkey -M visual 'J' vi-backward-word-end      # J: Expand to prev word end
+    bindkey -M visual '^L' vi-forward-word          # Ctrl+l: Expand to next word start
+    bindkey -M visual 'L' vi-forward-word-end       # L: Expand to next word end
+
+    # Line movement in visual
+    bindkey -M visual '\ej' beginning-of-line       # Alt+j: Expand to line start
+    bindkey -M visual '\el' end-of-line             # Alt+l: Expand to line end
+
+    #=== OPERATOR PENDING MODE (viopp) ===
+    # For motions after d, c, y, etc.
+    bindkey -M viopp 'i' vi-up-line-or-history      # i: Up
+    bindkey -M viopp 'k' vi-down-line-or-history    # k: Down
+    bindkey -M viopp 'j' vi-backward-char           # j: Left
+    bindkey -M viopp 'l' vi-forward-char            # l: Right
+    bindkey -M viopp 'h' undefined-key              # h: Unbound
+
+    # Word movement in operator pending
+    bindkey -M viopp '^J' vi-backward-word          # Ctrl+j: Prev word start
+    bindkey -M viopp 'J' vi-backward-word-end       # J: Prev word end
+    bindkey -M viopp '^L' vi-forward-word           # Ctrl+l: Next word start
+    bindkey -M viopp 'L' vi-forward-word-end        # L: Next word end
+
+    # Line movement in operator pending
+    bindkey -M viopp '\ej' beginning-of-line        # Alt+j: Line start
+    bindkey -M viopp '\el' end-of-line              # Alt+l: Line end
+}
+
+# IMPORTANT: Load vi-mode immediately (not deferred) so hooks work
 zinit ice lucid
 zinit light jeffreytse/zsh-vi-mode
 
