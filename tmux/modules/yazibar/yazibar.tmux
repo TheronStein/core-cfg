@@ -43,9 +43,8 @@ fi
 # ============================================================================
 
 # Set default options if not already set
-tmux set-option -gq @yazibar-server "core-ide" 2>/dev/null || true
-tmux set-option -gq @yazibar-left-session "left-sidebar" 2>/dev/null || true
-tmux set-option -gq @yazibar-right-session "right-sidebar" 2>/dev/null || true
+# NOTE: Removed vestigial @yazibar-server, @yazibar-left-session, @yazibar-right-session
+# Those created sessions on a separate tmux server that were never used
 tmux set-option -gq @yazibar-left-width "15%" 2>/dev/null || true
 tmux set-option -gq @yazibar-right-width "30%" 2>/dev/null || true
 tmux set-option -gq @yazibar-right-needs-left "1" 2>/dev/null || true

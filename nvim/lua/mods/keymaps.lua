@@ -71,7 +71,7 @@ function M.setup()
 
 	-- [[[ Bind modules loading
 	require("binds.clipboard").setup()
-	require("binds.tmux-vim-navigation").setup()
+	-- require("binds.tmux-vim-navigation").setup()  -- Disabled: using smart-splits.nvim instead
 	require("binds.window").setup()
 	require("binds.editing").setup()
 	require("binds.search").setup()

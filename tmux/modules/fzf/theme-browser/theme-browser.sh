@@ -227,10 +227,27 @@ main() {
     echo -e "  Preview Mode: ${MAGENTA}$PREVIEW_MODE${RESET}"
     echo -e "  Total Themes: ${GREEN}$(jq '.theme_count' "$THEMES_FILE")${RESET}"
     echo
-    echo -e "${DIM}  Navigation: ↑↓  |  Apply: Enter  |  Cancel: Esc${RESET}"
-    echo -e "${DIM}  Filters: Ctrl+L (light) | Ctrl+D (dark) | Ctrl+W (warm) | Ctrl+C (cool)${RESET}"
+    echo -e "${DIM}  Navigation: ^w/^s  |  Apply: Enter  |  Cancel: Esc${RESET}"
+    echo -e "${DIM}  Filters: Ctrl+F (cycle all/light/dark) | Ctrl+W (warm) | Ctrl+C (cool)${RESET}"
     echo -e "${DIM}  Opacity: [ (decrease) | ] (increase)${RESET}"
     echo
+
+    # State file for filter cycling
+    local filter_state="/tmp/theme-browser-filter-$$"
+    echo "all" > "$filter_state"
+
+    # Cycle filter function: all -> light -> dark -> all
+    cycle_filter() {
+        local state_file="$1"
+        local current=$(cat "$state_file" 2>/dev/null || echo "all")
+        case "$current" in
+            all)   echo "light" > "$state_file"; generate_list light ;;
+            light) echo "dark" > "$state_file"; generate_list dark ;;
+            dark)  echo "all" > "$state_file"; generate_list ;;
+        esac
+    }
+    export -f cycle_filter generate_list
+    export filter_state
 
     # Run fzf
     local selected
@@ -240,18 +257,17 @@ main() {
             --layout=reverse \
             --border=rounded \
             --border-label="╣ Theme Browser ╠" \
-            --prompt="Theme ❯ " \
+            --header="^f filter (all/light/dark)  ^w warm  ^c cool  ^/ preview  [/] opacity" \
+            --prompt="[all] ❯ " \
             --pointer="▶" \
             --marker="✓" \
             --ansi \
             --cycle \
             --preview-window="right:50%:wrap:rounded" \
             --preview="$SCRIPT_DIR/preview.sh {}" \
-            --bind="ctrl-l:reload(bash -c 'generate_list light')" \
-            --bind="ctrl-d:reload(bash -c 'generate_list dark')" \
-            --bind="ctrl-w:reload(bash -c 'generate_list \"\" warm')" \
-            --bind="ctrl-c:reload(bash -c 'generate_list \"\" cool')" \
-            --bind="ctrl-r:reload(bash -c 'generate_list')" \
+            --bind="ctrl-f:reload(cycle_filter '$filter_state')+transform-prompt(cat '$filter_state' | sed 's/.*/[\0] ❯ /')" \
+            --bind="ctrl-w:reload(bash -c 'generate_list \"\" warm')+change-prompt([warm] ❯ )" \
+            --bind="ctrl-c:reload(bash -c 'generate_list \"\" cool')+change-prompt([cool] ❯ )" \
             --bind="ctrl-/:toggle-preview" \
             --bind="[:execute-silent(adjust_opacity decrease)" \
             --bind="]:execute-silent(adjust_opacity increase)" \
@@ -260,6 +276,9 @@ main() {
             --color="marker:#f5e0dc,fg+:#cdd6f4,prompt:#cba6f7,hl+:#f38ba8" \
             --color="border:#89b4fa,label:#89b4fa,query:#cdd6f4"
     ) || true
+
+    # Cleanup
+    rm -f "$filter_state" 2>/dev/null
 
     if [[ -n "$selected" ]]; then
         # Extract theme name (same logic as generate_preview)

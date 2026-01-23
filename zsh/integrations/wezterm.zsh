@@ -12,6 +12,24 @@
 export WEZTERM_CONFIG_FILE="${XDG_CONFIG_HOME:-$HOME/.config}/wezterm/wezterm.lua"
 
 #=============================================================================
+# TMUX DETECTION FOR NAVIGATION
+# Sets WEZTERM_IN_TMUX user var so WezTerm can detect if we're inside tmux
+# This enables proper 3-layer navigation (WezTerm -> tmux -> nvim)
+#=============================================================================
+function _wezterm_set_tmux_var() {
+  if [[ -n "$TMUX" ]]; then
+    # Inside tmux - use DCS passthrough for the escape sequence
+    printf '\033Ptmux;\033\033]1337;SetUserVar=%s=%s\007\033\\' "WEZTERM_IN_TMUX" "$(echo -n '1' | base64)"
+  else
+    # Not in tmux - send directly
+    printf '\033]1337;SetUserVar=%s=%s\007' "WEZTERM_IN_TMUX" "$(echo -n '0' | base64)"
+  fi
+}
+
+# Set the user var on shell startup
+_wezterm_set_tmux_var
+
+#=============================================================================
 # OSC (Operating System Command) SEQUENCES
 # WezTerm supports various OSC sequences for rich terminal features
 #=============================================================================

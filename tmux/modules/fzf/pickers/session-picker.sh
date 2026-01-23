@@ -70,6 +70,9 @@ case "$ACTION" in
     *)      HEADER="Select session" ;;
 esac
 
+# Keybind hints
+KEYBINDS="^r reload  ^/ preview  Esc cancel"
+
 # Run FZF
 SELECTED=$(get_sessions | fzf \
     --ansi \
@@ -78,10 +81,12 @@ SELECTED=$(get_sessions | fzf \
     --border=rounded \
     --color="$(fzf::colors)" \
     --preview='bash -c "preview_session {}"' \
-    --preview-window=right:50%:wrap \
-    --header="$HEADER (ESC to cancel)" \
+    --preview-window=top:70%:wrap \
+    --header="$HEADER
+$KEYBINDS" \
     --prompt="Session> " \
     --bind="ctrl-r:reload(bash -c 'source $0; get_sessions')" \
+    --bind="ctrl-/:toggle-preview" \
     --bind="esc:cancel" \
 ) || exit 0
 

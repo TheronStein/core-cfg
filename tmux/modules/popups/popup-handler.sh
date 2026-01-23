@@ -19,26 +19,42 @@ case "$APP" in
   neomutt)
     WINDOW_NAME="mail"
     APP_CMD="$APP"
+    PROCESS_NAME="neomutt"
+    ;;
+  smstui)
+    WINDOW_NAME="sms"
+    APP_CMD="python3 $CORE_PROJ/environment/kdesms-tui-fixes/main.py"
+    PROCESS_NAME="python3"
     ;;
   spotify_player|ncspot)
     WINDOW_NAME="music"
     APP_CMD="$APP"
+    PROCESS_NAME="$APP"
+    ;;
+  btop)
+    WINDOW_NAME="monitor"
+    APP_CMD="btop"
+    PROCESS_NAME="btop"
     ;;
   disk-menu)
     WINDOW_NAME="disk-menu"
     APP_CMD="zsh -ic disk-menu-enhanced"
+    PROCESS_NAME="zsh"
     ;;
   disk-inspect)
     WINDOW_NAME="disk-scan"
     APP_CMD="zsh -ic 'gdu .'"
+    PROCESS_NAME="gdu"
     ;;
   bigfiles)
     WINDOW_NAME="big-files"
     APP_CMD="zsh -ic 'find-by-size 100M'"
+    PROCESS_NAME="find"
     ;;
   *)
     WINDOW_NAME="$APP"
     APP_CMD="$APP"
+    PROCESS_NAME="$APP"
     ;;
 esac
 
@@ -55,9 +71,9 @@ if ! tmux has-session -t "$SESSION" 2>/dev/null; then
   tmux set-option -t "$SESSION" status off
 fi
 
-# Check if app is running in any window of the apps session
-t_window=$(tmux list-panes -t "$SESSION" -a -F "#{window_index} #{pane_current_command}" 2>/dev/null \
-  | grep "^[0-9]* $APP$" | head -n 1 | awk '{print $1}')
+# Check if window with this name already exists in the apps session
+t_window=$(tmux list-windows -t "$SESSION" -F "#{window_index} #{window_name}" 2>/dev/null \
+  | grep " ${WINDOW_NAME}$" | head -n 1 | awk '{print $1}')
 
 if [ -z "$t_window" ]; then
   # App not running, find next available window

@@ -2,32 +2,32 @@
 # Panes Menu
 # Location: ~/.tmux/modules/menus/tmux/panes-menu.sh
 
-source "$TMUX_CONF/lib/menu-utils.sh"
+source "$TMUX_MENUS/menu-settings.sh"
 
-CURRENT_MENU="tmux/$(basename "$0")"
-PARENT=$(get_parent "$CURRENT_MENU" "tmux-menu.sh")
+CURRENT_MENU="tmux/panes-menu.sh"
+PARENT=$(get_parent "tmux-menu.sh")
 
-tmux display-menu -x C -y P -T "#[fg=#89b4fa,bold] 󰂮  Panes  󰂮 " \
-  "󰌑 Back" Tab "run-shell '$TMUX_MENUS/$PARENT'" \
+tmux display-menu -x $MENU_POS_X -y $MENU_POS_Y \
+  -T "$(menu_title '󰂮' 'Panes' $MENU_TITLE_PANE)" \
+  -s "$MENU_STYLE" -H "$MENU_SELECT_STYLE" -S "$MENU_BORDER_STYLE" -b "$MENU_BORDER_LINES" \
+  "$MENU_ICON_BACK Back" Tab "run-shell '$TMUX_MENUS/$PARENT'" \
   "" \
-  "#[fg=#01F9C6,bold]━━━ Create ━━━" "" "" \
+  "$(menu_sep 'Create')" "" "" \
   " Vertical Split" v "run-shell '$TMUX_CONF/events/split.sh v'" \
   " Horizontal Split" d "run-shell '$TMUX_CONF/events/split.sh h'" \
   "" \
-  "#[fg=#01F9C6,bold]━━━ Actions ━━━" "" "" \
+  "$(menu_sep 'Actions')" "" "" \
   " Kill Pane" x "kill-pane" \
   " Break to Window" b "break-pane" \
   " Break (stay)" B "break-pane -d" \
   "󰓦 Toggle Sync" y "if -F '#{pane_synchronized}' 'set -w synchronize-panes off; display \"Sync off\"' 'set -w synchronize-panes on; display \"Sync on\"'" \
   "" \
-  "#[fg=#01F9C6,bold]━━━ Move & Swap ━━━" "" "" \
+  "$(menu_sep 'Move & Swap')" "" "" \
   "󰓡 Swap Pane" s "$(fzf_popup 'pane-picker.sh --action=swap --all')" \
   " Join Here (H)" j "$(fzf_popup 'pane-picker.sh --action=join-h --all')" \
   " Join Here (V)" J "$(fzf_popup 'pane-picker.sh --action=join-v --all')" \
   " Send to Window" m "$(fzf_popup 'pane-picker.sh --action=send-h --all')" \
   "" \
-  "#[fg=#01F9C6,bold]━━━ Navigate ━━━" "" "" \
-  " To Prev Window" p "move-pane -t :-1" \
-  " To Next Window" n "move-pane -t :+1" \
+  "$(menu_sep 'Rotate')" "" "" \
   " Rotate CW" r "rotate-window" \
   " Rotate CCW" R "rotate-window -D"

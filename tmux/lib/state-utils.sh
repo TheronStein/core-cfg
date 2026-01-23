@@ -174,3 +174,13 @@ toggle_option() {
         set_tmux_option "$option" "1"
     fi
 }
+
+# ==============================================================================
+# Export Functions
+# ==============================================================================
+
+export -f get_tmux_option set_tmux_option clear_tmux_option
+export -f get_window_option set_window_option clear_window_option
+export -f get_pane_option set_pane_option clear_pane_option
+export -f get_user_variable set_user_variable
+export -f is_option_enabled toggle_option

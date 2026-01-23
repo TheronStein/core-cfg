@@ -3,38 +3,92 @@ local act = wezterm.action
 local paths = require("utils.paths")
 local M = {}
 
--- Session storage directory
-local session_dir = paths.WEZTERM_DATA .. "/sessions"
+-- Session storage directory (using local core state for ephemeral data)
+local session_dir = paths.LOCAL_WEZTERM_SESSIONS
 
 -- Ensure session directory exists
 local function ensure_session_dir()
-  os.execute('mkdir -p "' .. session_dir .. '"')
+  paths.ensure_dir(session_dir)
   return true
 end
 
--- Extract path from file:// URL or return as-is
-local function extract_path(cwd)
-  if not cwd then
-    return wezterm.home_dir
+-- Use centralized extract_path from paths module
+local extract_path = paths.extract_path
+
+-- ============================================================================
+-- TMUX CONTEXT DETECTION
+-- ============================================================================
+
+--- Detect if a pane is running tmux and get session info
+--- Returns: { is_tmux = boolean, session = string|nil, socket = string|nil }
+local function detect_tmux_context(pane)
+  local result = { is_tmux = false, session = nil, socket = nil }
+
+  -- Get foreground process info
+  local foreground_process = pane:get_foreground_process_info()
+  if not foreground_process then
+    return result
   end
 
-  -- Handle table format with file_path
-  if type(cwd) == "table" and cwd.file_path then
-    return cwd.file_path
+  local process_name = foreground_process.name or ""
+  local executable = foreground_process.executable or ""
+
+  -- Check if running tmux
+  if process_name ~= "tmux" and not executable:match("tmux$") then
+    return result
   end
 
-  -- Convert to string
-  cwd = tostring(cwd)
+  result.is_tmux = true
 
-  -- Handle file:// URLs
-  if cwd:match("^file://") then
-    local path = cwd:gsub("^file://[^/]+", "") or cwd:gsub("^file://", "")
-    wezterm.log_info("Converted " .. cwd .. " to " .. path)
-    return path
+  -- Try to get tmux session from pane title (often set by tmux)
+  local title = pane:get_title() or ""
+
+  -- Common tmux title patterns: "session:window" or just "session"
+  local session_from_title = title:match("^([^:]+)")
+  if session_from_title and session_from_title ~= "" then
+    result.session = session_from_title
   end
 
-  return cwd
+  -- Try to detect socket from environment or process
+  -- This is a best-effort detection
+  local cwd = extract_path(pane:get_current_working_dir())
+
+  -- Check for Core-IDE socket pattern in CWD
+  local socket_match = cwd:match("/%.core/%.sockets/([^/]+)")
+  if socket_match then
+    result.socket = socket_match
+  end
+
+  return result
 end
+
+--- Get command to re-attach to tmux session
+--- Returns: command string or nil
+local function get_tmux_attach_command(tmux_context)
+  if not tmux_context or not tmux_context.is_tmux then
+    return nil
+  end
+
+  local cmd = "tmux"
+
+  -- Add socket if known
+  if tmux_context.socket then
+    cmd = cmd .. " -L " .. tmux_context.socket
+  end
+
+  -- Add session attach
+  if tmux_context.session then
+    cmd = cmd .. " attach-session -t " .. tmux_context.session
+  else
+    cmd = cmd .. " attach"
+  end
+
+  return cmd
+end
+
+-- ============================================================================
+-- SESSION SAVE/LOAD
+-- ============================================================================
 
 -- Save current session
 local function save_session_internal(window, pane, session_name)
@@ -78,14 +132,27 @@ local function save_session_internal(window, pane, session_name)
       panes = {},
     }
 
-    for j, pane in ipairs(tab_panes) do
-      local raw_cwd = pane:get_current_working_dir()
+    for j, pane_obj in ipairs(tab_panes) do
+      local raw_cwd = pane_obj:get_current_working_dir()
       local cwd = extract_path(raw_cwd)
 
-      table.insert(tab_data.panes, {
+      -- Detect tmux context
+      local tmux_context = detect_tmux_context(pane_obj)
+
+      local pane_data = {
         cwd = cwd,
-        title = pane:get_title() or "",
-      })
+        title = pane_obj:get_title() or "",
+      }
+
+      -- Add tmux context if detected
+      if tmux_context.is_tmux then
+        pane_data.tmux = {
+          session = tmux_context.session,
+          socket = tmux_context.socket,
+        }
+      end
+
+      table.insert(tab_data.panes, pane_data)
     end
 
     table.insert(session_data.tabs, tab_data)
@@ -181,7 +248,19 @@ local function restore_session(window, pane, session_name)
     cwd = first_cwd,
   })
 
-  first_pane:send_text("clear\n")
+  -- Check if first pane had tmux context
+  local first_pane_data = first_tab_data.panes[1]
+  if first_pane_data.tmux and first_pane_data.tmux.session then
+    local tmux_cmd = get_tmux_attach_command(first_pane_data.tmux)
+    if tmux_cmd then
+      wezterm.log_info("Restoring tmux session: " .. tmux_cmd)
+      first_pane:send_text(tmux_cmd .. "\n")
+    else
+      first_pane:send_text("clear\n")
+    end
+  else
+    first_pane:send_text("clear\n")
+  end
   wezterm.sleep_ms(150)
 
   -- Always initialize custom_tabs global if needed
@@ -208,14 +287,27 @@ local function restore_session(window, pane, session_name)
   -- Restore additional panes in first tab (chain horizontal splits)
   local current_pane = first_pane
   for j = 2, #first_tab_data.panes do
-    local cwd = extract_path(first_tab_data.panes[j].cwd)
+    local pane_data = first_tab_data.panes[j]
+    local cwd = extract_path(pane_data.cwd)
     wezterm.log_info("  Creating pane " .. j .. " in tab 1 -> " .. cwd)
     local split_pane = current_pane:split({
       direction = "Right", -- Change to 'Bottom' for vertical splits
       cwd = cwd,
       size = 1.0 / #first_tab_data.panes, -- Even split; optional
     })
-    split_pane:send_text("clear\n")
+
+    -- Check if pane had tmux context
+    if pane_data.tmux and pane_data.tmux.session then
+      local tmux_cmd = get_tmux_attach_command(pane_data.tmux)
+      if tmux_cmd then
+        wezterm.log_info("  Restoring tmux session: " .. tmux_cmd)
+        split_pane:send_text(tmux_cmd .. "\n")
+      else
+        split_pane:send_text("clear\n")
+      end
+    else
+      split_pane:send_text("clear\n")
+    end
     wezterm.sleep_ms(150)
     current_pane = split_pane -- Chain from new pane for linear layout
   end
@@ -223,12 +315,25 @@ local function restore_session(window, pane, session_name)
   -- Restore additional tabs
   for i = 2, #session.tabs do
     local tab_data = session.tabs[i]
-    local tab_first_cwd = extract_path(tab_data.panes[1].cwd)
+    local tab_first_pane_data = tab_data.panes[1]
+    local tab_first_cwd = extract_path(tab_first_pane_data.cwd)
     wezterm.log_info("Tab " .. i .. ": " .. #tab_data.panes .. " panes")
     local new_tab, new_tab_pane, _ = new_window:spawn_tab({
       cwd = tab_first_cwd,
     })
-    new_tab_pane:send_text("clear\n")
+
+    -- Check if first pane of tab had tmux context
+    if tab_first_pane_data.tmux and tab_first_pane_data.tmux.session then
+      local tmux_cmd = get_tmux_attach_command(tab_first_pane_data.tmux)
+      if tmux_cmd then
+        wezterm.log_info("Tab " .. i .. " restoring tmux session: " .. tmux_cmd)
+        new_tab_pane:send_text(tmux_cmd .. "\n")
+      else
+        new_tab_pane:send_text("clear\n")
+      end
+    else
+      new_tab_pane:send_text("clear\n")
+    end
     wezterm.sleep_ms(150)
 
     -- Always initialize custom_tabs global if needed
@@ -255,14 +360,27 @@ local function restore_session(window, pane, session_name)
     -- Additional panes in this tab
     local current_pane = new_tab_pane
     for j = 2, #tab_data.panes do
-      local cwd = extract_path(tab_data.panes[j].cwd)
+      local pane_data = tab_data.panes[j]
+      local cwd = extract_path(pane_data.cwd)
       wezterm.log_info("  Creating pane " .. j .. " -> " .. cwd)
       local split_pane = current_pane:split({
         direction = "Right", -- Consistent with above
         cwd = cwd,
         size = 1.0 / #tab_data.panes,
       })
-      split_pane:send_text("clear\n")
+
+      -- Check if pane had tmux context
+      if pane_data.tmux and pane_data.tmux.session then
+        local tmux_cmd = get_tmux_attach_command(pane_data.tmux)
+        if tmux_cmd then
+          wezterm.log_info("  Restoring tmux session: " .. tmux_cmd)
+          split_pane:send_text(tmux_cmd .. "\n")
+        else
+          split_pane:send_text("clear\n")
+        end
+      else
+        split_pane:send_text("clear\n")
+      end
       wezterm.sleep_ms(150)
       current_pane = split_pane
     end
@@ -361,6 +479,107 @@ local function delete_session(window, pane)
         end
       end),
       title = "🗑️  Delete Session",
+      choices = choices,
+      fuzzy = true,
+    }),
+    pane
+  )
+end
+
+-- Rename session
+local function rename_session(window, pane)
+  local sessions = list_sessions()
+
+  if #sessions == 0 then
+    window:toast_notification("WezTerm", "No saved sessions", nil, 4000)
+    return
+  end
+
+  local choices = {}
+  for _, session_name in ipairs(sessions) do
+    -- Try to load session to get icon
+    local session_file = session_dir .. "/" .. session_name .. ".json"
+    local file = io.open(session_file, "r")
+    local icon = ""
+
+    if file then
+      local content = file:read("*all")
+      file:close()
+      local success, session_data = pcall(wezterm.json_parse, content)
+      if success and session_data and session_data.tabs and #session_data.tabs > 0 then
+        icon = session_data.tabs[1].icon or ""
+        if icon ~= "" then
+          icon = icon .. " "
+        end
+      end
+    end
+
+    table.insert(choices, { label = icon .. session_name, id = session_name })
+  end
+
+  window:perform_action(
+    act.InputSelector({
+      action = wezterm.action_callback(function(win, p, id)
+        if id then
+          -- Prompt for new name
+          win:perform_action(
+            act.PromptInputLine({
+              description = "✏️  Rename session '" .. id .. "' to:",
+              initial_value = id,
+              action = wezterm.action_callback(function(inner_win, inner_pane, new_name)
+                if not new_name or new_name == "" or new_name == id then
+                  return
+                end
+
+                local old_path = session_dir .. "/" .. id .. ".json"
+                local new_path = session_dir .. "/" .. new_name .. ".json"
+
+                -- Check if new name already exists
+                local check_file = io.open(new_path, "r")
+                if check_file then
+                  check_file:close()
+                  inner_win:toast_notification("WezTerm", "❌ Session '" .. new_name .. "' already exists", nil, 4000)
+                  return
+                end
+
+                -- Read old file, update name, write to new file
+                local old_file = io.open(old_path, "r")
+                if old_file then
+                  local content = old_file:read("*all")
+                  old_file:close()
+
+                  local success, session_data = pcall(wezterm.json_parse, content)
+                  if success and session_data then
+                    -- Update the session name
+                    session_data.name = new_name
+                    session_data.renamed_at = os.date("%Y-%m-%d %H:%M:%S")
+
+                    -- Write to new file
+                    local new_file = io.open(new_path, "w")
+                    if new_file then
+                      new_file:write(wezterm.json_encode(session_data))
+                      new_file:close()
+
+                      -- Remove old file
+                      os.remove(old_path)
+
+                      inner_win:toast_notification("WezTerm", "✏️  Renamed: " .. id .. " → " .. new_name, nil, 4000)
+                    else
+                      inner_win:toast_notification("WezTerm", "❌ Failed to write new file", nil, 4000)
+                    end
+                  else
+                    inner_win:toast_notification("WezTerm", "❌ Failed to parse session data", nil, 4000)
+                  end
+                else
+                  inner_win:toast_notification("WezTerm", "❌ Session file not found", nil, 4000)
+                end
+              end),
+            }),
+            p
+          )
+        end
+      end),
+      title = "✏️  Rename Session",
       choices = choices,
       fuzzy = true,
     }),
@@ -1563,9 +1782,18 @@ function M.show_menu(window, pane)
 end
 
 -- Export all functions
+-- Session management
+M.save_session = prompt_save  -- Wrapper that prompts for session name
+M.load_session = load_session
+M.delete_session = delete_session
+M.rename_session = rename_session
+
+-- Pane management
 M.move_pane_to_own_tab = move_pane_to_own_tab
 M.move_pane_to_tab = move_pane_to_tab
 M.grab_pane_from_tab = grab_pane_from_tab
+
+-- Tab/Workspace management
 M.move_tab_to_workspace = move_tab_to_workspace
 M.grab_tab_from_workspace = grab_tab_from_workspace
 M.switch_workspace = switch_workspace

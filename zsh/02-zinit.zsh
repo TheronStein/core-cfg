@@ -49,6 +49,38 @@ fi
 source "$HOME/.core/.sys/cfg/zsh/functions/widgets/fzf-preview"
 source "${CORE_CFG}/zsh/integrations/fzf.zsh"
 
+#=============================================================================
+# TERMINAL-SPECIFIC INTEGRATIONS
+# Load based on which terminal emulator we're running in
+#=============================================================================
+case "$TERM_PROGRAM" in
+  WezTerm)
+    [[ -f "${CORE_CFG}/zsh/integrations/wezterm.zsh" ]] && \
+      source "${CORE_CFG}/zsh/integrations/wezterm.zsh"
+    ;;
+  kitty)
+    # Kitty shell integration (enables user vars for tmux detection)
+    if [[ -n "$KITTY_INSTALLATION_DIR" ]]; then
+      export KITTY_SHELL_INTEGRATION="enabled"
+      autoload -Uz -- "$KITTY_INSTALLATION_DIR"/shell-integration/zsh/kitty-integration
+      kitty-integration
+      unfunction kitty-integration
+    fi
+    ;;
+  ghostty)
+    # Ghostty doesn't need special shell integration for our navigation
+    # (it uses CSI passthrough which works automatically)
+    ;;
+esac
+
+# Kitty pane navigation (self-guards with multiple detection methods)
+[[ -f "${CORE_CFG}/zsh/integrations/kitty.zsh" ]] && \
+  source "${CORE_CFG}/zsh/integrations/kitty.zsh"
+
+# Cross-terminal navigation (uses terminal-nav CLI script)
+[[ -f "${CORE_CFG}/zsh/integrations/navigation.zsh" ]] && \
+  source "${CORE_CFG}/zsh/integrations/navigation.zsh"
+
 # Core zsh completions
 zinit wait lucid for blockf zsh-users/zsh-completions
 # NOTE: zsh-autocomplete disabled due to fundamental conflicts with our setup:
@@ -263,7 +295,9 @@ function zvm_after_init() {
     bindkey -M vicmd 'v' visual-mode                # v: Enter visual mode
     bindkey -M vicmd 'V' visual-line-mode           # V: Enter visual line mode
 
-    # Edit in $EDITOR
+    # Edit in $EDITOR (must autoload the widget first)
+    autoload -Uz edit-command-line
+    zle -N edit-command-line
     bindkey -M vicmd '\ev' edit-command-line        # Alt+v: Edit in $EDITOR
 
     #=== MENU SYSTEM ===

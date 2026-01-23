@@ -140,3 +140,13 @@ layout_main_vertical() {
 layout_tiled() {
     tmux select-layout tiled
 }
+
+# ==============================================================================
+# Export Functions
+# ==============================================================================
+
+export -f lock_pane_width unlock_pane_width is_width_locked get_locked_width
+export -f get_pane_width get_pane_height get_window_width get_window_height
+export -f get_window_layout save_layout restore_layout
+export -f layout_even_horizontal layout_even_vertical
+export -f layout_main_horizontal layout_main_vertical layout_tiled

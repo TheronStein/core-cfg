@@ -1,19 +1,20 @@
 #!/bin/bash
-MENU_NAV="$TMUX_MENUS/menu-nav.sh"
-CURRENT_MENU="$(basename "$0")"
-PARENT=$("$MENU_NAV" get "$CURRENT_MENU" "main-menu.sh")
+# TMUX Configuration Menu
+# Location: ~/.tmux/modules/menus/config/tmux-config-menu.sh
 
-TMUX_CFG="$HOME/.core/.sys/cfg/tmux"
+source "$TMUX_MENUS/menu-settings.sh"
 
-tmux display-menu -x C -y C -T "#[fg=#e0af68,bold]  TMUX Configuration " \
-  "󰌑 Back" Tab "run-shell '$TMUX_MENUS/$PARENT'" \
-  "󰈔 Explore Config" e "run-shell 'tmux display-popup -E -w 90% -h 90% -d \"$TMUX_CFG\" yazi'" \
-  " Claude Code" c "run-shell 'tmux display-popup -E -w 90% -h 90% -d \"$TMUX_CFG\" claude'" \
+CURRENT_MENU="config/tmux-config-menu.sh"
+PARENT=$(get_parent "config-management.sh")
+
+TOOL_NAME="tmux"
+CFG_DIR="$HOME/.core/.sys/cfg/tmux"
+
+tmux display-menu -x $MENU_POS_X -y $MENU_POS_Y \
+  -T "$(menu_title '' 'TMUX Configuration' $MENU_TITLE_CONFIG)" \
+  -s "$MENU_STYLE" -H "$MENU_SELECT_STYLE" -S "$MENU_BORDER_STYLE" -b "$MENU_BORDER_LINES" \
+  "$MENU_ICON_BACK Back" Tab "run-shell '$TMUX_MENUS/$PARENT'" \
   "" \
-  "Main Config" 1 "run-shell 'tmux display-popup -E -w 90% -h 90% -d \"$TMUX_CFG\" \"\\$EDITOR tmux.conf\"'" \
-  "Keymaps Core" 2 "run-shell 'tmux display-popup -E -w 90% -h 90% -d \"$TMUX_CFG\" \"\\$EDITOR keymaps/core.conf\"'" \
-  "Keymaps Pane" 3 "run-shell 'tmux display-popup -E -w 90% -h 90% -d \"$TMUX_CFG\" \"\\$EDITOR keymaps/pane.conf\"'" \
-  "Plugins" 4 "run-shell 'tmux display-popup -E -w 90% -h 90% -d \"$TMUX_CFG\" \"\\$EDITOR conf/plugins.conf\"'" \
-  "Hooks" 5 "run-shell 'tmux display-popup -E -w 90% -h 90% -d \"$TMUX_CFG\" \"\\$EDITOR conf/hooks.conf\"'" \
-  "Panes Config" 6 "run-shell 'tmux display-popup -E -w 90% -h 90% -d \"$TMUX_CFG\" \"\\$EDITOR conf/panes.conf\"'" \
-  "Binds Config" 7 "run-shell 'tmux display-popup -E -w 90% -h 90% -d \"$TMUX_CFG\" \"\\$EDITOR conf/archiv./binds.conf\"'"
+  "$(menu_sep 'Edit')" "" "" \
+  " Edit Config" e "run-shell 'source $TMUX_CONF/lib/config-session.sh && edit_config $TOOL_NAME \"$CFG_DIR\"'" \
+  " Claude Code" c "run-shell 'source $TMUX_CONF/lib/ai-session.sh && ai_session $TOOL_NAME \"$CFG_DIR\"'"

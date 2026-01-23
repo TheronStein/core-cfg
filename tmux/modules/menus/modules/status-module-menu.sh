@@ -1,15 +1,20 @@
 #!/bin/bash
-# Status Module Configuration Menu (Placeholder)
+# Status Module Configuration Menu
+# Location: ~/.tmux/modules/menus/modules/status-module-menu.sh
 
-MENU_NAV="$TMUX_MENUS/menu-nav.sh"
-CURRENT_MENU="$(basename "$0")"
-PARENT=$("$MENU_NAV" get "$CURRENT_MENU" "modules-management.sh")
+source "$TMUX_MENUS/menu-settings.sh"
 
-STATUS_DIR="$HOME/.core/.sys/cfg/tmux/modules/status"
+CURRENT_MENU="modules/status-module-menu.sh"
+PARENT=$(get_parent "tmux/modules-menu.sh")
 
-tmux display-menu -x C -y C -T "#[fg=#e0af68,bold] Status Module " \
-  "󰌑 Back" Tab "run-shell '$TMUX_MENUS/$PARENT'" \
+TOOL_NAME="status-module"
+CFG_DIR="$HOME/.core/.sys/cfg/tmux/modules/status"
+
+tmux display-menu -x $MENU_POS_X -y $MENU_POS_Y \
+  -T "$(menu_title '' 'Status Module' $MENU_TITLE_MODULE)" \
+  -s "$MENU_STYLE" -H "$MENU_SELECT_STYLE" -S "$MENU_BORDER_STYLE" -b "$MENU_BORDER_LINES" \
+  "$MENU_ICON_BACK Back" Tab "run-shell '$TMUX_MENUS/$PARENT'" \
   "" \
-  "#[fg=#01F9C6,bold]━━━ STATUS SCRIPTS ━━━" "" "" \
-  "󰈔 Explore Status Module" e "run-shell 'tmux display-popup -E -w 90% -h 90% -d \"$STATUS_DIR\" yazi'" \
-  "󰘧 Claude Code" c "run-shell 'tmux display-popup -E -w 90% -h 90% -d \"$STATUS_DIR\" claude'"
+  "$(menu_sep 'Edit')" "" "" \
+  " Edit Module" e "run-shell 'source $TMUX_CONF/lib/config-session.sh && edit_config $TOOL_NAME \"$CFG_DIR\"'" \
+  " Claude Code" c "run-shell 'source $TMUX_CONF/lib/ai-session.sh && ai_session $TOOL_NAME \"$CFG_DIR\"'"

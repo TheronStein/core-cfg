@@ -3,33 +3,27 @@
 # Location: ~/.tmux/modules/menus/tmux-menu.sh
 # Binding: C-Space (root table)
 
-MENU_NAV="$TMUX_MENUS/menu-nav.sh"
-PICKERS="$TMUX_CONF/modules/fzf/pickers"
+source "$TMUX_MENUS/menu-settings.sh"
 
-om() {
-  "$MENU_NAV" set "$(basename "$1")" "tmux-menu.sh"
-  echo "run-shell '$TMUX_MENUS/$1'"
-}
+CURRENT_MENU="tmux-menu.sh"
 
-tmux display-menu -x C -y P -T "#[fg=#7aa2f7,bold] 󰙀  TMUX  󰙀 " \
+tmux display-menu -x $MENU_POS_X -y $MENU_POS_Y \
+  -T "$(menu_title '󰙀' 'TMUX' $MENU_TITLE_TMUX)" \
+  -s "$MENU_STYLE" -H "$MENU_SELECT_STYLE" -S "$MENU_BORDER_STYLE" -b "$MENU_BORDER_LINES" \
   " Zoom" z "resize-pane -Z" \
   " Copy Mode" / "copy-mode" \
   " Resize Mode" r "run-shell '$TMUX_MENUS/modes/pane-resize-select.sh'" \
-  "󰌌 Prefix Mode" Space "switch-client -T prefix" \
+  "󰯌 Toggle Context" x "run-shell '$TMUX_MENUS/modes/toggle-context.sh'" \
+  "󰑙 Reset Context" X "run-shell '$TMUX_MENUS/modes/reset-context.sh'" \
   "" \
-  "#[fg=#01F9C6,bold]━━━ Interface ━━━" "" "" \
+  "$(menu_sep 'Interface')" "" "" \
   "󰂮 Panes" a "$(om tmux/panes-menu.sh)" \
   "󰖯 Windows" w "$(om tmux/windows-menu.sh)" \
   " Layouts" l "$(om tmux/layouts-menu.sh)" \
   "󰹬 Sessions" s "$(om tmux/sessions-menu.sh)" \
   "" \
-  "#[fg=#01F9C6,bold]━━━ Environment ━━━" "" "" \
+  "$(menu_sep 'Environment')" "" "" \
   " Inspect" i "$(om tmux/inspect-menu.sh)" \
-  " Configure" c "$(om tmux/configure-menu.sh)" \
   "󰕥 Manage" m "$(om tmux/management-menu.sh)" \
   "" \
-  "󰘬 Clock" t "clock-mode" \
-  "󰆍 Commands" "?" "display-popup -E -w 80% -h 90% 'tmux list-commands | less'" \
-  "" \
-  "󰑓 Reload Config" R "source-file $TMUX_CONF/tmux.conf ; display 'Config reloaded'" \
-  "󰒫 Kill Server" K "confirm-before -p 'Kill tmux server? (y/n)' 'kill-server'"
+  "󰑓 Reload Config" R "source-file $TMUX_CONF/tmux.conf ; display 'Config reloaded'"

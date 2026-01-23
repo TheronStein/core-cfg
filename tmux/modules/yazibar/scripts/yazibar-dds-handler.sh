@@ -22,6 +22,14 @@ fi
 
 debug_log "DDS handler started for right pane: $RIGHT_PANE"
 
+# Validate target pane is actually running yazi before sending any commands
+# This prevents sending :reveal/:cd to wrong panes (which triggers r/v/z modes)
+is_yazi_pane() {
+    local pane="$1"
+    local cmd=$(tmux display-message -p -t "$pane" '#{pane_current_command}' 2>/dev/null)
+    [ "$cmd" = "yazi" ]
+}
+
 # Track last URL to avoid duplicate syncs
 last_hover_url=""
 
@@ -60,29 +68,23 @@ while IFS= read -r line; do
 
                 debug_log "DDS hover event: $url"
 
-                # Publish to tmux option for backwards compatibility with sync watcher
-                set_tmux_option "@yazibar-hovered" "$url"
-
-                # Send reveal command to right sidebar
-                if pane_exists_globally "$RIGHT_PANE"; then
-                    # Escape single quotes in path
+                # Send reveal command to right sidebar (only if it's actually yazi)
+                if pane_exists_globally "$RIGHT_PANE" && is_yazi_pane "$RIGHT_PANE"; then
                     escaped_url="${url//\'/\'\\\'\'}"
                     tmux send-keys -t "$RIGHT_PANE" ":reveal '${escaped_url}'" Enter 2>/dev/null
-                else
-                    debug_log "Right pane $RIGHT_PANE no longer exists"
+                elif ! pane_exists_globally "$RIGHT_PANE"; then
+                    debug_log "Right pane $RIGHT_PANE no longer exists, stopping handler"
                     break
+                else
+                    debug_log "Right pane $RIGHT_PANE is not yazi, skipping"
                 fi
             fi
             ;;
         cd)
             debug_log "DDS cd event: $url"
 
-            # Publish to tmux option
-            set_tmux_option "@yazibar-current-dir" "$url"
-
-            # Optionally sync cd to right sidebar for directory changes
-            # Send cd command so preview shows the directory contents
-            if pane_exists_globally "$RIGHT_PANE"; then
+            # Sync cd to right sidebar (only if it's actually yazi)
+            if pane_exists_globally "$RIGHT_PANE" && is_yazi_pane "$RIGHT_PANE"; then
                 escaped_url="${url//\'/\'\\\'\'}"
                 tmux send-keys -t "$RIGHT_PANE" ":cd '${escaped_url}'" Enter 2>/dev/null
             fi

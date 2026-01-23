@@ -10,7 +10,7 @@
 # =============================================================================
 # PATHS AND VARIABLES
 # =============================================================================
-export FZF_PREVIEW="${CORE_CFG:-$HOME/.core/.sys/cfg}/zsh/tools/fzf-preview"
+export FZF_PREVIEW="${CORE_CFG:-$HOME/.core/.sys/cfg}/zsh/functions/fzf-preview"
 
 # Ensure preview script is executable
 [[ -x "$FZF_PREVIEW" ]] || chmod +x "$FZF_PREVIEW" 2>/dev/null
@@ -41,7 +41,7 @@ export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
 # =============================================================================
 export FZF_CTRL_T_OPTS="
     --preview 'bash \"$FZF_PREVIEW\" {} 2>/dev/null'
-    --preview-window='right:60%:wrap'
+    --preview-window='right:85%:wrap'
     --bind='ctrl-/:toggle-preview'
     --header='Files | C-/: toggle preview | C-y: copy'
 "

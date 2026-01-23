@@ -646,17 +646,12 @@ safe_require_checked("relative-motions")
 -- UI ENHANCEMENT PLUGINS
 -- ═══════════════════════════════════════════════════════════════
 
--- Auto Layout (responsive layout)
--- DISABLED: May interfere with preview pane
--- To enable, uncomment the line below and test if preview still works
--- safe_require_checked("auto-layout")
+-- Layout Manager - Interactive layout control with presets
+-- Replaces: auto-layout, dual-pane, toggle-view, toggle-pane
+-- Keybindings: t,l (menu) | t,m (manage) | t,1/2/3 (quick presets)
+safe_require_checked("layout-manager")
 
--- Dual Pane Plugin - NOT INSTALLED
--- To install: add to package.toml and run `ya pack -i`
--- safe_require_checked("dual-pane")
-
--- Toggle/Zoom (called on-demand, no pre-loading needed)
--- safe_require_checked("toggle-pane") -- NOT INSTALLED
+-- Zoom (image zoom control)
 safe_require_checked("zoom")
 
 -- ═══════════════════════════════════════════════════════════════
@@ -695,13 +690,13 @@ safe_require_checked("thumbnail")
 -- Yazibar Sync - DDS-based synchronization for left/right sidebar pairs
 -- Only activates when YAZIBAR_SIDE and YAZIBAR_WINDOW_ID env vars are set
 -- Yazibar sync disabled for right sidebar - it only receives :reveal commands
--- local yazibar_sync = safe_require_checked("yazibar-sync")
--- if yazibar_sync then
--- 	yazibar_sync:setup({
--- 		debounce = true,
--- 		debug = false,
--- 	})
--- end
+local yazibar_sync = safe_require_checked("yazibar-sync")
+if yazibar_sync then
+	yazibar_sync:setup({
+		debounce = true,
+		debug = true,
+	})
+end
 
 safe_require_checked("kdeconnect-send")
 -- safe_require_checked("kdeconnect-mount")

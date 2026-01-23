@@ -60,30 +60,48 @@ function M.setup(config)
 
   local keys = {}
 
-  -- Unified Workspace-Session Manager (replaces old session_manager and workspace_manager)
+  -- Main Menu Hub (manager.lua) - Single entry point to all submenus
+  local ok_manager, session_manager = pcall(require, "modules.sessions.manager")
+  if ok_manager then
+    wezterm.log_info("✅ Session manager (main menu hub) loaded successfully")
+
+    -- Main Menu - Entry point to all submenus (workspace, tabs, tmux, themes, etc.)
+    table.insert(keys, {
+      key = "F1",
+      mods = "LEADER",
+      desc = "Main Menu (all submenus)",
+      action = wezterm.action_callback(function(window, pane)
+        session_manager.show_menu(window, pane)
+      end),
+    })
+  end
+
+  -- Unified Workspace-Session Manager (for direct workspace operations)
   local ok_unified, unified_workspace = pcall(require, "modules.sessions.unified_workspace")
   if ok_unified then
     wezterm.log_info("✅ Unified workspace manager loaded successfully")
 
-    -- Main workspace menu
-    table.insert(keys, {
-      key = "F1",
-      mods = "LEADER",
-      desc = "Show workspace manager menu",
-      action = wezterm.action_callback(function(window, pane)
-        unified_workspace.show_menu(window, pane)
-      end),
-    })
+    -- COMMENTED OUT: Now accessible via Main Menu (LEADER+F1)
+    -- -- Main workspace menu
+    -- table.insert(keys, {
+    --   key = "F1",
+    --   mods = "LEADER",
+    --   desc = "Show workspace manager menu",
+    --   action = wezterm.action_callback(function(window, pane)
+    --     unified_workspace.show_menu(window, pane)
+    --   end),
+    -- })
 
-    -- Quick workspace menu (same as F1, for muscle memory)
-    table.insert(keys, {
-      key = "w",
-      mods = "LEADER",
-      desc = "Show workspace manager menu",
-      action = wezterm.action_callback(function(window, pane)
-        unified_workspace.show_menu(window, pane)
-      end),
-    })
+    -- COMMENTED OUT: Now accessible via Main Menu (LEADER+F1)
+    -- -- Quick workspace menu (same as F1, for muscle memory)
+    -- table.insert(keys, {
+    --   key = "w",
+    --   mods = "LEADER",
+    --   desc = "Show workspace manager menu",
+    --   action = wezterm.action_callback(function(window, pane)
+    --     unified_workspace.show_menu(window, pane)
+    --   end),
+    -- })
 
     -- Pane management
     table.insert(keys, {
@@ -169,82 +187,84 @@ function M.setup(config)
     })
   end
 
-  -- TMUX Management menu (unified: attach, kill, toggle servers)
-  if ok_tmux_workspaces then
-    table.insert(keys, {
-      key = "a",
-      mods = "LEADER",
-      desc = "TMUX Management (attach/kill/toggle servers)",
-      action = wezterm.action_callback(function(window, pane)
-        tmux_workspaces.show_workspace_handler_menu(window, pane, false)
-      end),
-    })
-  end
+  -- COMMENTED OUT: TMUX Management now accessible via Main Menu (LEADER+F1)
+  -- if ok_tmux_workspaces then
+  --   table.insert(keys, {
+  --     key = "a",
+  --     mods = "LEADER",
+  --     desc = "TMUX Management (attach/kill/toggle servers)",
+  --     action = wezterm.action_callback(function(window, pane)
+  --       tmux_workspaces.show_workspace_handler_menu(window, pane, false)
+  --     end),
+  --   })
+  -- end
 
   -- Add remaining keys
   local remaining_keys = {
 
-    {
-      key = "F2",
-      mods = "LEADER",
-      desc = "Set tab color",
-      action = wezterm.action_callback(function(window, pane)
-        local ok_color_picker, color_picker = pcall(require, "modules.tabs.tab_color_picker")
-        if ok_color_picker then
-          color_picker.show_color_picker(window, pane)
-        else
-          window:toast_notification("Tab Color Picker", "Module not loaded", nil, 2000)
-        end
-      end),
-    },
+    -- COMMENTED OUT: Tab Color Picker now accessible via Main Menu (LEADER+F1)
+    -- {
+    --   key = "F2",
+    --   mods = "LEADER",
+    --   desc = "Set tab color",
+    --   action = wezterm.action_callback(function(window, pane)
+    --     local ok_color_picker, color_picker = pcall(require, "modules.tabs.tab_color_picker")
+    --     if ok_color_picker then
+    --       color_picker.show_color_picker(window, pane)
+    --     else
+    --       window:toast_notification("Tab Color Picker", "Module not loaded", nil, 2000)
+    --     end
+    --   end),
+    -- },
 
-    {
-      key = "F3",
-      mods = "LEADER",
-      desc = "Browse Nerd Fonts icons",
-      action = act.SpawnCommandInNewTab({
-        args = { paths.WEZTERM_SCRIPTS .. "/nerdfont-browser/wezterm-browser.sh" },
-      }),
-    },
+    -- COMMENTED OUT: Nerd Font Browser now accessible via Main Menu (LEADER+F1)
+    -- {
+    --   key = "F3",
+    --   mods = "LEADER",
+    --   desc = "Browse Nerd Fonts icons",
+    --   action = act.SpawnCommandInNewTab({
+    --     args = { paths.WEZTERM_SCRIPTS .. "/nerdfont-browser/wezterm-browser.sh" },
+    --   }),
+    -- },
 
-    -- Keymap browser (interactive keybinding browser with FZF)
-    {
-      key = "F4",
-      mods = "LEADER",
-      desc = "Browse keybindings (interactive)",
-      action = act.SpawnCommandInNewTab({
-        args = { paths.WEZTERM_SCRIPTS .. "/keymap-browser/keymap-browser.sh" },
-      }),
-    },
+    -- COMMENTED OUT: Keymap Browser now accessible via Main Menu (LEADER+F1)
+    -- {
+    --   key = "F4",
+    --   mods = "LEADER",
+    --   desc = "Browse keybindings (interactive)",
+    --   action = act.SpawnCommandInNewTab({
+    --     args = { paths.WEZTERM_SCRIPTS .. "/keymap-browser/keymap-browser.sh" },
+    --   }),
+    -- },
 
-    -- New theme browser with live preview
-    {
-      key = "F5",
-      mods = "LEADER",
-      desc = "Browse and preview themes",
-      action = wezterm.action_callback(function(window, pane)
-        local workspace = window:active_workspace() or "default"
-
-        -- Start theme watcher for live preview
-        -- Use emit event instead of set_user_var
-        window:perform_action(wezterm.action.EmitEvent("start-theme-watcher"), pane)
-
-        -- Small delay to ensure watcher starts
-        wezterm.time.call_after(0.1, function()
-          -- Launch theme browser in new tab
-          window:perform_action(
-            act.SpawnCommandInNewTab({
-              args = { paths.WEZTERM_SCRIPTS .. "/theme-browser/theme-browser.sh" },
-              set_environment_variables = {
-                WEZTERM_WORKSPACE = workspace,
-                THEME_BROWSER_PREVIEW_MODE = "template",
-              },
-            }),
-            pane
-          )
-        end)
-      end),
-    },
+    -- COMMENTED OUT: Theme Browser now accessible via Main Menu (LEADER+F1)
+    -- {
+    --   key = "F5",
+    --   mods = "LEADER",
+    --   desc = "Browse and preview themes",
+    --   action = wezterm.action_callback(function(window, pane)
+    --     local workspace = window:active_workspace() or "default"
+    --
+    --     -- Start theme watcher for live preview
+    --     -- Use emit event instead of set_user_var
+    --     window:perform_action(wezterm.action.EmitEvent("start-theme-watcher"), pane)
+    --
+    --     -- Small delay to ensure watcher starts
+    --     wezterm.time.call_after(0.1, function()
+    --       -- Launch theme browser in new tab
+    --       window:perform_action(
+    --         act.SpawnCommandInNewTab({
+    --           args = { paths.WEZTERM_SCRIPTS .. "/theme-browser/theme-browser.sh" },
+    --           set_environment_variables = {
+    --             WEZTERM_WORKSPACE = workspace,
+    --             THEME_BROWSER_PREVIEW_MODE = "template",
+    --           },
+    --         }),
+    --         pane
+    --       )
+    --     end)
+    --   end),
+    -- },
 
     { key = "x", mods = "LEADER", action = act.CloseCurrentPane({ confirm = false }) },
     -- Tab management

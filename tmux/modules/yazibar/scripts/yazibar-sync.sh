@@ -39,7 +39,7 @@ set_sync_enabled() {
 # SYNC CONTROL (local-events based)
 # ============================================================================
 
-# Enable synchronization by restarting left yazi with event streaming
+# Enable synchronization by recreating left sidebar with event streaming
 enable_sync() {
     local left_pane=$(get_left_pane)
     local right_pane=$(get_right_pane)
@@ -61,27 +61,60 @@ enable_sync() {
     # Set sync state first
     set_sync_enabled "1"
 
-    # Get the left sidebar's current directory before restart
+    # Get the left sidebar's current directory before recreation
     local left_dir=$(tmux display-message -p -t "$left_pane" '#{pane_current_path}' 2>/dev/null)
     left_dir="${left_dir:-$HOME}"
 
-    # The left sidebar will automatically detect the right pane and start
-    # the DDS handler on next restart. Send SIGHUP to trigger yazi restart.
-    # Actually, we need to fully restart yazi in left pane for it to pick up
-    # the new right pane ID.
+    # CRITICAL FIX: We cannot restart yazi in-place because:
+    # 1. Left sidebar was started without sync (right pane didn't exist yet)
+    # 2. Yazi was exec'd, so quitting it closes the pane entirely
+    # 3. Trying to send commands to a closed pane fails silently
+    #
+    # Solution: Destroy and recreate the left sidebar pane
+    # Now that right pane exists, the new left sidebar will have sync enabled
 
-    debug_log "Restarting left sidebar yazi for sync..."
+    debug_log "Recreating left sidebar for sync (destroy then create)..."
 
-    # Send quit command to left yazi
-    tmux send-keys -t "$left_pane" "q" 2>/dev/null
+    # Store current pane to return focus after recreation
+    local current_pane=$(get_current_pane)
 
-    # Brief pause for yazi to exit
+    # Temporarily disable right-needs-left so destroying left doesn't destroy right
+    local orig_needs_left=$(get_tmux_option "@yazibar-right-needs-left" "1")
+    set_tmux_option "@yazibar-right-needs-left" "0"
+
+    # Destroy old left sidebar (this kills yazi and clears state)
+    "$SCRIPT_DIR/yazibar-left.sh" disable
+
+    # Restore right-needs-left setting
+    set_tmux_option "@yazibar-right-needs-left" "$orig_needs_left"
+
+    # Small delay to ensure pane is fully destroyed
     sleep 0.3
 
-    # Restart yazi with the run script (which will now see the right pane)
-    tmux send-keys -t "$left_pane" "'$SCRIPT_DIR/yazibar-run-yazi.sh' left '$left_dir'" Enter 2>/dev/null
+    # Recreate left sidebar - yazibar-run-yazi.sh will now see right pane exists
+    # and automatically enable DDS event streaming
+    "$SCRIPT_DIR/yazibar-left.sh" enable "$left_dir"
 
-    display_info "Sync enabled - left sidebar restarted with event streaming"
+    # Wait for yazi to fully initialize
+    sleep 0.5
+
+    # Verify yazi is running with sync
+    left_pane=$(get_left_pane)
+    if [ -n "$left_pane" ]; then
+        local cmd=$(tmux display-message -p -t "$left_pane" '#{pane_current_command}' 2>/dev/null)
+        if [ "$cmd" = "yazi" ]; then
+            debug_log "Left sidebar recreated with sync enabled"
+        else
+            debug_log "WARNING: yazi not running in recreated left pane"
+        fi
+    fi
+
+    # Return focus to original pane (if it still exists)
+    if [ -n "$current_pane" ] && pane_exists_globally "$current_pane"; then
+        tmux select-pane -t "$current_pane"
+    fi
+
+    display_info "Sync enabled - left sidebar recreated with event streaming"
 }
 
 # Disable synchronization

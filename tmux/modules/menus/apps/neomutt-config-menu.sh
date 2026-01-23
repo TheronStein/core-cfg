@@ -1,17 +1,20 @@
 #!/bin/bash
-MENU_NAV="$TMUX_MENUS/menu-nav.sh"
-CURRENT_MENU="$(basename "$0")"
-PARENT=$("$MENU_NAV" get "$CURRENT_MENU" "main-menu.sh")
+# NeoMutt Configuration Menu
+# Location: ~/.tmux/modules/menus/apps/neomutt-config-menu.sh
 
-MUTT_CFG="$HOME/.config/neomutt"
+source "$TMUX_MENUS/menu-settings.sh"
 
-tmux display-menu -x C -y C -T "#[fg=#e0af68,bold]NeoMutt Configuration " \
-  "󰌑 Back" Tab "run-shell '$TMUX_MENUS/$PARENT'" \
-  "󰈔 Explore Config" e "run-shell 'tmux display-popup -E -w 90% -h 90% -d \"$MUTT_CFG\" yazi'" \
-  " Claude Code" c "run-shell 'tmux display-popup -E -w 90% -h 90% -d \"$MUTT_CFG\" claude'" \
+CURRENT_MENU="apps/neomutt-config-menu.sh"
+PARENT=$(get_parent "app-management.sh")
+
+TOOL_NAME="neomutt"
+CFG_DIR="$HOME/.config/neomutt"
+
+tmux display-menu -x $MENU_POS_X -y $MENU_POS_Y \
+  -T "$(menu_title '󰾱' 'NeoMutt Configuration' $MENU_TITLE_APP)" \
+  -s "$MENU_STYLE" -H "$MENU_SELECT_STYLE" -S "$MENU_BORDER_STYLE" -b "$MENU_BORDER_LINES" \
+  "$MENU_ICON_BACK Back" Tab "run-shell '$TMUX_MENUS/$PARENT'" \
   "" \
-  "neomuttrc" 1 "run-shell 'tmux display-popup -E -w 90% -h 90% -d \"$MUTT_CFG\" \"\\$EDITOR neomuttrc\"'" \
-  "Accounts" 2 "run-shell 'tmux display-popup -E -w 90% -h 90% -d \"$MUTT_CFG\" \"\\$EDITOR accounts.rc\"'" \
-  "Keybindings" 3 "run-shell 'tmux display-popup -E -w 90% -h 90% -d \"$MUTT_CFG\" \"\\$EDITOR keybindings.rc\"'" \
-  "Colors" 4 "run-shell 'tmux display-popup -E -w 90% -h 90% -d \"$MUTT_CFG\" \"\\$EDITOR colors.rc\"'" \
-  "Mailcap" 5 "run-shell 'tmux display-popup -E -w 90% -h 90% -d \"$MUTT_CFG\" \"\\$EDITOR mailcap\"'"
+  "$(menu_sep 'Edit')" "" "" \
+  " Edit Config" e "run-shell 'source $TMUX_CONF/lib/config-session.sh && edit_config $TOOL_NAME \"$CFG_DIR\"'" \
+  " Claude Code" c "run-shell 'source $TMUX_CONF/lib/ai-session.sh && ai_session $TOOL_NAME \"$CFG_DIR\"'"

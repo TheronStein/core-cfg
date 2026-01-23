@@ -13,7 +13,7 @@ readonly DEFAULT_FZF_TMUX_OPTIONS="-p 90%"
 readonly PROMPT='  '
 readonly MARKER=''
 readonly BORDER_LABEL='   [COREMUX]'
-readonly HEADER='^f   ^j   ^s   ^w   ^x '
+readonly HEADER='^f fd  ^j zoxide  ^s sessions  ^w windows  ^x kill  ^t exit'
 
 # home path fix for sed
 home_replacer=""

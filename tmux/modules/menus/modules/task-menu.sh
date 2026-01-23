@@ -1,15 +1,18 @@
 #!/bin/bash
-MENU_NAV="$TMUX_MENUS/menu-nav.sh"
-CURRENT_MENU="modules/$(basename "$0")"
-PARENT=$("$MENU_NAV" get "$CURRENT_MENU" "session/session-menu.sh")
+# Session Tasks Menu
+# Location: ~/.tmux/modules/menus/modules/task-menu.sh
 
-tmux display-menu -x C -y C -T "#[fg=#cba6f7,bold]  Session Tasks " \
-  "󰌑 Back" Tab "run-shell '$TMUX_MENUS/$PARENT'" \
+source "$TMUX_MENUS/menu-settings.sh"
+
+CURRENT_MENU="modules/task-menu.sh"
+PARENT=$(get_parent "main-menu.sh")
+
+tmux display-menu -x $MENU_POS_X -y $MENU_POS_Y \
+  -T "$(menu_title '' 'Session Tasks' $MENU_TITLE_WINDOW)" \
+  -s "$MENU_STYLE" -H "$MENU_SELECT_STYLE" -S "$MENU_BORDER_STYLE" -b "$MENU_BORDER_LINES" \
+  "$MENU_ICON_BACK Back" Tab "run-shell '$TMUX_MENUS/$PARENT'" \
   "" \
-  "New Task" n "run-shell '~/.core/.sys/cfg/tmux/scripts/utils/new-task.sh'" \
-  "List Tasks" l "run-shell '~/.core/.sys/cfg/tmux/scripts/utils/list-tasks.sh'" \
-  "Remove Task" r "run-shell '~/.core/.sys/cfg/tmux/scripts/utils/remove-tasks.sh'"
-
-# bind-key M command-prompt -p "Set task for session:" "set -t '%%' @task '%%'"
-# "command-prompt -p 'Set task for session:' \ set -t '%%' @task '%%'"
-#"Attach Task" a "choose-tree -N -s -t @task -Z -F '#{session_name} #{session_id} #{session_task}' 'run-shell \"tmux attach-session -t %%\"'" \
+  "$(menu_sep 'Tasks')" "" "" \
+  " New Task" n "run-shell '~/.core/.sys/cfg/tmux/scripts/utils/new-task.sh'" \
+  " List Tasks" l "run-shell '~/.core/.sys/cfg/tmux/scripts/utils/list-tasks.sh'" \
+  " Remove Task" r "run-shell '~/.core/.sys/cfg/tmux/scripts/utils/remove-tasks.sh'"

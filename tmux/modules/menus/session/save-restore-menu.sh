@@ -1,11 +1,18 @@
 #!/bin/bash
-MENU_NAV="$TMUX_MENUS/menu-nav.sh"
-CURRENT_MENU="session/$(basename "$0")"
-PARENT=$("$MENU_NAV" get "$CURRENT_MENU" "tmux/session-menu.sh")
+# Save & Restore Menu
+# Location: ~/.tmux/modules/menus/session/save-restore-menu.sh
 
-tmux display-menu -x C -y C -T "#[fg=#89dceb,bold]󰆓 Save & Restore " \
-  "󰌑 Back" Tab "run-shell '$TMUX_MENUS/$PARENT'" \
+source "$TMUX_MENUS/menu-settings.sh"
+
+CURRENT_MENU="session/save-restore-menu.sh"
+PARENT=$(get_parent "tmux/sessions-menu.sh")
+
+tmux display-menu -x $MENU_POS_X -y $MENU_POS_Y \
+  -T "$(menu_title '󰆓' 'Save & Restore' $MENU_TITLE_SESSION)" \
+  -s "$MENU_STYLE" -H "$MENU_SELECT_STYLE" -S "$MENU_BORDER_STYLE" -b "$MENU_BORDER_LINES" \
+  "$MENU_ICON_BACK Back" Tab "run-shell '$TMUX_MENUS/$PARENT'" \
   "" \
+  "$(menu_sep 'Actions')" "" "" \
   "󰆓 Save State" s "run-shell '$TMUX_CONF/plugins/tmux-resurrect/scripts/save.sh' ; display-message 'Session saved'" \
   "󰦛 Restore Session" r "run-shell '$TMUX_CONF/plugins/tmux-resurrect/scripts/restore.sh'" \
   "" \

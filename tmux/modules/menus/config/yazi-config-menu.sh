@@ -1,16 +1,20 @@
 #!/bin/bash
-MENU_NAV="$TMUX_MENUS/menu-nav.sh"
-CURRENT_MENU="$(basename "$0")"
-PARENT=$("$MENU_NAV" get "$CURRENT_MENU" "main-menu.sh")
+# Yazi Configuration Menu
+# Location: ~/.tmux/modules/menus/config/yazi-config-menu.sh
 
-YAZI_CFG="$HOME/.config/yazi"
+source "$TMUX_MENUS/menu-settings.sh"
 
-tmux display-menu -x C -y C -T "#[fg=#e0af68,bold]Yazi Configuration " \
-  "󰌑 Back" Tab "run-shell '$TMUX_MENUS/$PARENT'" \
-  "󰈔 Explore Config" e "run-shell 'tmux display-popup -E -w 90% -h 90% -d \"$YAZI_CFG\" yazi'" \
-  " Claude Code" c "run-shell 'tmux display-popup -E -w 90% -h 90% -d \"$YAZI_CFG\" claude'" \
+CURRENT_MENU="config/yazi-config-menu.sh"
+PARENT=$(get_parent "config-management.sh")
+
+TOOL_NAME="yazi"
+CFG_DIR="$HOME/.config/yazi"
+
+tmux display-menu -x $MENU_POS_X -y $MENU_POS_Y \
+  -T "$(menu_title '󰈔' 'Yazi Configuration' $MENU_TITLE_CONFIG)" \
+  -s "$MENU_STYLE" -H "$MENU_SELECT_STYLE" -S "$MENU_BORDER_STYLE" -b "$MENU_BORDER_LINES" \
+  "$MENU_ICON_BACK Back" Tab "run-shell '$TMUX_MENUS/$PARENT'" \
   "" \
-  "Main Config" 1 "run-shell 'tmux display-popup -E -w 90% -h 90% -d \"$YAZI_CFG\" \"\\$EDITOR yazi.toml\"'" \
-  "Keymap" 2 "run-shell 'tmux display-popup -E -w 90% -h 90% -d \"$YAZI_CFG\" \"\\$EDITOR keymap.toml\"'" \
-  "Theme" 3 "run-shell 'tmux display-popup -E -w 90% -h 90% -d \"$YAZI_CFG\" \"\\$EDITOR theme.toml\"'" \
-  "Plugins" 4 "run-shell 'tmux display-popup -E -w 90% -h 90% -d \"$YAZI_CFG\" \"\\$EDITOR init.lua\"'"
+  "$(menu_sep 'Edit')" "" "" \
+  " Edit Config" e "run-shell 'source $TMUX_CONF/lib/config-session.sh && edit_config $TOOL_NAME \"$CFG_DIR\"'" \
+  " Claude Code" c "run-shell 'source $TMUX_CONF/lib/ai-session.sh && ai_session $TOOL_NAME \"$CFG_DIR\"'"

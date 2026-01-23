@@ -50,9 +50,6 @@ create_right_sidebar() {
         return 1
     fi
 
-    # Ensure session exists
-    "$SCRIPT_DIR/yazibar-session-manager.sh" ensure-right
-
     # Get saved or default width
     local width=$("$SCRIPT_DIR/yazibar-width.sh" get-right "$start_dir")
 
@@ -66,6 +63,10 @@ create_right_sidebar() {
 
     # Create right split (full height, after current pane)
     local new_pane_id=$(tmux split-window -fh -l "$width" -c "$start_dir" -P -F "#{pane_id}" "
+        # Let PTY settle before running TUI application
+        # This prevents terminal capability detection errors
+        sleep 0.3
+
         # Set pane title
         printf '\033]2;%s\033\\\\' \"$RIGHT_SIDEBAR_TITLE\"
 
@@ -76,9 +77,27 @@ create_right_sidebar() {
         exec \"$SCRIPT_DIR/yazibar-run-yazi.sh\" right \"$start_dir\"
     ")
 
-    # Save pane ID
-    set_right_pane "$new_pane_id"
-    set_right_enabled "1"
+    # Wait for yazi to start before registering pane
+    local yazi_verified=0
+    for i in {1..10}; do
+        local cmd=$(tmux display-message -p -t "$new_pane_id" '#{pane_current_command}' 2>/dev/null)
+        if [ "$cmd" = "yazi" ]; then
+            yazi_verified=1
+            break
+        fi
+        sleep 0.1
+    done
+
+    # Save pane ID (only if yazi verified)
+    if [ "$yazi_verified" = "1" ]; then
+        set_right_pane "$new_pane_id"
+        set_right_enabled "1"
+        debug_log "Right sidebar yazi verified and registered"
+    else
+        debug_log "WARNING: yazi not verified in right pane, registering anyway"
+        set_right_pane "$new_pane_id"
+        set_right_enabled "1"
+    fi
 
     # Lock width with layout manager
     if [ -x "$LAYOUT_MANAGER" ]; then

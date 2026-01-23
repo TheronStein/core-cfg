@@ -1,6 +1,7 @@
 [user]
 	email = theron@chaoscore.org
 	name = Theron
+  signingkey = E37673726444937C
 [init]
 	defaultBranch = master
 [core]
@@ -19,3 +20,5 @@
 	helper = !/home/theron/.local/share/zinit/plugins/cli---cli/gh/bin/gh auth git-credential
 [credential "https://gitlab.chaoscore.org"]
 	helper = store
+[commit]
+	gpgsign = true

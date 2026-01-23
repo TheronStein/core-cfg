@@ -1,1 +1,0 @@
-../modules/yazibar/scripts/preview/watcher.sh

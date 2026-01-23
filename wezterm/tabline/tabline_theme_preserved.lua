@@ -1,207 +1,61 @@
 -- Preserved tabline theme configuration
--- This file hardcodes the tabline theme to prevent it from being affected by workspace theme changes
--- Generated: 2025-10-12
+-- Dynamically generates theme colors from the single source of truth: mode_colors.lua
+-- All mode colors are now defined in ONE place: modules/utils/mode_colors.lua
+
+local wezterm = require("wezterm")
+local mode_colors = require("modules.utils.mode_colors")
 
 local M = {}
 
--- overlay2 = "#9399B2",
--- overlay1 = "#7F849C",
--- overlay0 = "#6C7086",
--- surface2 = "#585B70",
--- surface1 = "#444267",
--- surface0 = "#313244",
--- base     = "#292D3E",
--- mantle   = "#24283B",
--- crust    = "#1E2030",
+-- Background colors (Catppuccin Mocha palette)
+local SURFACE1 = "#444267"
+local BASE = "#292D3E"
+local DARK_TEXT = "#292D3E"
+local LIGHT_TEXT = "#cdd6f4"
 
--- Preserved theme colors for the tabline (independent of workspace themes)
+-- Helper function to determine if background is bright (needs dark text)
+local function needs_dark_text(bg_color)
+	if not bg_color or type(bg_color) ~= "string" or #bg_color < 7 then
+		return false
+	end
+	local r = tonumber(bg_color:sub(2, 3), 16) or 0
+	local g = tonumber(bg_color:sub(4, 5), 16) or 0
+	local b = tonumber(bg_color:sub(6, 7), 16) or 0
+	local brightness = (r * 0.299 + g * 0.587 + b * 0.114)
+	return brightness > 128
+end
+
+-- Generate a full theme for a mode from its single color
+local function generate_mode_theme(mode_color)
+	local fg_on_color = needs_dark_text(mode_color) and "#000000" or DARK_TEXT
+	return {
+		a = { fg = fg_on_color, bg = mode_color },
+		b = { fg = mode_color, bg = SURFACE1 },
+		c = { fg = mode_color, bg = BASE },
+		x = { fg = mode_color, bg = BASE },
+		y = { fg = mode_color, bg = SURFACE1 },
+		z = { fg = fg_on_color, bg = mode_color },
+	}
+end
+
+-- Build preserved_theme dynamically from mode_colors
 M.preserved_theme = {
+	-- Tab colors (static)
 	tab = {
-		active = { fg = "#01F9C6", bg = "#444267" },
-		inactive = { fg = "#cdd6f4", bg = "#444267" },
-		inactive_hover = { fg = "#f1fc79", bg = "#444267" },
-	},
-
-	-- CORE mode (cyan theme)
-	core_mode = {
-		a = { fg = "#292D3E", bg = "#01F9C6" },
-		b = { fg = "#01F9C6", bg = "#444267" },
-		c = { fg = "#01F9C6", bg = "#313244" },
-		-- c = { fg = "#01F9C6", bg = "#292D3E" },
-		x = { fg = "#01F9C6", bg = "#292D3E" },
-		y = { fg = "#01F9C6", bg = "#444267" },
-		z = { fg = "#292D3E", bg = "#01F9C6" },
-	},
-
-	-- Also override normal_mode to use CORE colors
-	normal_mode = {
-		a = { fg = "#292D3E", bg = "#01F9C6" },
-		b = { fg = "#01F9C6", bg = "#444267" },
-		c = { fg = "#01F9C6", bg = "#292D3E" },
-		x = { fg = "#01F9C6", bg = "#292D3E" },
-		y = { fg = "#01F9C6", bg = "#444267" },
-		z = { fg = "#292D3E", bg = "#01F9C6" },
-	},
-
-	-- LEADER mode (coral red theme) - Updated to match mode_colors.lua (#FF6B6B)
-	leader_mode = {
-		a = { fg = "#FFFFFF", bg = "#FF6B6B" },
-		b = { fg = "#FF6B6B", bg = "#444267" },
-		c = { fg = "#FF6B6B", bg = "#292D3E" },
-		x = { fg = "#FF6B6B", bg = "#292D3E" },
-		y = { fg = "#FF6B6B", bg = "#444267" },
-		z = { fg = "#FFFFFF", bg = "#FF6B6B" },
-	},
-
-	-- WEZTERM mode (purple theme)
-	wezterm_mode = {
-		a = { fg = "#292D3E", bg = "#8470FF" },
-		b = { fg = "#8470FF", bg = "#444267" },
-		c = { fg = "#8470FF", bg = "#292D3E" },
-		x = { fg = "#8470FF", bg = "#292D3E" },
-		y = { fg = "#8470FF", bg = "#444267" },
-		z = { fg = "#292D3E", bg = "#8470FF" },
-	},
-
-	-- TMUX mode (cyan theme) - Updated to match mode_colors.lua (#01F9C6)
-	tmux_mode = {
-		a = { fg = "#292D3E", bg = "#01F9C6" },
-		b = { fg = "#01F9C6", bg = "#444267" },
-		c = { fg = "#01F9C6", bg = "#292D3E" },
-		x = { fg = "#01F9C6", bg = "#292D3E" },
-		y = { fg = "#01F9C6", bg = "#444267" },
-		z = { fg = "#292D3E", bg = "#01F9C6" },
-	},
-
-	-- SUPER mode (yellow theme)
-	super_mode = {
-		a = { fg = "#292D3E", bg = "#FFCB6B" },
-		b = { fg = "#FFCB6B", bg = "#444267" },
-		c = { fg = "#FFCB6B", bg = "#292D3E" },
-		x = { fg = "#FFCB6B", bg = "#292D3E" },
-		y = { fg = "#FFCB6B", bg = "#444267" },
-		z = { fg = "#292D3E", bg = "#FFCB6B" },
-	},
-
-	-- -- SUPER mode (yellow theme)
-	-- hyper_mode = {
-	-- 	b = { fg = "#292D3E", bg = "#FFCBFF" },
-	-- 	a = { fg = "#FFCBFF", bg = "#444267" },
-	-- 	c = { fg = "#FFCBFF", bg = "#292D3E" },
-	-- 	x = { fg = "#FFCB6B", bg = "#292D3E" },
-	-- 	y = { fg = "#FFCBFF", bg = "#444267" },
-	-- 	z = { fg = "#292D3E", bg = "#FFCBFF" },
-	-- },
-
-	-- CTRL mode (yellow theme)
-	ctrl_mode = {
-		a = { fg = "#292D3E", bg = "#F78C6C" },
-		b = { fg = "#F78C6C", bg = "#444267" },
-		c = { fg = "#F78C6C", bg = "#292D3E" },
-		x = { fg = "#F78C6C", bg = "#292D3E" },
-		y = { fg = "#F78C6C", bg = "#444267" },
-		z = { fg = "#292D3E", bg = "#F78C6C" },
-	},
-
-	-- alt mode (yellow theme)
-	alt_mode = {
-		a = { fg = "#292D3E", bg = "#f1fc79" },
-		b = { fg = "#f1fc79", bg = "#444267" },
-		c = { fg = "#f1fc79", bg = "#292D3E" },
-		x = { fg = "#f1fc79", bg = "#292D3E" },
-		y = { fg = "#f1fc79", bg = "#444267" },
-		z = { fg = "#292D3E", bg = "#f1fc79" },
-	},
-
-	-- -- ZSH mode (green theme)
-	-- zsh_mode = {
-	-- 	-- b = { fg = "#292D3E", bg = "#69FF94" },
-	-- 	-- a = { fg = "#69FF94", bg = "#444267" },
-	-- 	-- c = { fg = "#69FF94", bg = "#292D3E" },
-	-- 	-- x = { fg = "#69FF94", bg = "#292D3E" },
-	-- 	-- y = { fg = "#69FF94", bg = "#444267" },
-	-- 	-- z = { fg = "#292D3E", bg = "#69FF94" },
-	-- },
-
-	-- -- GIT mode (lime theme)
-	-- git_mode = {
-	--
-	-- b = { fg = "#292D3E", bg = "#69FF94" },
-	-- a = { fg = "#69FF94", bg = "#444267" },
-	-- c = { fg = "#69FF94", bg = "#292D3E" },
-	-- x = { fg = "#69FF94", bg = "#292D3E" },
-	-- y = { fg = "#69FF94", bg = "#444267" },
-	-- z = { fg = "#292D3E", bg = "#69FF94" },
-	-- },
-
-	-- -- NEOVIM mode (mint theme)
-	-- neovim_mode = {
-	-- 	b = { fg = "#292D3E", bg = "#69FF00" },
-	-- 	a = { fg = "#69FF00", bg = "#444267" },
-	-- 	c = { fg = "#69FF00", bg = "#292D3E" },
-	-- 	x = { fg = "#69FF00", bg = "#292D3E" },
-	-- 	y = { fg = "#69FF00", bg = "#444267" },
-	-- 	z = { fg = "#292D3E", bg = "#69FF00" },
-	-- },
-
-	-- RESIZE mode (orange/peach theme) - Updated to match mode_colors.lua (#F78C6C)
-	resize_mode = {
-		a = { fg = "#292D3E", bg = "#F78C6C" },
-		b = { fg = "#F78C6C", bg = "#444267" },
-		c = { fg = "#F78C6C", bg = "#292D3E" },
-		x = { fg = "#F78C6C", bg = "#292D3E" },
-		y = { fg = "#F78C6C", bg = "#444267" },
-		z = { fg = "#292D3E", bg = "#F78C6C" },
-	},
-
-	-- Copy mode (orange/peach theme) - Updated to match mode_colors.lua (#F78C6C, same as resize)
-	copy_mode = {
-		a = { fg = "#292D3E", bg = "#F78C6C" },
-		b = { fg = "#F78C6C", bg = "#444267" },
-		c = { fg = "#F78C6C", bg = "#292D3E" },
-		x = { fg = "#F78C6C", bg = "#292D3E" },
-		y = { fg = "#F78C6C", bg = "#444267" },
-		z = { fg = "#292D3E", bg = "#F78C6C" },
-	},
-
-	-- Search mode (teal theme)
-	launcher_mode = {
-		a = { fg = "#292D3E", bg = "#FFCBFF" },
-		b = { fg = "#FFCBFF", bg = "#444267" },
-		c = { fg = "#FFCBFF", bg = "#292D3E" },
-		x = { fg = "#FFCBFF", bg = "#292D3E" },
-		y = { fg = "#FFCBFF", bg = "#444267" },
-		z = { fg = "#FFCBFF", bg = "#FFCBFF" },
-	},
-	-- Search mode (teal theme)
-	search_mode = {
-		a = { fg = "#292D3E", bg = "#8BE9FD" },
-		b = { fg = "#8BE9FD", bg = "#444267" },
-		c = { fg = "#8BE9FD", bg = "#292D3E" },
-		x = { fg = "#8BE9FD", bg = "#292D3E" },
-		y = { fg = "#8BE9FD", bg = "#444267" },
-		z = { fg = "#292D3E", bg = "#8BE9FD" },
-	},
-
-	-- Pane mode (yellow/lime theme) - Updated to match mode_colors.lua (#f1fc79)
-	pane_mode = {
-		a = { fg = "#292D3E", bg = "#f1fc79" },
-		b = { fg = "#f1fc79", bg = "#444267" },
-		c = { fg = "#f1fc79", bg = "#292D3E" },
-		x = { fg = "#f1fc79", bg = "#292D3E" },
-		y = { fg = "#f1fc79", bg = "#444267" },
-		z = { fg = "#292D3E", bg = "#f1fc79" },
-	},
-
-	-- Pane selection mode (purple theme) - Updated to match mode_colors.lua (#8470FF, same as wezterm)
-	pane_selection_mode = {
-		a = { fg = "#292D3E", bg = "#8470FF" },
-		b = { fg = "#8470FF", bg = "#444267" },
-		c = { fg = "#8470FF", bg = "#292D3E" },
-		x = { fg = "#8470FF", bg = "#292D3E" },
-		y = { fg = "#8470FF", bg = "#444267" },
-		z = { fg = "#292D3E", bg = "#8470FF" },
+		active = { fg = "#01F9C6", bg = SURFACE1 },
+		inactive = { fg = LIGHT_TEXT, bg = SURFACE1 },
+		inactive_hover = { fg = "#f1fc79", bg = SURFACE1 },
 	},
 }
+
+-- Generate theme for each mode from the single source of truth
+local all_colors = mode_colors.get_all_colors()
+for mode_name, hex_color in pairs(all_colors) do
+	M.preserved_theme[mode_name] = generate_mode_theme(hex_color)
+end
+
+-- Add aliases for compatibility
+M.preserved_theme.normal_mode = M.preserved_theme.wezterm_mode
+M.preserved_theme.core_mode = M.preserved_theme.tmux_mode
 
 return M

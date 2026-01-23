@@ -62,6 +62,12 @@ keymap = [
     "s",
   ], run = "plugin sshfs -- menu", desc = "Open SSHFS options" },
 
+  # PERMISSIONS
+  { on = [
+    "e",
+    "p",
+  ], run = "plugin chmod", desc = "Edit file permissions" },
+
   # RSYNC
   # { on = ["r" "c"], run = "plugin rsync", desc = "Copy files using rsync" },
 
@@ -422,7 +428,7 @@ keymap = [
   { on = [
     "o",
     "z",
-  ], run = "shell --block zsh", desc = "Drop to terminal in current directory" },
+  ], run = "quit", desc = "Quit and cd shell to current directory" },
   { on = [
     "e",
     "r",
@@ -543,7 +549,7 @@ keymap = [
   { on = [
     "G",
     "c",
-  ], run = "plugin git-files", desc = "Show Git file changes" },
+  ], run = "plugin vcs-files", desc = "Show Git file changes" },
   { on = [
     "g",
     "g",
@@ -551,7 +557,7 @@ keymap = [
   { on = [
     "g",
     "h",
-  ], run = "cd ~", desc = "Go home" },
+  ], run = "cd ~/.core/.sys/env/desktop/hypr", desc = "Go to Hyprland" },
   { on = [
     "g",
     "d",
@@ -1106,6 +1112,17 @@ keymap = [
   # Seeking
   { on = "K", run = "seek -5", desc = "Seek up 5 units in the preview" },
   { on = "J", run = "seek 5", desc = "Seek down 5 units in the preview" },
+  { on = "<A-i>", run = "seek -5", desc = "Scroll preview up" },
+  { on = "<A-k>", run = "seek 5", desc = "Scroll preview down" },
+
+  # Spotting
+  { on = "<A-s>", run = "spot", desc = "Spot hovered file" },
+
+  # Preview Search (tmux popup)
+  { on = [
+    "f",
+    "s",
+  ], run = "shell --confirm '$CORE_CFG/yazi/scripts/preview-search.sh \"$0\" fzf'", desc = "Search in preview (fzf)" },
 
   # Sorting
   { on = [
@@ -1224,33 +1241,38 @@ keymap = [
   # Alternative: Maximize preview (simpler, no plugin needed)
   { on = "<C-p>", run = "plugin zoom", desc = "Maximize/restore preview" },
 
-  # Layout Management
+  # Layout Management (layout-manager.yazi)
   { on = [
     "t",
+    "l",
+  ], run = "plugin layout-manager", desc = "Layout selection menu" },
+  { on = [
     "t",
-  ], run = "plugin --sync toggle-pane", desc = "Toggle panes on/off" },
-  # Note: auto-layout may hang - disabled for now
-  # { on = ["t", "a"], run = "plugin --sync auto-layout", desc = "Auto-layout panes based on terminal size" },
+    "m",
+  ], run = "plugin layout-manager --args=manage", desc = "Manage layouts" },
+  # Quick preset shortcuts
+  { on = [
+    "t",
+    "1",
+  ], run = "plugin layout-manager --args='preset 1-pane'", desc = "1-pane layout" },
+  { on = [
+    "t",
+    "2",
+  ], run = "plugin layout-manager --args='preset 2-preview'", desc = "2-pane preview" },
+  { on = [
+    "t",
+    "3",
+  ], run = "plugin layout-manager --args='preset 3-pane'", desc = "3-pane layout" },
   { on = [
     "t",
     "r",
-  ], run = "plugin zoom", desc = "Maximize/restore preview pane" },
+  ], run = "plugin layout-manager --args=reset", desc = "Reset to default layout" },
+  # Other toggles
   { on = [
     "t",
     "e",
   ], run = "plugin eza-preview", desc = "Toggle tree/list dir preview" },
-  { on = [
-    "t",
-    "p",
-  ], run = "plugin toggle-view --args=parent", desc = "Toggle parent" },
-  { on = [
-    "t",
-    "c",
-  ], run = "plugin toggle-view --args=current", desc = "Toggle current" },
-  { on = [
-    "t",
-    "v",
-  ], run = "plugin toggle-view --args=preview", desc = "Toggle preview" },
+  # Legacy toggle-view bindings archived - use layout-manager instead,
 
   # Image zoom (resets on file change)
   { on = [
@@ -1274,21 +1296,9 @@ keymap = [
     "0",
   ], run = "plugin zoom-persistent reset", desc = "Reset zoom (persistent)" },
 
-  # Preview pane width adjustment
-  { on = "[", run = "plugin resize-preview -5", desc = "Decrease preview pane width" },
-  { on = "]", run = "plugin resize-preview 5", desc = "Increase preview pane width" },
-  { on = [
-    "r",
-    "l",
-  ], run = "plugin resize-preview 10", desc = "Increase preview width (large)" },
-  { on = [
-    "r",
-    "j",
-  ], run = "plugin resize-preview -10", desc = "Decrease preview width (large)" },
-  { on = [
-    "r",
-    "=",
-  ], run = "plugin reset-ratio", desc = "Reset to default ratio" },
+  # Preview pane width adjustment (archived - use layout-manager instead)
+  # The resize-preview plugin was a no-op stub for sidebar mode
+  # Use t,l to access layout menu or t,1/2/3 for quick presets,
 
 
   # dual-pane plugin not installed - removed

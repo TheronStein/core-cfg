@@ -1,1 +1,2 @@
-../../init.lua
+-- Empty init.lua for debugging terminal timeout issues
+-- No plugins loaded to minimize terminal queries

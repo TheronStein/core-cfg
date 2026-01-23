@@ -43,25 +43,173 @@ zstyle ':fzf-tab:complete:pushd:*' fzf-preview '
     }
 '
 
-# Generic file/directory preview - fallback for commands not specifically handled
-zstyle ':fzf-tab:complete:*:*' fzf-preview '
-    target="${realpath:-$word}"
+#=============================================================================
+# BARE PATH COMPLETION (no command before path)
+# These patterns handle tab completion on paths typed without a command
+# e.g., ~/Pictures<TAB> or ./src/<TAB>
+#=============================================================================
+
+# User expansion - handles ~ paths (e.g., ~/Pictures<TAB>)
+zstyle ':fzf-tab:user-expand:*' fzf-preview '
+    target="${word}"
     [[ -z "$target" ]] && exit 0
+
+    # Expand ~ to home directory
+    [[ "$target" == "~"* ]] && target="${HOME}${target:1}"
+
+    # Use external preview script if available
+    preview_script="${ZDOTDIR:-$HOME/.core/.sys/cfg/zsh}/functions/fzf-preview"
+    if [[ -x "$preview_script" ]]; then
+        "$preview_script" "$target"
+        exit $?
+    fi
+
+    # Inline fallback
     if [[ -d "$target" ]]; then
-        eza -1 --color=always --icons --group-directories-first "$target" 2>/dev/null || \
-        ls -A --color=always "$target" 2>/dev/null || \
-        echo "Directory: $target"
+        if command -v eza &>/dev/null; then
+            eza --tree --level=2 --color=always --icons --group-directories-first "$target" 2>/dev/null || \
+            eza -la --color=always --icons --group-directories-first "$target" 2>/dev/null
+        else
+            ls -lA --color=always "$target" 2>/dev/null
+        fi
     elif [[ -f "$target" ]]; then
-        bat --color=always --style=numbers,changes --line-range :100 "$target" 2>/dev/null || \
-        head -100 "$target" 2>/dev/null || \
-        echo "File: $target"
-    elif command -v "$target" &>/dev/null; then
-        man "$target" 2>/dev/null | col -bx | head -40 || \
-        "$target" --help 2>&1 | head -30 || \
-        echo "Command: $target"
+        if command -v bat &>/dev/null; then
+            bat --color=always --style=numbers,changes,header --line-range :100 "$target" 2>/dev/null
+        else
+            head -100 "$target" 2>/dev/null | nl -ba
+        fi
     else
         echo "$target"
     fi
+'
+
+# Path files completion - handles bare paths like ./src/<TAB>
+zstyle ':fzf-tab:complete:_path_files:*' fzf-preview '
+    target="${realpath:-$word}"
+    [[ -z "$target" ]] && exit 0
+
+    # Expand ~ to home directory
+    [[ "$target" == "~"* ]] && target="${HOME}${target:1}"
+
+    # Use external preview script if available
+    preview_script="${ZDOTDIR:-$HOME/.core/.sys/cfg/zsh}/functions/fzf-preview"
+    if [[ -x "$preview_script" ]]; then
+        "$preview_script" "$target"
+        exit $?
+    fi
+
+    # Inline fallback
+    if [[ -d "$target" ]]; then
+        if command -v eza &>/dev/null; then
+            eza --tree --level=2 --color=always --icons --group-directories-first "$target" 2>/dev/null || \
+            eza -la --color=always --icons --group-directories-first "$target" 2>/dev/null
+        else
+            ls -lA --color=always "$target" 2>/dev/null
+        fi
+    elif [[ -f "$target" ]]; then
+        if command -v bat &>/dev/null; then
+            bat --color=always --style=numbers,changes,header --line-range :100 "$target" 2>/dev/null
+        else
+            head -100 "$target" 2>/dev/null | nl -ba
+        fi
+    else
+        echo "$target"
+    fi
+'
+
+# Tilde expansion - another context for ~ paths
+zstyle ':fzf-tab:complete:-tilde-:*' fzf-preview '
+    target="${word}"
+    [[ -z "$target" ]] && exit 0
+
+    # Expand ~ to home directory
+    [[ "$target" == "~"* ]] && target="${HOME}${target:1}"
+
+    # Use external preview script if available
+    preview_script="${ZDOTDIR:-$HOME/.core/.sys/cfg/zsh}/functions/fzf-preview"
+    if [[ -x "$preview_script" ]]; then
+        "$preview_script" "$target"
+        exit $?
+    fi
+
+    # Inline fallback
+    if [[ -d "$target" ]]; then
+        if command -v eza &>/dev/null; then
+            eza --tree --level=2 --color=always --icons --group-directories-first "$target" 2>/dev/null || \
+            eza -la --color=always --icons --group-directories-first "$target" 2>/dev/null
+        else
+            ls -lA --color=always "$target" 2>/dev/null
+        fi
+    elif [[ -f "$target" ]]; then
+        if command -v bat &>/dev/null; then
+            bat --color=always --style=numbers,changes,header --line-range :100 "$target" 2>/dev/null
+        else
+            head -100 "$target" 2>/dev/null | nl -ba
+        fi
+    else
+        echo "$target"
+    fi
+'
+
+# Generic file/directory preview - fallback for commands not specifically handled
+# Uses external fzf-preview script for comprehensive handling
+zstyle ':fzf-tab:complete:*:*' fzf-preview '
+    target="${realpath:-$word}"
+    [[ -z "$target" ]] && exit 0
+
+    # Expand ~ to home directory
+    [[ "$target" == "~"* ]] && target="${HOME}${target:1}"
+
+    # FLAG/OPTION DETECTION - Handle before file checks
+    if [[ "$target" == --* ]] || [[ "$target" == -[a-zA-Z]* && ! -e "$target" ]]; then
+        preview_script="${ZDOTDIR:-$HOME/.core/.sys/cfg/zsh}/functions/fzf-preview"
+        if [[ -x "$preview_script" ]]; then
+            "$preview_script" --flag "$target" "${words[1]:-}" "${desc:-}"
+        else
+            echo -e "\033[1;36mOption:\033[0m $target"
+            [[ -n "${desc:-}" ]] && echo "$desc"
+        fi
+        exit 0
+    fi
+
+    # Use external preview script if available
+    preview_script="${ZDOTDIR:-$HOME/.core/.sys/cfg/zsh}/functions/fzf-preview"
+    if [[ -x "$preview_script" ]]; then
+        "$preview_script" "$target"
+        exit $?
+    fi
+
+    # Inline fallback if script not available
+    if [[ -d "$target" ]]; then
+        if command -v eza &>/dev/null; then
+            eza --tree --level=2 --color=always --icons --group-directories-first "$target" 2>/dev/null || \
+            eza -la --color=always --icons --group-directories-first "$target" 2>/dev/null
+        else
+            ls -lA --color=always "$target" 2>/dev/null || echo "Directory: $target"
+        fi
+        exit 0
+    fi
+
+    if [[ -f "$target" ]]; then
+        if command -v bat &>/dev/null; then
+            bat --color=always --style=numbers,changes,header --line-range :100 "$target" 2>/dev/null && exit 0
+        fi
+        head -100 "$target" 2>/dev/null | nl -ba && exit 0
+        echo "File: $target"
+        exit 0
+    fi
+
+    # Command preview (man page or help)
+    if command -v "$target" &>/dev/null; then
+        if man -w "$target" &>/dev/null 2>&1; then
+            man "$target" 2>/dev/null | col -bx | head -40
+        else
+            "$target" --help 2>&1 | head -30 || echo "Command: $target"
+        fi
+        exit 0
+    fi
+
+    echo "$target"
 '
 
 #=============================================================================
@@ -411,22 +559,75 @@ zstyle ':fzf-tab:complete:(which|whence|type|command):*' fzf-preview '
 #=============================================================================
 
 # For command completions (sudo, which, type, etc.) - show man page or help
+# IMPORTANT: Also handles bare paths like ~/.core/.sys<TAB> - check for files/dirs first!
+# Enhanced with tldr (tealdeer) cascade for concise, example-based help
 zstyle ':fzf-tab:complete:-command-:*' fzf-preview '
-    target="${word}"
+    target="${realpath:-$word}"
     if [[ -z "$target" ]]; then
         echo -e "\033[2m(select a command)\033[0m"
         exit 0
     fi
 
-    # Try man page first (most informative)
-    if man -w "$target" &>/dev/null 2>&1; then
-        echo -e "\033[1;35m⚡ Command:\033[0m $target"
-        echo -e "\033[1;33m─── Manual ───\033[0m"
-        man "$target" 2>/dev/null | col -bx | head -50
+    # Expand ~ to home directory
+    [[ "$target" == "~"* ]] && target="${HOME}${target:1}"
+
+    # FIRST: Check if this is a file or directory (bare path completion)
+    if [[ -d "$target" ]]; then
+        # Use external preview script if available
+        preview_script="${ZDOTDIR:-$HOME/.core/.sys/cfg/zsh}/functions/fzf-preview"
+        if [[ -x "$preview_script" ]]; then
+            "$preview_script" "$target"
+            exit $?
+        fi
+        # Inline fallback for directories
+        if command -v eza &>/dev/null; then
+            eza --tree --level=2 --color=always --icons --group-directories-first "$target" 2>/dev/null || \
+            eza -la --color=always --icons --group-directories-first "$target" 2>/dev/null
+        else
+            ls -lA --color=always "$target" 2>/dev/null
+        fi
         exit 0
     fi
 
-    # Try --help
+    if [[ -f "$target" ]]; then
+        # Use external preview script if available
+        preview_script="${ZDOTDIR:-$HOME/.core/.sys/cfg/zsh}/functions/fzf-preview"
+        if [[ -x "$preview_script" ]]; then
+            "$preview_script" "$target"
+            exit $?
+        fi
+        # Inline fallback for files
+        if command -v bat &>/dev/null; then
+            bat --color=always --style=numbers,changes,header --line-range :100 "$target" 2>/dev/null
+        else
+            head -100 "$target" 2>/dev/null | nl -ba
+        fi
+        exit 0
+    fi
+
+    # Not a file/directory - treat as command
+    # Cascading documentation lookup: tldr -> man -> --help
+
+    # Try tldr first (fast, concise, example-focused)
+    if command -v tldr &>/dev/null; then
+        tldr_output=$(tldr --color always "$target" 2>/dev/null)
+        if [[ -n "$tldr_output" ]]; then
+            echo -e "\033[1;35m⚡ Command:\033[0m $target"
+            echo -e "\033[1;33m─── TLDR ───\033[0m"
+            echo "$tldr_output"
+            exit 0
+        fi
+    fi
+
+    # Try man page (comprehensive)
+    if man -w "$target" &>/dev/null 2>&1; then
+        echo -e "\033[1;35m⚡ Command:\033[0m $target"
+        echo -e "\033[1;33m─── Manual ───\033[0m"
+        MANWIDTH=${FZF_PREVIEW_COLUMNS:-80} man "$target" 2>/dev/null | col -bx | head -60
+        exit 0
+    fi
+
+    # Try --help (fallback)
     cmd_path=$(command -v "$target" 2>/dev/null)
     if [[ -n "$cmd_path" ]]; then
         echo -e "\033[1;35m⚡ Command:\033[0m $target"
@@ -436,37 +637,140 @@ zstyle ':fzf-tab:complete:-command-:*' fzf-preview '
         exit 0
     fi
 
-    echo -e "\033[1;33m📋\033[0m $target"
+    # Last resort - show what we have
+    echo "$target"
 '
 
 # Sudo completion - show man page for the command after sudo
+# Also handles file/directory arguments to sudo
+# Enhanced with tldr (tealdeer) cascade for concise help
 zstyle ':fzf-tab:complete:sudo:*' fzf-preview '
-    target="${word}"
+    target="${realpath:-$word}"
     if [[ -z "$target" ]]; then
         echo -e "\033[2m(select a command)\033[0m"
         exit 0
     fi
 
+    # Expand ~ to home directory
+    [[ "$target" == "~"* ]] && target="${HOME}${target:1}"
+
+    # Check if this is a file or directory first
+    if [[ -d "$target" ]]; then
+        preview_script="${ZDOTDIR:-$HOME/.core/.sys/cfg/zsh}/functions/fzf-preview"
+        if [[ -x "$preview_script" ]]; then
+            "$preview_script" "$target"
+            exit $?
+        fi
+        if command -v eza &>/dev/null; then
+            eza --tree --level=2 --color=always --icons --group-directories-first "$target" 2>/dev/null
+        else
+            ls -lA --color=always "$target" 2>/dev/null
+        fi
+        exit 0
+    fi
+
+    if [[ -f "$target" ]]; then
+        preview_script="${ZDOTDIR:-$HOME/.core/.sys/cfg/zsh}/functions/fzf-preview"
+        if [[ -x "$preview_script" ]]; then
+            "$preview_script" "$target"
+            exit $?
+        fi
+        if command -v bat &>/dev/null; then
+            bat --color=always --style=numbers,changes,header --line-range :100 "$target" 2>/dev/null
+        else
+            head -100 "$target" 2>/dev/null | nl -ba
+        fi
+        exit 0
+    fi
+
+    # Treat as command - cascading: tldr -> man -> --help
+    # Try tldr first
+    if command -v tldr &>/dev/null; then
+        tldr_output=$(tldr --color always "$target" 2>/dev/null)
+        if [[ -n "$tldr_output" ]]; then
+            echo -e "\033[1;35m⚡ sudo $target\033[0m"
+            echo -e "\033[1;33m─── TLDR ───\033[0m"
+            echo "$tldr_output"
+            exit 0
+        fi
+    fi
+
+    # Try man page
     if man -w "$target" &>/dev/null 2>&1; then
         echo -e "\033[1;35m⚡ sudo $target\033[0m"
-        man "$target" 2>/dev/null | col -bx | head -50
-    else
-        echo -e "\033[1;35m⚡\033[0m $target"
-        "$target" --help 2>&1 | head -40 || echo "$target"
+        echo -e "\033[1;33m─── Manual ───\033[0m"
+        MANWIDTH=${FZF_PREVIEW_COLUMNS:-80} man "$target" 2>/dev/null | col -bx | head -60
+        exit 0
     fi
+
+    # Try --help
+    cmd_path=$(command -v "$target" 2>/dev/null)
+    if [[ -n "$cmd_path" ]]; then
+        echo -e "\033[1;35m⚡ sudo $target\033[0m"
+        echo -e "\033[1;33m─── Help ───\033[0m"
+        "$target" --help 2>&1 | head -40 || echo "$target"
+        exit 0
+    fi
+
+    echo "$target"
 '
 
 #=============================================================================
 # UNIVERSAL FALLBACK (catches everything not handled above)
+# Uses external fzf-preview script for comprehensive handling
+# Enhanced with flag/option detection and context-aware preview
 #=============================================================================
 zstyle ':fzf-tab:*' fzf-preview '
     target="${realpath:-$word}"
-    [[ -z "$target" ]] && echo "(no preview)" && exit 0
-    if [[ -d "$target" ]]; then
-        eza -1 --color=always --icons "$target" 2>/dev/null || ls -A "$target" 2>/dev/null || echo "$target"
-    elif [[ -f "$target" ]]; then
-        bat --color=always --style=plain --line-range :80 "$target" 2>/dev/null || head -80 "$target" 2>/dev/null || echo "$target"
-    else
-        echo "$target"
+    [[ -z "$target" ]] && { echo "(no preview available)"; exit 0; }
+
+    # Expand ~ to home directory
+    [[ "$target" == "~"* ]] && target="${HOME}${target:1}"
+
+    #=========================================================================
+    # FLAG/OPTION DETECTION - Handle before file checks
+    # Delegates to external script for man page extraction
+    #=========================================================================
+    if [[ "$target" == --* ]] || [[ "$target" == -[a-zA-Z]* && ! -e "$target" ]]; then
+        # This is a command-line flag/option - delegate to external script
+        preview_script="${ZDOTDIR:-$HOME/.core/.sys/cfg/zsh}/functions/fzf-preview"
+        if [[ -x "$preview_script" ]]; then
+            # Pass flag, command, and description to the preview script
+            "$preview_script" --flag "$target" "${words[1]:-}" "${desc:-}"
+        else
+            echo -e "\033[1;36mOption:\033[0m $target"
+            [[ -n "${desc:-}" ]] && echo "$desc"
+        fi
+        exit 0
     fi
+
+    # Use external preview script if available (for files/directories)
+    preview_script="${ZDOTDIR:-$HOME/.core/.sys/cfg/zsh}/functions/fzf-preview"
+    if [[ -x "$preview_script" ]]; then
+        "$preview_script" "$target"
+        exit $?
+    fi
+
+    # Inline fallback if script not available
+    if [[ -d "$target" ]]; then
+        if command -v eza &>/dev/null; then
+            eza --tree --level=2 --color=always --icons --group-directories-first "$target" 2>/dev/null || \
+            eza -la --color=always --icons --group-directories-first "$target" 2>/dev/null
+        else
+            ls -lA --color=always "$target" 2>/dev/null || echo "Directory: $target"
+        fi
+        exit 0
+    fi
+
+    if [[ -f "$target" ]]; then
+        if command -v bat &>/dev/null; then
+            bat --color=always --style=numbers,changes,header --line-range :100 "$target" 2>/dev/null && exit 0
+        fi
+        head -100 "$target" 2>/dev/null | nl -ba && exit 0
+        echo "File: $target ($(file -b "$target" 2>/dev/null || echo "unknown type"))"
+        exit 0
+    fi
+
+    # For non-file/non-directory (commands, etc.)
+    echo "$target"
 '

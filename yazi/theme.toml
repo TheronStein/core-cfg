@@ -2,8 +2,10 @@
 
 # :Flavor {{{
 #
-# [flavor]
-# dark = "catppuccin-mocha"
+[flavor]
+# dark = "tokyonight-moon"
+dark = "tokyo-night"
+# dark = "tokyonight-moon"
 # [indicator]
 # current = { reversed = true }
 # preview = { underline = true }

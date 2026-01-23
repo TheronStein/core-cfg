@@ -1,0 +1,60 @@
+#!/bin/bash
+# Yank content as Markdown to Wayland clipboard
+# Modes: selection (default), link, article
+
+MODE="${1:-selection}"
+NOTIFY_TIMEOUT=2000
+
+notify() {
+    notify-send -t "$NOTIFY_TIMEOUT" -a "qutebrowser" "Yank Markdown" "$1"
+}
+
+error() {
+    notify-send -t "$NOTIFY_TIMEOUT" -u critical -a "qutebrowser" "Yank Markdown" "$1"
+    exit 1
+}
+
+copy_link() {
+    echo "[$QUTE_TITLE]($QUTE_URL)" | wl-copy
+    notify "Copied link"
+}
+
+copy_selection() {
+    if [[ -z "$QUTE_SELECTED_HTML" ]]; then
+        copy_link
+        return
+    fi
+
+    local markdown
+    markdown=$(echo "$QUTE_SELECTED_HTML" | pandoc -f html -t markdown-raw_html-header_attributes --wrap=none --strip-comments 2>/dev/null)
+
+    if [[ -z "$markdown" ]]; then
+        error "Conversion failed"
+    fi
+
+    echo "$markdown" | wl-copy
+    notify "Copied selection as Markdown"
+}
+
+copy_article() {
+    if ! command -v readable &>/dev/null; then
+        error "readable-cli not installed"
+    fi
+
+    local markdown
+    markdown=$(readable --quiet "$QUTE_URL" 2>/dev/null | pandoc -f html -t markdown-raw_html-header_attributes --wrap=none --strip-comments 2>/dev/null)
+
+    if [[ -z "$markdown" ]]; then
+        error "Failed to extract article"
+    fi
+
+    echo "$markdown" | wl-copy
+    notify "Copied article as Markdown"
+}
+
+case "$MODE" in
+    link)      copy_link ;;
+    article)   copy_article ;;
+    selection) copy_selection ;;
+    *)         error "Unknown mode: $MODE" ;;
+esac

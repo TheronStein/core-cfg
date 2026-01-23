@@ -90,16 +90,29 @@ local function create_attributes(window)
   local b_bg = workspace_color or colors.b.bg
   local b_fg = workspace_color and (needs_dark_text(workspace_color) and "#1e1e2e" or "#bac2de") or colors.b.fg
 
+  -- Apply dark text logic to section A (mode indicator) for bright mode colors
+  local a_bg = colors.a.bg
+  local a_fg = needs_dark_text(a_bg) and "#000000" or colors.a.fg
+
   local debug_config = require('config.debug')
   if debug_config.is_enabled('debug_tabline_colors') then
     wezterm.log_info('[TABLINE:COLORS] workspace_color:', workspace_color or 'nil')
     wezterm.log_info('[TABLINE:COLORS] b_bg:', b_bg)
     wezterm.log_info('[TABLINE:COLORS] colors.b.bg:', colors.b.bg)
+    wezterm.log_info('[TABLINE:COLORS] a_bg:', a_bg, 'a_fg:', a_fg)
   end
 
+  -- Compute Y section colors (uses mode color as foreground like B)
+  local y_bg = colors.y and colors.y.bg or colors.b.bg
+  local y_fg = colors.y and colors.y.fg or actual_mode_color
+
+  -- Compute Z section colors (mirrors A - mode color as background)
+  local z_bg = colors.z and colors.z.bg or a_bg
+  local z_fg = colors.z and colors.z.fg or a_fg
+
   attributes_a = {
-    { Foreground = { Color = colors.a.fg } },
-    { Background = { Color = colors.a.bg } },
+    { Foreground = { Color = a_fg } },
+    { Background = { Color = a_bg } },
     { Attribute = { Intensity = 'Bold' } },
   }
   attributes_b = {
@@ -116,17 +129,17 @@ local function create_attributes(window)
     { Background = { Color = colors.x and colors.x.bg or colors.c.bg } },
   }
   attributes_y = {
-    { Foreground = { Color = colors.y and colors.y.fg or colors.b.fg } },
-    { Background = { Color = colors.y and colors.y.bg or colors.b.bg } },
+    { Foreground = { Color = y_fg } },
+    { Background = { Color = y_bg } },
     { Attribute = { Intensity = 'Normal' } },
   }
   attributes_z = {
-    { Foreground = { Color = colors.z and colors.z.fg or colors.a.fg } },
-    { Background = { Color = colors.z and colors.z.bg or colors.a.bg } },
+    { Foreground = { Color = z_fg } },
+    { Background = { Color = z_bg } },
     { Attribute = { Intensity = 'Bold' } },
   }
   section_seperator_attributes_a = {
-    { Foreground = { Color = colors.a.bg } },
+    { Foreground = { Color = a_bg } },
     { Background = { Color = b_bg } },
   }
   section_seperator_attributes_b = {
@@ -134,20 +147,20 @@ local function create_attributes(window)
     { Background = { Color = colors.c.bg } },
   }
   section_seperator_attributes_c = {
-    { Foreground = { Color = colors.a.bg } },
+    { Foreground = { Color = a_bg } },
     { Background = { Color = colors.c.bg } },
   }
   section_seperator_attributes_x = {
-    { Foreground = { Color = colors.z and colors.z.bg or colors.a.bg } },
+    { Foreground = { Color = z_bg } },
     { Background = { Color = colors.x and colors.x.bg or colors.c.bg } },
   }
   section_seperator_attributes_y = {
-    { Foreground = { Color = colors.y and colors.y.bg or colors.b.bg } },
+    { Foreground = { Color = y_bg } },
     { Background = { Color = colors.x and colors.x.bg or colors.c.bg } },
   }
   section_seperator_attributes_z = {
-    { Foreground = { Color = colors.z and colors.z.bg or colors.a.bg } },
-    { Background = { Color = colors.y and colors.y.bg or colors.b.bg } },
+    { Foreground = { Color = z_bg } },
+    { Background = { Color = y_bg } },
   }
   -- Separator from tabline_c to tab area
   section_seperator_attributes_c_to_tab = {

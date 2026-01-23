@@ -5,7 +5,7 @@
 -- ╙────────────────────────────────────────────────────────────╜
 
 local M = {}
-local mod_string = "<M-"
+local mod_string = "<C-S-"
 -- ─────────────────────────────────────────────────────────────
 -- Environment Detection
 -- ─────────────────────────────────────────────────────────────
@@ -52,6 +52,47 @@ end
 -- Navigation Logic
 -- ─────────────────────────────────────────────────────────────
 
+--- Signal the terminal emulator to navigate its panes
+--- Used when at vim edge and not in tmux
+---@param direction string "left"|"right"|"up"|"down"
+local function signal_terminal(direction)
+	-- Direction to WezTerm/Kitty direction names
+	local dir_map = {
+		left = "Left",
+		right = "Right",
+		up = "Up",
+		down = "Down",
+	}
+	local term_dir = dir_map[direction]
+
+	-- Detect terminal type
+	local term_program = vim.env.TERM_PROGRAM or ""
+
+	if term_program == "WezTerm" then
+		-- WezTerm: Use OSC 1337 SetUserVar
+		local encoded = vim.fn.system("echo -n '" .. term_dir .. "' | base64"):gsub("\n", "")
+		io.write("\027]1337;SetUserVar=navigate_wezterm=" .. encoded .. "\007")
+		io.flush()
+	elseif term_program == "kitty" then
+		-- Kitty: Try remote control first, fallback to CSI
+		local kitty_listen = vim.env.KITTY_LISTEN_ON
+		if kitty_listen and kitty_listen ~= "" then
+			local kitty_dir_map = { Up = "top", Down = "bottom", Left = "left", Right = "right" }
+			vim.fn.system("kitty @ focus-window --match 'neighbor:" .. kitty_dir_map[term_dir] .. "' 2>/dev/null")
+		else
+			-- Fallback to CSI arrows
+			local csi_map = { Up = "\027[1;6A", Down = "\027[1;6B", Left = "\027[1;6D", Right = "\027[1;6C" }
+			io.write(csi_map[term_dir])
+			io.flush()
+		end
+	elseif term_program == "ghostty" then
+		-- Ghostty: CSI arrows
+		local csi_map = { Up = "\027[1;6A", Down = "\027[1;6B", Left = "\027[1;6D", Right = "\027[1;6C" }
+		io.write(csi_map[term_dir])
+		io.flush()
+	end
+end
+
 --- Navigate between vim windows, tmux panes, and WezTerm panes
 --- Handles terminal mode properly for Claude Code integration
 ---@param direction string "left"|"right"|"up"|"down"
@@ -73,28 +114,23 @@ local function navigate(direction)
 	-- Check if we actually moved
 	local win_after = vim.api.nvim_get_current_win()
 
-	-- If we didn't move in vim, try tmux/wezterm
+	-- If we didn't move in vim, try external navigation
 	if win_before == win_after then
 		if is_tmux() then
-			if is_tmux_at_edge(direction) then
-				-- At tmux edge - signal WezTerm to navigate
-				local arrow_map = {
-					left = "Left",
-					down = "Down",
-					up = "Up",
-					right = "Right",
-				}
-				vim.fn.system("tmux send-keys M-" .. arrow_map[direction])
-			else
-				-- Navigate within tmux
-				local tmux_direction = {
-					left = "L",
-					down = "D",
-					up = "U",
-					right = "R",
-				}
-				vim.fn.system("tmux select-pane -" .. tmux_direction[direction])
-			end
+			-- In tmux: use smart-navigate.sh which handles tmux panes and terminal signaling
+			local tmux_direction = {
+				left = "L",
+				down = "D",
+				up = "U",
+				right = "R",
+			}
+			-- Call smart-navigate.sh which handles edge detection and terminal signaling
+			-- Pass --from-vim to skip vim detection (we already know we're at vim edge)
+			local tmux_conf = vim.env.TMUX_CONF or vim.fn.expand("~/.tmux")
+			vim.fn.system(tmux_conf .. "/utils/navigation/smart-navigate.sh " .. tmux_direction[direction] .. " --from-vim")
+		else
+			-- Not in tmux: signal terminal directly to navigate its panes
+			signal_terminal(direction)
 		end
 	end
 end

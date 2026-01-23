@@ -244,37 +244,17 @@ end
 -- When false: workspaces share same client (legacy behavior)
 M.ENABLE_ISOLATION = true
 
--- Template storage directory
-local template_dir = paths.WEZTERM_DATA .. "/workspace-templates"
+-- Template storage directory (persistent - stays in config)
+local template_dir = paths.WORKSPACE_TEMPLATES_DIR
 
 -- Ensure template directory exists
 local function ensure_template_dir()
-	os.execute('mkdir -p "' .. template_dir .. '"')
+	paths.ensure_dir(template_dir)
 	return true
 end
 
--- Extract path from file:// URL or return as-is
-local function extract_path(cwd)
-	if not cwd then
-		return wezterm.home_dir
-	end
-
-	-- Handle table format with file_path
-	if type(cwd) == "table" and cwd.file_path then
-		return cwd.file_path
-	end
-
-	-- Convert to string
-	cwd = tostring(cwd)
-
-	-- Handle file:// URLs
-	if cwd:match("^file://") then
-		local path = cwd:gsub("^file://[^/]+", "") or cwd:gsub("^file://", "")
-		return path
-	end
-
-	return cwd
-end
+-- Use centralized extract_path from paths module
+local extract_path = paths.extract_path
 
 -- List available workspaces
 local function list_workspaces()

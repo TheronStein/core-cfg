@@ -17,28 +17,36 @@ _widget_cleanup() {
 #=============================================================================
 # Runs fzf in a tmux popup when inside tmux, otherwise runs directly.
 # Usage: echo "items" | _fzf_in_tmux_popup [fzf-args...]
-# The popup is 85% width/height with a border.
+# The popup is 90% width/height with a border.
 _fzf_in_tmux_popup() {
     if [[ -n "$TMUX" ]]; then
-        local input_file=$(mktemp)
-        local result_file=$(mktemp)
+        # Use fzf-tmux if available (official fzf tmux integration)
+        if (( $+commands[fzf-tmux] )); then
+            fzf-tmux -p 90%,90% "$@"
+        else
+            # Fallback: run fzf in tmux popup manually
+            local input_file=$(mktemp)
+            local result_file=$(mktemp)
 
-        # Capture stdin to file
-        cat > "$input_file"
+            # Capture stdin to file
+            cat > "$input_file"
 
-        # Build fzf command - escape arguments properly
-        local fzf_args=""
-        for arg in "$@"; do
-            fzf_args+="${(qq)arg} "
-        done
+            # Build command with proper escaping
+            # Use print -r to avoid interpretation, then eval in popup
+            local -a escaped_args
+            local arg
+            for arg in "$@"; do
+                escaped_args+=("${(q)arg}")
+            done
 
-        # Run fzf in popup
-        tmux display-popup -E -w 85% -h 85% \
-            "cat ${(qq)input_file} | fzf $fzf_args > ${(qq)result_file} 2>/dev/null"
+            # Run fzf in popup with explicit bash
+            tmux display-popup -E -w 90% -h 90% \
+                "bash -c 'cat \"$input_file\" | fzf ${escaped_args[*]} > \"$result_file\" 2>/dev/null'"
 
-        # Output result
-        cat "$result_file" 2>/dev/null
-        rm -f "$input_file" "$result_file"
+            # Output result
+            cat "$result_file" 2>/dev/null
+            rm -f "$input_file" "$result_file"
+        fi
     else
         fzf "$@"
     fi
@@ -135,6 +143,7 @@ function widget::fzf-file-selector() {
     local selected
     selected=$(fd --type f --hidden --follow --exclude .git 2>/dev/null | \
         _fzf_in_tmux_popup $(_fzf_base_opts) \
+            --header 'Files │ Enter: insert │ C-/: preview │ Esc: cancel' \
             --preview 'bat --style=numbers --color=always --line-range :300 {} 2>/dev/null || cat {}')
 
     if [[ -n "$selected" ]]; then
@@ -152,6 +161,7 @@ function widget::fzf-directory-selector() {
     local selected
     selected=$(fd --type d --hidden --follow --exclude .git 2>/dev/null | \
         _fzf_in_tmux_popup $(_fzf_base_opts) \
+            --header 'Directories │ Enter: cd (empty) / insert │ C-/: preview' \
             --preview 'eza -la --color=always --icons {} 2>/dev/null')
 
     if [[ -n "$selected" ]]; then
@@ -171,8 +181,8 @@ zle -N widget::fzf-directory-selector
 #=============================================================================
 # WIDGET: UNIFIED HISTORY BROWSER WITH MODE SWITCHING
 # Usage: Ctrl+R for history search with switchable contexts
-# Modes: Global (all shell history), Local (directory), Clipboard (cliphist)
-# Ctrl+] cycles through modes, Ctrl+Y copies selection
+# Modes: Global History, Local History, Clipboard, System Notifications
+# Ctrl+] cycles through modes, Ctrl+Y copies selection (full content)
 #=============================================================================
 
 # Helper function to get global history
@@ -203,33 +213,74 @@ _hist_clipboard() {
     fi
 }
 
-function widget::fzf-history-search() {
-    setopt localoptions noglobsubst noposixbuiltins pipefail 2>/dev/null
+# Helper function to get system notifications (dunst)
+_hist_notifications() {
+    if (( $+commands[dunstctl] )); then
+        # Parse dunst history JSON - strip ANSI codes, extract fields
+        # dunstctl outputs JSON with embedded ANSI color codes
+        # gsub strips HTML tags, decodes entities, and joins lines
+        dunstctl history 2>/dev/null | \
+            sed 's/\x1b\[[0-9;]*m//g' | \
+            jq -r '.data[0][0:100] | .[]? | "\(.id.data)\t[\(.appname.data)] \(.summary.data): \((.message.data // .body.data) | gsub("<[^>]*>"; "") | gsub("&lt;"; "<") | gsub("&gt;"; ">") | gsub("&amp;"; "&") | gsub("\n"; " "))"' 2>/dev/null
+    elif (( $+commands[makoctl] )); then
+        makoctl history 2>/dev/null | jq -r '.data[0][0:100] | .[]? | "\(.id)\t[\(.["app-name"])] \(.summary): \((.body) | gsub("<[^>]*>"; "") | gsub("&lt;"; "<") | gsub("&gt;"; ">") | gsub("&amp;"; "&") | gsub("\n"; " "))"' 2>/dev/null
+    else
+        echo "No notification daemon found (dunst/mako)"
+    fi
+}
 
-    local result mode=1 tmpfile
+function widget::fzf-history-search() {
+    setopt localoptions noglobsubst noposixbuiltins pipefail no_xtrace 2>/dev/null
+
+    local result tmpfile modefile
+    local mode=1
+    local total_modes=4
     tmpfile=$(mktemp) || return 1
-    trap "rm -f '$tmpfile'" EXIT
+    modefile=$(mktemp) || { rm -f "$tmpfile"; return 1; }
+    trap "rm -f '$tmpfile' '$modefile'" EXIT
 
     local header="C-]: Cycle Mode │ C-y: Copy │ Enter: Select │ Esc: Cancel"
-    local colors=$(_fzf_colors 2>/dev/null)
+    local colors
+    colors=$(_fzf_colors 2>/dev/null)
 
     while true; do
-        local label fzf_extra_opts=() preview_cmd
+        local label preview_cmd yank_cmd
+        local -a fzf_extra_opts=()
         preview_cmd='echo {} | bat --style=plain --color=always -l bash 2>/dev/null || echo {}'
+        yank_cmd='echo -n {} | wl-copy'
+
+        # Store mode for potential use by yank command
+        echo "$mode" >| "$modefile"
 
         case $mode in
-            1) label=" [CORE] GLOBAL SHELL HISTORY "
-               _hist_global >| "$tmpfile" 2>/dev/null ;;
-            2) label=" [CORE] LOCAL SHELL HISTORY "
-               _hist_local >| "$tmpfile" 2>/dev/null ;;
-            3) label=" [CORE] CLIPBOARD HISTORY "
-               _hist_clipboard >| "$tmpfile" 2>/dev/null
-               fzf_extra_opts=(--delimiter=$'\t' --with-nth=2..)
-               preview_cmd='echo {} | cliphist decode 2>/dev/null || echo {}' ;;
+            1)
+                label=" [CORE] GLOBAL SHELL HISTORY "
+                _hist_global >| "$tmpfile" 2>/dev/null
+                ;;
+            2)
+                label=" [CORE] LOCAL SHELL HISTORY "
+                _hist_local >| "$tmpfile" 2>/dev/null
+                ;;
+            3)
+                label=" [CORE] CLIPBOARD HISTORY "
+                _hist_clipboard >| "$tmpfile" 2>/dev/null
+                fzf_extra_opts=(--delimiter=$'\t' --with-nth=2..)
+                preview_cmd='echo {} | cliphist decode 2>/dev/null || echo {}'
+                # For clipboard mode, decode full content before copying
+                yank_cmd='echo {} | cliphist decode 2>/dev/null | wl-copy'
+                ;;
+            4)
+                label=" [CORE] SYSTEM NOTIFICATIONS "
+                _hist_notifications >| "$tmpfile" 2>/dev/null
+                fzf_extra_opts=(--delimiter=$'\t' --with-nth=2..)
+                preview_cmd='echo {} | cut -f2- | fold -s -w 80'
+                # For notifications, copy the message part (after tab)
+                yank_cmd='echo {} | cut -f2- | wl-copy'
+                ;;
         esac
 
         result=$(
-            cat "$tmpfile" | _fzf_in_tmux_popup \
+            cat "$tmpfile" 2>/dev/null | _fzf_in_tmux_popup \
                 --layout=reverse --border=rounded --info=inline \
                 --color="$colors" \
                 --border-label="$label" \
@@ -238,7 +289,7 @@ function widget::fzf-history-search() {
                 --query="${LBUFFER}" \
                 --header="$header" \
                 --expect=ctrl-] \
-                --bind='ctrl-y:execute-silent(echo -n {} | wl-copy)+abort' \
+                --bind="ctrl-y:execute-silent($yank_cmd)+abort" \
                 --preview="$preview_cmd" \
                 --preview-window='up:40%' \
                 "${fzf_extra_opts[@]}"
@@ -249,21 +300,28 @@ function widget::fzf-history-search() {
         [[ "$result" != *$'\n'* ]] && selection=""
 
         if [[ "$key" == "ctrl-]" ]]; then
-            mode=$(( (mode % 3) + 1 ))
+            mode=$(( (mode % total_modes) + 1 ))
         else
             result="$selection"
             break
         fi
     done
 
-    rm -f "$tmpfile" 2>/dev/null
+    rm -f "$tmpfile" "$modefile" 2>/dev/null
     trap - EXIT
 
     if [[ -n "$result" ]]; then
         local cmd="$result"
-        if [[ "$mode" == "3" ]] && (( $+commands[cliphist] )); then
-            cmd=$(printf '%s' "$result" | cliphist decode 2>/dev/null)
-        fi
+        case $mode in
+            3)
+                # Clipboard: decode full content
+                (( $+commands[cliphist] )) && cmd=$(printf '%s' "$result" | cliphist decode 2>/dev/null)
+                ;;
+            4)
+                # Notifications: extract message part (skip id)
+                cmd=$(printf '%s' "$result" | cut -f2-)
+                ;;
+        esac
         [[ -n "$cmd" ]] && { BUFFER="$cmd"; CURSOR=${#BUFFER}; }
     fi
     zle reset-prompt
@@ -322,6 +380,7 @@ function widget::fzf-git-branch() {
     selected=$(git branch --all --color=always | \
         grep -v 'HEAD' | \
         _fzf_in_tmux_popup $(_fzf_base_opts) --ansi \
+            --header 'Branches │ Enter: checkout (empty) / insert │ C-/: preview' \
             --preview 'git log --oneline --color=always --graph $(echo {} | sed "s/.* //")' | \
         sed 's/.* //' | sed 's#remotes/origin/##')
 
@@ -348,6 +407,7 @@ function widget::fzf-git-commits() {
     selected=$(git log --oneline --color=always --graph | \
         _fzf_in_tmux_popup $(_fzf_base_opts) --ansi --no-sort \
             --tiebreak=index \
+            --header 'Commits │ Enter: insert hash │ C-o: show full │ C-/: preview' \
             --preview 'git show --color=always $(echo {} | grep -o "[a-f0-9]\{7\}" | head -1)' \
             --bind 'ctrl-o:execute(git show --color=always $(echo {} | grep -o "[a-f0-9]\{7\}" | head -1) | less -R)')
 
@@ -441,7 +501,7 @@ function widget::fzf-tmux-window() {
     local selected
     selected=$(tmux list-windows -F "#{window_index}: #{window_name} #{window_flags}" | \
         _fzf_in_tmux_popup $(_fzf_base_opts) \
-            --header "Current: $(tmux display-message -p '#I:#W')" | \
+            --header "Windows │ Current: $(tmux display-message -p '#I:#W') │ Enter: switch" | \
         cut -d: -f1)
 
     if [[ -n "$selected" ]]; then
@@ -479,6 +539,7 @@ function widget::command-palette() {
         _fzf_in_tmux_popup $(_fzf_base_opts) \
             --delimiter ':' \
             --with-nth 1,3 \
+            --header 'Command Palette │ Enter: execute │ Esc: cancel' \
             --preview 'echo "Command: $(echo {} | cut -d: -f2)"' \
             --preview-window 'down:1:wrap')
 
@@ -499,7 +560,7 @@ function widget::fzf-ssh() {
     local host
     host=$(grep -E "^Host [^*]" ~/.ssh/config 2>/dev/null | awk '{print $2}' | \
         _fzf_in_tmux_popup $(_fzf_base_opts) \
-            --header "Select SSH host" \
+            --header 'SSH Hosts │ Enter: connect │ C-/: preview config' \
             --preview 'grep -A 10 "^Host {}" ~/.ssh/config 2>/dev/null')
 
     if [[ -n "$host" ]]; then
@@ -518,7 +579,7 @@ function widget::fzf-env() {
     local selected
     selected=$(env | sort | \
         _fzf_in_tmux_popup $(_fzf_base_opts) \
-            --header "Select environment variable" \
+            --header 'Environment │ Enter: insert ${VAR} │ C-/: preview value' \
             --preview 'echo {} | cut -d= -f2-' \
             --preview-window 'down:3:wrap')
 
@@ -712,6 +773,7 @@ function widget::jump-bookmark() {
     local selected
     selected=$(cat "$bookmark_file" | \
         _fzf_in_tmux_popup $(_fzf_base_opts) \
+            --header 'Bookmarks │ Enter: cd │ C-/: preview' \
             --preview 'eza -la --color=always --icons {}')
 
     if [[ -n "$selected" && -d "$selected" ]]; then

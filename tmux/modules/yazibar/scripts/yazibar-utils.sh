@@ -13,6 +13,7 @@ TMUX_CONF="${TMUX_CONF:-$HOME/.core/.sys/cfg/tmux}"
 source "$TMUX_CONF/lib/state-utils.sh"
 source "$TMUX_CONF/lib/pane-utils.sh"
 source "$TMUX_CONF/lib/display-utils.sh"
+source "$TMUX_CONF/lib/layout-utils.sh"
 
 # Source local layout functions (pane ID management)
 source "$SCRIPT_DIR/layout.sh"
@@ -32,9 +33,6 @@ pane_exists_globally() {
 # ============================================================================
 
 # Default values (can be overridden by tmux options)
-YAZIBAR_SERVER="core-ide"
-YAZIBAR_LEFT_SESSION="left-sidebar"
-YAZIBAR_RIGHT_SESSION="right-sidebar"
 YAZIBAR_LEFT_WIDTH="15%"
 YAZIBAR_RIGHT_WIDTH="30%"
 YAZIBAR_DATA_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/tmux/yazibar"
@@ -45,24 +43,8 @@ LAYOUT_MANAGER="$TMUX_CONF/scripts/layout-manager.sh"
 mkdir -p "$YAZIBAR_DATA_DIR"
 
 # ============================================================================
-# TMUX OPTION HELPERS
-# ============================================================================
-
-# ============================================================================
 # CONFIGURATION GETTERS
 # ============================================================================
-
-yazibar_server() {
-  get_tmux_option "@yazibar-server" "$YAZIBAR_SERVER"
-}
-
-yazibar_left_session() {
-  get_tmux_option "@yazibar-left-session" "$YAZIBAR_LEFT_SESSION"
-}
-
-yazibar_right_session() {
-  get_tmux_option "@yazibar-right-session" "$YAZIBAR_RIGHT_SESSION"
-}
 
 yazibar_left_width() {
   get_tmux_option "@yazibar-left-width" "$YAZIBAR_LEFT_WIDTH"
@@ -74,17 +56,6 @@ yazibar_right_width() {
 
 yazibar_width_file() {
   get_tmux_option "@yazibar-width-file" "$YAZIBAR_WIDTH_FILE"
-}
-
-# ============================================================================
-# STATE MANAGEMENT
-# ============================================================================
-
-# Check if a tmux session exists on a given server
-session_exists() {
-  local server="$1"
-  local session="$2"
-  tmux -L "$server" has-session -t "$session" 2>/dev/null
 }
 
 # ============================================================================
@@ -182,7 +153,6 @@ validate_tmux_version() {
 }
 
 # Export yazibar-specific functions (library functions already exported by their sources)
-export -f yazibar_server yazibar_left_session yazibar_right_session
 export -f yazibar_left_width yazibar_right_width yazibar_width_file
 export -f is_left_enabled set_left_enabled get_left_pane set_left_pane clear_left_pane
 export -f is_right_enabled set_right_enabled get_right_pane set_right_pane clear_right_pane
@@ -190,4 +160,3 @@ export -f get_current_window get_current_pane get_window_option_key
 export -f display_message debug_enabled debug_log
 export -f validate_tmux_version
 export -f pane_exists_globally
-export -f session_exists

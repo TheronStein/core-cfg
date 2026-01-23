@@ -42,24 +42,47 @@ enable_both() {
     local start_dir=$(tmux display-message -p '#{pane_current_path}')
     start_dir="${start_dir:-$HOME}"
 
-    # IMPORTANT: Create RIGHT sidebar FIRST
-    # Left sidebar checks for right at startup to enable DDS sync
-    # If we create left first, it won't see right and won't sync
+    # SPAWN ORDER: LEFT first, then RIGHT, then activate sync
+    # This matches the original working implementation where:
+    # 1. Left sidebar spawns first (initially without sync)
+    # 2. Right sidebar spawns second
+    # 3. Sync is explicitly activated after both exist
 
-    # Temporarily disable the right-needs-left check
+    # Enable left sidebar first (navigator)
+    if ! is_left_enabled || ! pane_exists_globally "$(get_left_pane)"; then
+        debug_log "Creating left sidebar first (navigator)"
+        "$SCRIPT_DIR/yazibar-left.sh" enable "$start_dir"
+
+        # Wait for left sidebar yazi to complete terminal negotiation
+        sleep 1.0
+
+        # Verify yazi is actually running before proceeding
+        local left_pane=$(get_left_pane)
+        if [ -n "$left_pane" ]; then
+            for i in {1..20}; do
+                local cmd=$(tmux display-message -p -t "$left_pane" '#{pane_current_command}' 2>/dev/null)
+                if [ "$cmd" = "yazi" ]; then
+                    debug_log "Left sidebar yazi verified running"
+                    break
+                fi
+                sleep 0.1
+            done
+        fi
+    fi
+
+    # Temporarily disable the right-needs-left check (it's already satisfied)
     local orig_needs_left=$(get_tmux_option "@yazibar-right-needs-left" "1")
     set_tmux_option "@yazibar-right-needs-left" "0"
 
-    # Enable right sidebar first (preview pane)
+    # Enable right sidebar second (preview)
     if ! is_right_enabled || ! pane_exists_globally "$(get_right_pane)"; then
-        debug_log "Creating right sidebar first (for sync)"
+        debug_log "Creating right sidebar (preview)"
         "$SCRIPT_DIR/yazibar-right.sh" enable "$start_dir"
+
         # Wait for right sidebar yazi to complete terminal negotiation
-        # Yazi needs time to: send DSR queries → receive responses → parse capabilities
-        # 1.0s prevents terminal response timeout when two instances start near-simultaneously
         sleep 1.0
 
-        # Verify yazi is actually running before proceeding (max 2 seconds)
+        # Verify yazi is actually running before proceeding
         local right_pane=$(get_right_pane)
         if [ -n "$right_pane" ]; then
             for i in {1..20}; do
@@ -76,11 +99,16 @@ enable_both() {
     # Restore right-needs-left setting
     set_tmux_option "@yazibar-right-needs-left" "$orig_needs_left"
 
-    # Enable left sidebar second (it will see right and start with DDS sync)
-    if ! is_left_enabled || ! pane_exists_globally "$(get_left_pane)"; then
-        debug_log "Creating left sidebar (will auto-sync to right)"
-        "$SCRIPT_DIR/yazibar-left.sh" enable "$start_dir"
-    fi
+    # Wait for both yazi instances to fully initialize before activating sync
+    # This is critical - yazi needs time to complete terminal negotiation
+    # Without this delay, the 'q' (quit) command sent by enable_sync
+    # would be interpreted as a keystroke before yazi is ready
+    sleep 1.5
+
+    # Now that BOTH sidebars exist and are stable, activate sync
+    # This restarts left yazi with --local-events to stream to right
+    debug_log "Activating sync between sidebars"
+    "$SCRIPT_DIR/yazibar-sync.sh" enable
 
     display_info "Both sidebars enabled with sync"
 }

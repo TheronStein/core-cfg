@@ -1,25 +1,26 @@
 #!/bin/bash
 # Main Menu - Top level navigation
+# Location: ~/.tmux/modules/menus/main-menu.sh
 
-MENU_NAV="$TMUX_MENUS/menu-nav.sh"
+source "$TMUX_MENUS/menu-settings.sh"
 
-# Helper to open submenu with parent tracking
-om() {
-  "$MENU_NAV" set "$(basename "$1")" "main-menu.sh"
-  echo "run-shell '$TMUX_MENUS/$1'"
-}
+CURRENT_MENU="main-menu.sh"
 
-tmux display-menu -x C -y P -T "#[fg=#e0af68,bold] Main Menu " \
-  " Zoom Toggle" z "resize-pane -Z" \
-  " Resize Mode" r "run-shell '$TMUX_MENUS/modes/pane-resize-select.sh'" \
-  " Copy Mode" / "run-shell '$TMUX_MENUS/modes/copy-mode.sh'" \
+tmux display-menu -x $MENU_POS_X -y $MENU_POS_Y \
+  -T "$(menu_title '' 'Main Menu' $MENU_TITLE_MAIN)" \
+  -s "$MENU_STYLE" -H "$MENU_SELECT_STYLE" -S "$MENU_BORDER_STYLE" -b "$MENU_BORDER_LINES" \
+  " New Window" w "run-shell '$TMUX_CONF/modules/fzf/pickers/window-dir-picker.sh'" \
+  " New Session" s "run-shell '$TMUX_CONF/modules/fzf/pickers/session-dir-picker.sh'" \
   "" \
+  "$(menu_sep 'Navigation')" "" "" \
   "󰒓 Config Management" c "$(om config-management.sh)" \
   "󰏘 Theme Selector" T "run-shell '$TMUX_CONF/modules/themes/theme-switcher.sh'" \
   "" \
+  "$(menu_sep 'Windows')" "" "" \
   "󱂬 Popup Windows" e "$(om popups/popup-menu.sh)" \
   " Sidebar Menu" b "$(om mux/sidebar-menu.sh)" \
   "" \
+  "$(menu_sep 'Tools')" "" "" \
   " App Management" A "$(om app-management.sh)" \
   " Task Management" t "$(om modules/task-menu.sh)" \
   " Git Operations" g "$(om dev/git-menu.sh)" \

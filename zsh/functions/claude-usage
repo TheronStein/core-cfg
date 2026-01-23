@@ -1,0 +1,61 @@
+#!/usr/bin/env zsh
+# claude-usage - Update Claude Code usage cache for tmux status bar
+#
+# Usage:
+#   claude-usage                    # Show current cached values
+#   claude-usage <session> <week> <extra>  # Update with percentages
+#   claude-usage 0 4 20             # Example: session=0%, week=4%, extra=20%
+#
+# The tmux status bar reads from ~/.local/state/claude/usage-cache.json
+# Update after checking /usage in Claude Code
+
+local CACHE_FILE="${HOME}/.local/state/claude/usage-cache.json"
+local CACHE_DIR="${HOME}/.local/state/claude"
+
+# Ensure directory exists
+[[ ! -d "$CACHE_DIR" ]] && mkdir -p "$CACHE_DIR"
+
+if [[ $# -eq 0 ]]; then
+  # Display current cache
+  if [[ -f "$CACHE_FILE" ]]; then
+    echo "Current Claude usage cache:"
+    cat "$CACHE_FILE" | jq .
+    echo ""
+    echo "To update: claude-usage <session%> <week%> <extra%>"
+    echo "Example:   claude-usage 0 4 20"
+  else
+    echo "No cache file found. Run: claude-usage <session%> <week%> <extra%>"
+  fi
+elif [[ $# -eq 3 ]]; then
+  # Update cache
+  local session="$1"
+  local week="$2"
+  local extra="$3"
+
+  cat > "$CACHE_FILE" << EOF
+{
+  "session": ${session},
+  "week": ${week},
+  "extra": ${extra},
+  "updated": "$(date -Iseconds)"
+}
+EOF
+
+  echo "✓ Cache updated:"
+  echo "  Session: ${session}%"
+  echo "  Week:    ${week}%"
+  echo "  Extra:   ${extra}%"
+
+  # Refresh tmux if running
+  if [[ -n "$TMUX" ]]; then
+    tmux refresh-client -S 2>/dev/null
+    echo "✓ Tmux status refreshed"
+  fi
+else
+  echo "Usage: claude-usage [<session%> <week%> <extra%>]"
+  echo ""
+  echo "Examples:"
+  echo "  claude-usage           # Show current values"
+  echo "  claude-usage 0 4 20    # Update with session=0%, week=4%, extra=20%"
+  return 1
+fi

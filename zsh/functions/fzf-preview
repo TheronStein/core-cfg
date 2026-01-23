@@ -1,63 +1,563 @@
 #!/usr/bin/env bash
-set -euo pipefail
+# fzf-preview - Universal preview script with robust error handling
+# Location: ~/.core/.sys/cfg/zsh/functions/fzf-preview
+#
+# This script provides intelligent previews for fzf with graceful degradation
+# when tools are unavailable or inputs are invalid.
 
-path=&quot;${1:?Provide a path to preview}&quot;
+# Disable errexit - we handle errors gracefully
+set +e
 
-if [[ ! -e &quot;$path&quot; ]]; then
-  exit 0
+# Color codes for fallback messages
+RED='\033[0;31m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+GREEN='\033[0;32m'
+CYAN='\033[1;36m'
+MAGENTA='\033[1;35m'
+DIM='\033[2m'
+RESET='\033[0m'
+
+# Handle --flag mode FIRST (before normal path processing)
+# Usage: fzf-preview --flag <flag> <command> [description]
+if [[ "$1" == "--flag" ]]; then
+    shift
+    flag="$1"
+    cmd="$2"
+    desc="$3"
+
+    echo -e "${CYAN}━━━ Option: $flag ━━━${RESET}"
+
+    # Show description from completion system first
+    if [[ -n "$desc" ]]; then
+        echo -e "${YELLOW}$desc${RESET}"
+        echo ""
+    fi
+
+    # Helper: check if command exists
+    _has_cmd() { command -v "$1" &>/dev/null; }
+
+    # Try to extract man page context for this specific flag
+    if [[ -n "$cmd" ]] && command man -w "$cmd" &>/dev/null 2>&1; then
+        echo -e "${MAGENTA}─── Manual ($cmd) ───${RESET}"
+
+        # Get man page content (bypass nvim MANPAGER)
+        man_output=$(MANWIDTH="${FZF_PREVIEW_COLUMNS:-80}" command man -P cat "$cmd" 2>/dev/null | col -bx)
+
+        # Try to find the flag section
+        flag_section=$(echo "$man_output" | grep -A 8 "^[[:space:]]*${flag}" 2>/dev/null | head -12)
+
+        if [[ -n "$flag_section" ]]; then
+            echo "$flag_section"
+        else
+            # Broader search
+            flag_mention=$(echo "$man_output" | grep -B 1 -A 4 -- "$flag" 2>/dev/null | head -12)
+            if [[ -n "$flag_mention" ]]; then
+                echo "$flag_mention"
+            else
+                echo -e "${DIM}(flag not found in manual - try: man $cmd)${RESET}"
+            fi
+        fi
+    elif [[ -n "$cmd" ]] && _has_cmd "$cmd"; then
+        # No man page - try --help
+        echo -e "${MAGENTA}─── Help ($cmd --help) ───${RESET}"
+        help_output=$("$cmd" --help 2>&1 || "$cmd" -h 2>&1)
+
+        flag_help=$(echo "$help_output" | grep -A 3 "^[[:space:]]*${flag}" 2>/dev/null | head -10)
+
+        if [[ -n "$flag_help" ]]; then
+            echo "$flag_help"
+        else
+            flag_mention=$(echo "$help_output" | grep -B 1 -A 2 -- "$flag" 2>/dev/null | head -8)
+            if [[ -n "$flag_mention" ]]; then
+                echo "$flag_mention"
+            else
+                echo -e "${DIM}(flag not found in --help output)${RESET}"
+            fi
+        fi
+    else
+        echo -e "${DIM}(no documentation source available)${RESET}"
+    fi
+
+    exit 0
 fi
 
-case &quot;$path&quot; in
-  (*.png|*.jpg|*.jpeg|*.gif|*.bmp|*.svg|*.webp)
-    if command -v chafa &gt;/dev/null; then
-      chafa --size=80x20 &quot;$path&quot;
-    elif command -v kitty +kitten icat &gt;/dev/null; then
-      kitty +kitten icat --align left &quot;$path&quot;
+# Get the input path
+input="${1:-}"
+
+# Handle empty input
+if [[ -z "$input" ]]; then
+    echo -e "${DIM}No input provided${RESET}"
+    exit 0
+fi
+
+# Handle special fzf placeholders that might be empty
+if [[ "$input" == "{}" ]] || [[ "$input" == "{q}" ]]; then
+    echo -e "${DIM}Waiting for selection...${RESET}"
+    exit 0
+fi
+
+# Clean up the path (remove leading/trailing whitespace, handle quotes)
+path="${input#"${input%%[![:space:]]*}"}"
+path="${path%"${path##*[![:space:]]}"}"
+path="${path#\"}"
+path="${path%\"}"
+path="${path#\'}"
+path="${path%\'}"
+
+# Expand ~ to home directory
+[[ "$path" == "~"* ]] && path="${HOME}${path:1}"
+
+# Handle paths with fzf field selectors (e.g., {1}, {2..})
+# If path looks like a field number, it's probably a placeholder
+if [[ "$path" =~ ^\{[0-9]+\}$ ]] || [[ "$path" =~ ^\{[0-9]+\.\.\}$ ]]; then
+    echo -e "${DIM}Field placeholder detected${RESET}"
+    exit 0
+fi
+
+# Helper function: check if command exists
+has_cmd() {
+    command -v "$1" &>/dev/null
+}
+
+# Helper function: safe file size check (returns 0 if file is too large)
+is_small_file() {
+    local file="$1"
+    local max_size="${2:-1048576}"  # 1MB default
+    local size
+    size=$(stat -c%s "$file" 2>/dev/null || stat -f%z "$file" 2>/dev/null || echo "0")
+    [[ "$size" -lt "$max_size" ]]
+}
+
+# Helper function: detect if file is binary
+is_binary() {
+    local file="$1"
+    # Check first 8000 bytes for null bytes
+    head -c 8000 "$file" 2>/dev/null | grep -qP '\x00'
+}
+
+# Helper function: get file mime type
+get_mime() {
+    file --mime-type -b "$1" 2>/dev/null || echo "unknown"
+}
+
+# Helper function: safe bat preview
+preview_with_bat() {
+    local file="$1"
+    local lines="${2:-200}"
+    if has_cmd bat; then
+        bat --color=always --style=numbers,changes,header \
+            --line-range ":$lines" \
+            --terminal-width="${FZF_PREVIEW_COLUMNS:-80}" \
+            "$file" 2>/dev/null
+    elif has_cmd batcat; then
+        batcat --color=always --style=numbers,changes,header \
+            --line-range ":$lines" \
+            "$file" 2>/dev/null
+    elif has_cmd highlight; then
+        highlight --out-format=ansi --force "$file" 2>/dev/null | head -n "$lines"
     else
-      file &quot;$path&quot;
+        head -n "$lines" "$file" 2>/dev/null | nl -ba
     fi
-    ;;
-  (*.pdf)
-    if command -v pdftoppm &gt;/dev/null; then
-      pdftoppm -png -f 1 -l 1 -scale-to 800 -scale-to 600 &quot;$path&quot; - | chafa --size=80x20 -
+}
+
+# Helper function: directory listing
+preview_directory() {
+    local dir="$1"
+    if has_cmd eza; then
+        eza --tree --color=always --icons --group-directories-first \
+            --level=2 --git-ignore "$dir" 2>/dev/null || \
+        eza -la --color=always --icons --group-directories-first "$dir" 2>/dev/null
+    elif has_cmd exa; then
+        exa --tree --color=always --icons --group-directories-first \
+            --level=2 "$dir" 2>/dev/null || \
+        exa -la --color=always --icons "$dir" 2>/dev/null
     else
-      file &quot;$path&quot;
+        ls -lahF --color=always "$dir" 2>/dev/null || ls -lahF "$dir" 2>/dev/null
+    fi | head -100
+}
+
+# Helper function: image preview
+# NOTE: fzf preview captures stdout. Direct terminal graphics protocols like
+# kitten icat require special handling. For reliable cross-terminal support,
+# chafa with appropriate output format works best.
+preview_image() {
+    local file="$1"
+    local cols="${FZF_PREVIEW_COLUMNS:-80}"
+    local lines="${FZF_PREVIEW_LINES:-20}"
+
+    # Detect terminal for optimal format selection
+    local term_type=""
+    if [[ "$TERM" == *"kitty"* ]] || [[ -n "$KITTY_WINDOW_ID" ]]; then
+        term_type="kitty"
+    elif [[ "$TERM_PROGRAM" == "ghostty" ]] || [[ -n "$GHOSTTY_BIN_DIR" ]] || [[ "$TERM" == *"ghostty"* ]]; then
+        term_type="ghostty"
+    elif [[ -n "$WEZTERM_PANE" ]] || [[ "$TERM_PROGRAM" == "WezTerm" ]]; then
+        term_type="wezterm"
+    elif [[ "$TERM_PROGRAM" == "iTerm.app" ]] || [[ -n "$ITERM_SESSION_ID" ]]; then
+        term_type="iterm"
     fi
-    ;;
-  (*.tar.gz|*.tar.bz2|*.tar.xz|*.zip|*.rar|*.7z|*.gz|*.bz2|*.xz)
-    if command -v atool &gt;/dev/null; then
-      atool -l &quot;$path&quot; | head -20
-    elif command -v tar &gt;/dev/null; then
-      tar -tf &quot;$path&quot; | head -20
+
+    # chafa with terminal-appropriate format
+    if has_cmd chafa; then
+        local format_opts=()
+
+        # Select best format based on terminal
+        case "$term_type" in
+            kitty|ghostty)
+                # Kitty and Ghostty support Kitty graphics protocol
+                format_opts=(--format=kitty)
+                ;;
+            wezterm|iterm)
+                # WezTerm and iTerm support iTerm2 inline images
+                format_opts=(--format=iterm2)
+                ;;
+            *)
+                # Check TERM for sixel support
+                if [[ "$TERM" == *"sixel"* ]] || [[ "$COLORTERM" == "truecolor" ]]; then
+                    format_opts=(--format=sixel)
+                fi
+                ;;
+        esac
+
+        # Try preferred format first, fall back to symbols
+        if [[ ${#format_opts[@]} -gt 0 ]]; then
+            chafa "${format_opts[@]}" --size="${cols}x${lines}" --animate=off "$file" 2>/dev/null && return 0
+        fi
+        # Sixel fallback (widely supported in modern terminals)
+        chafa --format=sixel --size="${cols}x${lines}" --animate=off "$file" 2>/dev/null && return 0
+        # Symbols fallback (works everywhere)
+        chafa --format=symbols --size="${cols}x${lines}" --animate=off "$file" 2>/dev/null && return 0
+    fi
+
+    # viu outputs text-based image representation
+    if has_cmd viu; then
+        viu -w "$cols" -h "$lines" "$file" 2>/dev/null && return 0
+    fi
+
+    # catimg also outputs text-based representation
+    if has_cmd catimg; then
+        catimg -w "$cols" "$file" 2>/dev/null && return 0
+    fi
+
+    # img2txt from libcaca
+    if has_cmd img2txt; then
+        img2txt -W "$cols" -H "$lines" "$file" 2>/dev/null && return 0
+    fi
+
+    # Text fallback - show file info with dimensions
+    echo -e "${BLUE}Image:${RESET} $(basename "$file")"
+    file "$file" 2>/dev/null | sed 's/^[^:]*: //'
+    if has_cmd identify; then
+        identify "$file" 2>/dev/null | head -1
+    elif has_cmd exiftool; then
+        exiftool -ImageSize -ColorType -FileSize "$file" 2>/dev/null
+    fi
+}
+
+# Helper function: archive listing
+preview_archive() {
+    local file="$1"
+    local ext="${file##*.}"
+    ext="${ext,,}"  # lowercase
+
+    case "$ext" in
+        zip)
+            if has_cmd unzip; then
+                unzip -l "$file" 2>/dev/null | head -50
+            else
+                echo -e "${YELLOW}Install unzip to preview ZIP files${RESET}"
+                file "$file" 2>/dev/null
+            fi
+            ;;
+        tar|tgz|txz|tbz|tbz2)
+            tar -tvf "$file" 2>/dev/null | head -50
+            ;;
+        gz)
+            if [[ "$file" == *.tar.gz ]]; then
+                tar -tvzf "$file" 2>/dev/null | head -50
+            else
+                gzip -l "$file" 2>/dev/null
+            fi
+            ;;
+        bz2)
+            if [[ "$file" == *.tar.bz2 ]]; then
+                tar -tvjf "$file" 2>/dev/null | head -50
+            else
+                bzip2 -l "$file" 2>/dev/null || file "$file"
+            fi
+            ;;
+        xz)
+            if [[ "$file" == *.tar.xz ]]; then
+                tar -tvJf "$file" 2>/dev/null | head -50
+            else
+                xz -l "$file" 2>/dev/null || file "$file"
+            fi
+            ;;
+        7z)
+            if has_cmd 7z; then
+                7z l "$file" 2>/dev/null | head -50
+            else
+                echo -e "${YELLOW}Install p7zip to preview 7z files${RESET}"
+                file "$file" 2>/dev/null
+            fi
+            ;;
+        rar)
+            if has_cmd unrar; then
+                unrar l "$file" 2>/dev/null | head -50
+            else
+                echo -e "${YELLOW}Install unrar to preview RAR files${RESET}"
+                file "$file" 2>/dev/null
+            fi
+            ;;
+        *)
+            if has_cmd atool; then
+                atool -l "$file" 2>/dev/null | head -50
+            else
+                file "$file" 2>/dev/null
+            fi
+            ;;
+    esac
+}
+
+# Helper function: PDF preview
+preview_pdf() {
+    local file="$1"
+    local cols="${FZF_PREVIEW_COLUMNS:-80}"
+    local lines="${FZF_PREVIEW_LINES:-20}"
+
+    if has_cmd pdftotext; then
+        pdftotext -l 2 -nopgbrk -q "$file" - 2>/dev/null | head -100
+    elif has_cmd pdftoppm && has_cmd chafa; then
+        pdftoppm -png -f 1 -l 1 -scale-to 400 "$file" - 2>/dev/null | \
+            chafa --format=symbols --size="${cols}x${lines}" - 2>/dev/null
     else
-      file &quot;$path&quot;
+        echo -e "${BLUE}PDF:${RESET} $(basename "$file")"
+        if has_cmd pdfinfo; then
+            pdfinfo "$file" 2>/dev/null
+        else
+            file "$file" 2>/dev/null
+        fi
     fi
-    ;;
-  (*.mp4|*.avi|*.mkv|*.mp3|*.wav|*.flac|*.ogg)
-    ffprobe &quot;$path&quot; 2&gt;&amp;1 | head -10 || file &quot;$path&quot;
-    ;;
-  */)
-    if [[ -d &quot;$path&quot; ]]; then
-      if command -v eza &gt;/dev/null; then
-        eza --tree --color=always --icons -L 3 --group-directories-first &quot;$path&quot; 2&gt;/dev/null || ls -laFGh --color=always &quot;$path&quot;
-      else
-        ls -laFGh --color=always &quot;$path&quot;
-      fi | head -200
+}
+
+# Helper function: media info
+preview_media() {
+    local file="$1"
+    if has_cmd mediainfo; then
+        mediainfo "$file" 2>/dev/null | head -30
+    elif has_cmd ffprobe; then
+        ffprobe -hide_banner "$file" 2>&1 | head -20
     else
-      file &quot;$path&quot;
+        echo -e "${BLUE}Media:${RESET} $(basename "$file")"
+        file "$file" 2>/dev/null
     fi
-    ;;
-  *)
-    if [[ -f &quot;$path&quot; ]]; then
-      if command -v bat &gt;/dev/null; then
-        bat --color=always --style=full --decorations=always --line-range=:200 &quot;$path&quot;
-      elif command -v highlight &gt;/dev/null; then
-        highlight --out-format=ansi &quot;$path&quot; | head -200
-      else
-        head -200 &quot;$path&quot; | nl -b a | tail -100
-      fi
+}
+
+# Helper function: JSON preview
+preview_json() {
+    local file="$1"
+    if has_cmd jq; then
+        jq -C '.' "$file" 2>/dev/null | head -100
+    elif has_cmd python3; then
+        python3 -m json.tool "$file" 2>/dev/null | head -100
     else
-      file &quot;$path&quot;
+        preview_with_bat "$file"
     fi
-    ;;
+}
+
+# Helper function: markdown preview
+preview_markdown() {
+    local file="$1"
+    if has_cmd glow; then
+        glow -s dark -w "${FZF_PREVIEW_COLUMNS:-80}" "$file" 2>/dev/null
+    elif has_cmd mdcat; then
+        mdcat "$file" 2>/dev/null
+    else
+        preview_with_bat "$file"
+    fi
+}
+
+# Handle --flag mode: extract man page documentation for a specific flag
+# Usage: fzf-preview --flag <flag> <command> [description]
+if [[ "$1" == "--flag" ]]; then
+    shift
+    flag="$1"
+    cmd="$2"
+    desc="$3"
+
+    echo -e "${CYAN}━━━ Option: $flag ━━━${RESET}"
+
+    # Show description from completion system first
+    if [[ -n "$desc" ]]; then
+        echo -e "${YELLOW}$desc${RESET}"
+        echo ""
+    fi
+
+    # Try to extract man page context for this specific flag
+    if [[ -n "$cmd" ]] && command man -w "$cmd" &>/dev/null 2>&1; then
+        echo -e "${MAGENTA}─── Manual ($cmd) ───${RESET}"
+
+        # Get man page content (bypass nvim MANPAGER)
+        man_output=$(MANWIDTH="${FZF_PREVIEW_COLUMNS:-80}" command man -P cat "$cmd" 2>/dev/null | col -bx)
+
+        # Try to find the flag section - simple grep approach
+        # Look for the flag at the start of a line (typical man page format)
+        flag_section=$(echo "$man_output" | grep -A 8 "^[[:space:]]*${flag}" 2>/dev/null | head -12)
+
+        if [[ -n "$flag_section" ]]; then
+            echo "$flag_section"
+        else
+            # Broader search - find flag anywhere with context
+            flag_mention=$(echo "$man_output" | grep -B 1 -A 4 -- "$flag" 2>/dev/null | head -12)
+            if [[ -n "$flag_mention" ]]; then
+                echo "$flag_mention"
+            else
+                echo -e "${DIM}(flag not found in manual - try: man $cmd)${RESET}"
+            fi
+        fi
+    elif [[ -n "$cmd" ]] && has_cmd "$cmd"; then
+        # No man page - try --help
+        echo -e "${MAGENTA}─── Help ($cmd --help) ───${RESET}"
+        help_output=$("$cmd" --help 2>&1 || "$cmd" -h 2>&1)
+
+        # Find the flag in help output
+        flag_help=$(echo "$help_output" | grep -A 3 "^[[:space:]]*${flag}" 2>/dev/null | head -10)
+
+        if [[ -n "$flag_help" ]]; then
+            echo "$flag_help"
+        else
+            # Broader search
+            flag_mention=$(echo "$help_output" | grep -B 1 -A 2 -- "$flag" 2>/dev/null | head -8)
+            if [[ -n "$flag_mention" ]]; then
+                echo "$flag_mention"
+            else
+                echo -e "${DIM}(flag not found in --help output)${RESET}"
+            fi
+        fi
+    else
+        echo -e "${DIM}(no documentation source available)${RESET}"
+    fi
+
+    exit 0
+fi
+
+# Handle command-line flags/options that arrive without --flag mode
+# (direct calls with flags like --preview or -v)
+if [[ "$path" == --* ]] || [[ "$path" == -[a-zA-Z]* ]]; then
+    echo -e "${BLUE}Option:${RESET} $path"
+    echo -e "${DIM}(Command-line flag - no command context available)${RESET}"
+    exit 0
+fi
+
+# Handle non-existent paths gracefully
+if [[ ! -e "$path" ]]; then
+    # Could be a special value like a command name, variable, etc.
+    # Try to provide useful info anyway
+
+    # Check if it looks like a command
+    if has_cmd "$path"; then
+        echo -e "${GREEN}Command:${RESET} $path"
+        # Try tldr first for concise help
+        if has_cmd tldr; then
+            tldr --color always "$path" 2>/dev/null && exit 0
+        fi
+        # Fall back to which/type
+        which "$path" 2>/dev/null || type "$path" 2>/dev/null
+        exit 0
+    fi
+
+    # Check if it's an environment variable name
+    if [[ -n "${!path:-}" ]]; then
+        echo -e "${GREEN}Environment Variable:${RESET} $path"
+        echo -e "${BLUE}Value:${RESET} ${!path}"
+        exit 0
+    fi
+
+    # Check if it might be a man page
+    if man -w "$path" &>/dev/null; then
+        echo -e "${GREEN}Man Page:${RESET} $path"
+        man "$path" 2>/dev/null | head -40
+        exit 0
+    fi
+
+    # Generic fallback for non-existent paths
+    echo -e "${DIM}Not a file or directory: $path${RESET}"
+    exit 0
+fi
+
+# Main preview logic based on file type
+case "$path" in
+    # Images
+    *.png|*.jpg|*.jpeg|*.gif|*.bmp|*.svg|*.webp|*.ico|*.tiff|*.tif)
+        preview_image "$path"
+        ;;
+
+    # PDF documents
+    *.pdf|*.PDF)
+        preview_pdf "$path"
+        ;;
+
+    # Archives
+    *.tar|*.tar.gz|*.tgz|*.tar.bz2|*.tbz|*.tbz2|*.tar.xz|*.txz|\
+    *.zip|*.ZIP|*.rar|*.RAR|*.7z|*.gz|*.bz2|*.xz|*.lz|*.lzma)
+        preview_archive "$path"
+        ;;
+
+    # Media files
+    *.mp4|*.mkv|*.avi|*.mov|*.wmv|*.flv|*.webm|\
+    *.mp3|*.flac|*.wav|*.ogg|*.m4a|*.aac|*.wma)
+        preview_media "$path"
+        ;;
+
+    # JSON files
+    *.json)
+        preview_json "$path"
+        ;;
+
+    # Markdown
+    *.md|*.markdown)
+        preview_markdown "$path"
+        ;;
+
+    # Directories
+    */)
+        preview_directory "$path"
+        ;;
+
+    # Everything else
+    *)
+        if [[ -d "$path" ]]; then
+            preview_directory "$path"
+        elif [[ -f "$path" ]]; then
+            # Check file size first
+            if ! is_small_file "$path" 5242880; then  # 5MB
+                echo -e "${YELLOW}File too large for preview${RESET}"
+                file "$path" 2>/dev/null
+                ls -lh "$path" 2>/dev/null
+                exit 0
+            fi
+
+            # Check if binary
+            if is_binary "$path"; then
+                echo -e "${BLUE}Binary file:${RESET} $(basename "$path")"
+                file "$path" 2>/dev/null
+                if has_cmd xxd; then
+                    echo -e "\n${DIM}Hex dump (first 256 bytes):${RESET}"
+                    xxd "$path" 2>/dev/null | head -16
+                fi
+                exit 0
+            fi
+
+            # Text file - use bat
+            preview_with_bat "$path"
+        else
+            # Symbolic link, socket, device, etc.
+            echo -e "${BLUE}Special file:${RESET} $(basename "$path")"
+            ls -la "$path" 2>/dev/null
+            file "$path" 2>/dev/null
+        fi
+        ;;
 esac
+
+exit 0

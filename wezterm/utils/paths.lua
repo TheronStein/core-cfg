@@ -49,6 +49,15 @@ M.WORKSPACE_THEMES_DIR = M.WEZTERM_DATA .. "/workspace-themes"
 -- WezTerm scripts
 M.GENERATE_METADATA_SCRIPT = M.WEZTERM_CONFIG .. "/modules/menus/utilities/generate-image-metadata.sh"
 
+-- Local core state directories (ephemeral runtime data)
+-- Per environment-hierarchy.md: ephemeral state goes to ~/.local/core/
+M.LOCAL_CORE = M.HOME .. "/.local/core"
+M.LOCAL_CORE_STATE = M.LOCAL_CORE .. "/state"
+M.LOCAL_CORE_DATA = M.LOCAL_CORE .. "/data"
+M.LOCAL_CORE_CACHE = M.LOCAL_CORE .. "/cache"
+M.LOCAL_WEZTERM_STATE = M.LOCAL_CORE_STATE .. "/wezterm"
+M.LOCAL_WEZTERM_SESSIONS = M.LOCAL_WEZTERM_STATE .. "/sessions"
+
 -- Common config directories (for launch menu)
 M.ZSH_CONFIG = M.CORE_CFG .. "/zsh"
 M.HYPR_CONFIG = M.CORE_ENV .. "/desktop/hypr"
@@ -58,5 +67,48 @@ M.YAZI_CONFIG = M.CORE_CFG .. "/yazi"
 
 M.MUSIC_TUI = M.CORE_CFG .. "/media/spotify-player"
 M.GITHUB_COPILOT_CONFIG = M.CORE_CFG .. "/github-copilot"
+
+-- ============================================================================
+-- PATH UTILITY FUNCTIONS
+-- ============================================================================
+
+--- Extract filesystem path from file:// URL or return as-is
+--- Handles WezTerm's various CWD formats:
+---   - file://hostname/path/to/dir
+---   - file:///path/to/dir
+---   - /path/to/dir (passthrough)
+---   - {file_path = "/path/to/dir"} (table format)
+---@param cwd any The CWD value from pane:get_current_working_dir()
+---@return string The extracted filesystem path
+function M.extract_path(cwd)
+	if not cwd then
+		return M.HOME
+	end
+
+	-- Handle table format with file_path (WezTerm URL object)
+	if type(cwd) == "table" and cwd.file_path then
+		return cwd.file_path
+	end
+
+	-- Convert to string
+	cwd = tostring(cwd)
+
+	-- Handle file:// URLs
+	if cwd:match("^file://") then
+		-- Remove file://hostname prefix (handles both file://hostname/path and file:///path)
+		local path = cwd:gsub("^file://[^/]*", "") or cwd:gsub("^file://", "")
+		return path
+	end
+
+	return cwd
+end
+
+--- Ensure a directory exists, creating it if necessary
+---@param dir string The directory path to ensure
+---@return boolean success Whether the directory exists or was created
+function M.ensure_dir(dir)
+	os.execute('mkdir -p "' .. dir .. '"')
+	return true
+end
 
 return M

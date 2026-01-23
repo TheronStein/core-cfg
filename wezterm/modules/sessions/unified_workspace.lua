@@ -16,8 +16,8 @@ local isolation = require("modules.sessions.workspace_isolation")
 
 local M = {}
 
--- Session storage directory
-local session_dir = paths.WEZTERM_DATA .. "/sessions"
+-- Session storage directory (using local core state for ephemeral data)
+local session_dir = paths.LOCAL_WEZTERM_SESSIONS
 
 -- ============================================================================
 -- HELPER FUNCTIONS
@@ -25,32 +25,12 @@ local session_dir = paths.WEZTERM_DATA .. "/sessions"
 
 -- Ensure session directory exists
 local function ensure_session_dir()
-	os.execute('mkdir -p "' .. session_dir .. '"')
+	paths.ensure_dir(session_dir)
 	return true
 end
 
--- Extract path from file:// URL or return as-is
-local function extract_path(cwd)
-	if not cwd then
-		return wezterm.home_dir
-	end
-
-	-- Handle table format with file_path
-	if type(cwd) == "table" and cwd.file_path then
-		return cwd.file_path
-	end
-
-	-- Convert to string
-	cwd = tostring(cwd)
-
-	-- Handle file:// URLs
-	if cwd:match("^file://") then
-		local path = cwd:gsub("^file://[^/]+", "") or cwd:gsub("^file://", "")
-		return path
-	end
-
-	return cwd
-end
+-- Use centralized extract_path from paths module
+local extract_path = paths.extract_path
 
 -- Get workspace icon from global state
 local function get_workspace_icon(workspace_name)

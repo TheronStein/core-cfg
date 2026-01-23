@@ -104,6 +104,9 @@ case "$ACTION" in
     *)       HEADER="Select pane" ;;
 esac
 
+# Keybind hints
+KEYBINDS="^/ preview  Esc cancel"
+
 # Run FZF
 SELECTED=$(get_panes | fzf \
     --ansi \
@@ -112,9 +115,11 @@ SELECTED=$(get_panes | fzf \
     --border=rounded \
     --color="$(fzf::colors)" \
     --preview='bash -c "preview_pane {}"' \
-    --preview-window=right:50%:wrap \
-    --header="$HEADER (ESC to cancel)" \
+    --preview-window=top:70%:wrap \
+    --header="$HEADER
+$KEYBINDS" \
     --prompt="Pane> " \
+    --bind="ctrl-/:toggle-preview" \
     --bind="esc:cancel" \
 ) || exit 0
 

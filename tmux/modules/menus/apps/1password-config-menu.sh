@@ -1,13 +1,20 @@
 #!/bin/bash
-MENU_NAV="$TMUX_MENUS/menu-nav.sh"
-CURRENT_MENU="$(basename "$0")"
-PARENT=$("$MENU_NAV" get "$CURRENT_MENU" "main-menu.sh")
+# 1Password Configuration Menu
+# Location: ~/.tmux/modules/menus/apps/1password-config-menu.sh
 
-OP_CFG="$HOME/.config/1Password"
+source "$TMUX_MENUS/menu-settings.sh"
 
-tmux display-menu -x C -y C -T "#[fg=#e0af68,bold]1Password Configuration " \
-  "󰌑 Back" Tab "run-shell '$TMUX_MENUS/$PARENT'" \
-  "󰈔 Explore Config" e "run-shell 'tmux display-popup -E -w 90% -h 90% -d \"$OP_CFG\" yazi'" \
-  " Claude Code" c "run-shell 'tmux display-popup -E -w 90% -h 90% -d \"$OP_CFG\" claude'" \
+CURRENT_MENU="apps/1password-config-menu.sh"
+PARENT=$(get_parent "app-management.sh")
+
+TOOL_NAME="1password"
+CFG_DIR="$HOME/.config/1Password"
+
+tmux display-menu -x $MENU_POS_X -y $MENU_POS_Y \
+  -T "$(menu_title '󰞀' '1Password Configuration' $MENU_TITLE_APP)" \
+  -s "$MENU_STYLE" -H "$MENU_SELECT_STYLE" -S "$MENU_BORDER_STYLE" -b "$MENU_BORDER_LINES" \
+  "$MENU_ICON_BACK Back" Tab "run-shell '$TMUX_MENUS/$PARENT'" \
   "" \
-  "Settings" 1 "run-shell 'tmux display-popup -E -w 90% -h 90% -d \"$OP_CFG\" \"\\$EDITOR settings/settings.json\"'"
+  "$(menu_sep 'Edit')" "" "" \
+  " Edit Config" e "run-shell 'source $TMUX_CONF/lib/config-session.sh && edit_config $TOOL_NAME \"$CFG_DIR\"'" \
+  " Claude Code" c "run-shell 'source $TMUX_CONF/lib/ai-session.sh && ai_session $TOOL_NAME \"$CFG_DIR\"'"

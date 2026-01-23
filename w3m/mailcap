@@ -1,0 +1,9 @@
+###
+audio/*; mpv %s
+image/*; nxsiv %s &
+video/*; setsid mpv --quiet %s &; copiousoutput
+
+application/msword; handlr open %s
+application/pdf; zathura %s
+application/postscript; handlr open %s
+text/html; handlr open %s ; copiousoutput

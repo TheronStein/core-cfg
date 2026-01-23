@@ -4,94 +4,117 @@ local wk = require("which-key")
 local M = {}
 
 function M.setup()
-	-- -- N-based next/previous navigation
-	-- map("n", "n", "n", { noremap = true, silent = true })
-	-- map("n", "N", "N", { noremap = true, silent = true })
+  -- -- N-based next/previous navigation
+  -- map("n", "n", "n", { noremap = true, silent = true })
+  -- map("n", "N", "N", { noremap = true, silent = true })
 
-	wk.add({
-		{ "<M-D>", "<C-u>", desc = "Delete left" },
-		{ "<Tab>", "<C-t>", desc = "Indent in insert mode" },
-		{ "<S-Tab>", "<C-d>", desc = "Unindent in insert mode" },
-		mode = { "i" },
-		noremap = true,
-		silent = true,
-	})
-	-- noremap = true, silent = true
-	wk.add({
-		{ "A", "a", desc = "Append at cursor" },
-		{ "<", "a", desc = "Insert at block start" },
-		-- { "A", "a", desc = "Insert at block start" },
-		-- { "A", "a", desc = "Append at block end" },
-		-- Basic save: :w (write current buffer)
-		{ "<C-s>", ":w<CR>", desc = "Save current file" },
-		mode = { "n" },
-		noremap = true,
-		silent = true,
-	})
+  wk.add({
+    { "<M-D>", "<C-u>", desc = "Delete left" },
+    { "<Tab>", "<C-t>", desc = "Indent in insert mode" },
+    { "<S-Tab>", "<C-d>", desc = "Unindent in insert mode" },
+    mode = { "i" },
+    noremap = true,
+    silent = true,
+  })
+  -- noremap = true, silent = true
+  wk.add({
+    { "A", "a", desc = "Append at cursor" },
+    { "<", "a", desc = "Insert at block start" },
+    -- { "A", "a", desc = "Insert at block start" },
+    -- { "A", "a", desc = "Append at block end" },
+    -- Basic save: :w (write current buffer)
+    { "<C-s>", ":w<CR>", desc = "Save current file" },
+    mode = { "n" },
+    noremap = true,
+    silent = true,
+  })
 
-	-- map({ "n", "v" }, { noremap = true, silent = true })
-	map({ "n", "v" }, "<M-S-L>", "$", { noremap = true, silent = true })
-	wk.add({
-		{ "U", "<C-r>", desc = "Redo Action" },
-		{ "<C-u>", "u", desc = "Undo Action" },
-		{ "<M-S-K>", "O", desc = "Open line above" },
-		{ "<M-k>", "o", desc = "Open line below" },
-		{ "<M-S-J>", "0", desc = "Beginning of line" },
-		{ "<M-S-L>", "$", desc = "End of line" },
-		mode = { "n", "v" },
-		noremap = true,
-		silent = true,
-	})
+  -- map({ "n", "v" }, { noremap = true, silent = true })
+  map({ "n", "v" }, "<M-S-L>", "$", { noremap = true, silent = true })
+  wk.add({
+    { "U", "<C-r>", desc = "Redo Action" },
+    { "<C-u>", "u", desc = "Undo Action" },
+    mode = { "n", "v" },
+    noremap = true,
+    silent = true,
+  })
 
-	-- Navigation
-	wk.add({
-		{ "<C-i>", "5kzz", desc = "Jump up 5 lines" },
-		{ "<C-k>", "5jzz", desc = "Jump down 5 lines" },
-		{ "<C-i>", "5kzz", desc = "Jump up 5 lines" },
-		{ "<C-k>", "5jzz", desc = "Jump down 5 lines" },
-		{ "i", "k", desc = "cursor up" },
-		{ "k", "j", desc = "cursor down" },
-		{ "j", "h", desc = "cursor left" },
-		{ "l", "l", desc = "cursor right" },
-		{ "I", "<C-u>zz", desc = "Page up " },
-		{ "K", "<C-d>zz", desc = "Page down" },
-		{ "<S-CR>", "o", desc = "Open new line below" },
-		{ "<CR>", "O", desc = "Open new line above" },
-		{ "J", "B", desc = "← previous word" },
-		{ "L", "W", desc = "→ next word" },
-		mode = { "n", "v" },
-		noremap = true,
-		silent = true,
-	})
+  -- Navigation
+  wk.add({
+    -- { "<C-i>", "5kzz", desc = "Jump up 5 lines" },
+    -- { "<C-k>", "5jzz", desc = "Jump down 5 lines" },
+    -- { "<C-i>", "5kzz", desc = "Jump up 5 lines" },
+    -- { "<C-k>", "5jzz", desc = "Jump down 5 lines" },
+    { "<C-i>", "<PageUp>", desc = "↑ up" },
+    -- { "<C-S-i>", "J", desc = "Open line above" },
+    { "<M-i>", "J", desc = "Open line above" },
+    -- { "<M-S-i>", "gg", desc = "Open line above" },
+    { "<C-k>", "<PageDown>", desc = "↓ down" },
+    -- { "<C-S-k>", "K", desc = "Open line above" },
+    -- { "<M-k>", "o", desc = "Open line below" },
+    -- { "<M-S-k>", "G", desc = "Open line below" },
+    { "i", "k", desc = "cursor up" },
+    { "k", "j", desc = "cursor down" },
+    { "j", "h", desc = "cursor left" },
+    { "l", "l", desc = "cursor right" },
+    { "I", "10kzz", desc = "Page up " },
+    { "K", "10jzz", desc = "Page down" },
+    { "<S-CR>", "o", desc = "Open new line below" },
+    { "<CR>", "O", desc = "Open new line above" },
+    mode = { "n", "v" },
+    noremap = true,
+    silent = true,
+  })
 
-	wk.add({
-		{ "<C-i>", "<PageUp>", desc = "↑ up" },
-		{ "<C-k>", "<PageDown>", desc = "↓ down" },
-		{ "<C-j>", "<C-Left>", desc = "← left" },
-		{ "<C-l>", "<C-Right>", desc = "→ right" },
-		-- { "<M-D>", "<C-u>", desc = "Delete left", mode = { "i" } },
-		mode = "i",
-		noremap = true,
-		silent = true,
-	})
+  wk.add({
+    { "<C-j>", "B", desc = "← word backward" },
+    { "<C-S-J>", "b", desc = "← WORD backward" },
+    { "J", "0", desc = "← start of line" },
+    { "<M-j>", "gE", desc = "← end of word backward" },
+    { "<M-S-j>", "ge", desc = "← end of WORD backward" },
+    { "<C-S-L>", "w", desc = "→ WORD forward" },
+    { "<C-l>", "W", desc = "→ word forward" },
+    { "L", "$", desc = "→ end of line" },
+    { "<M-l>", "E", desc = "→ end of word forward" },
+    { "<M-S-l>", "e", desc = "→ end of WORD forward" },
+    -- { "<M-D>", "<C-u>", desc = "Delete left", mode = { "i" } },
+    mode = { "n", "v" },
+    noremap = true,
+    silent = true,
+  })
 
-	-- map({ "n", "v" }, "i", "k", { noremap = true, silent = true })
-	-- map({ "n", "v" }, "k", "j", { noremap = true, silent = true })
+  wk.add({
+    { "<C-j>", "B", desc = "← word backward" },
+    { "<C-S-J>", "b", desc = "← WORD backward" },
+    { "<M-j>", "gE", desc = "← end of word backward" },
+    { "<M-S-j>", "ge", desc = "← end of WORD backward" },
+    { "<C-S-L>", "w", desc = "→ WORD forward" },
+    { "<C-l>", "W", desc = "→ word forward" },
+    { "<M-l>", "E", desc = "→ end of word forward" },
+    { "<M-S-l>", "e", desc = "→ end of WORD forward" },
+    -- { "<M-D>", "<C-u>", desc = "Delete left", mode = { "i" } },
+    mode = "i",
+    noremap = true,
+    silent = true,
+  })
 
-	map({ "n", "v" }, "<C-j>", "b", { noremap = true, silent = true })
-	map({ "n", "v" }, "<C-l>", "w", { noremap = true, silent = true })
+  -- map({ "n", "v" }, "i", "k", { noremap = true, silent = true })
+  -- map({ "n", "v" }, "k", "j", { noremap = true, silent = true })
 
-	-- Word movement with Alt
-	map({ "n", "v" }, "<A-j>", "<C-Left>", { noremap = true, silent = true })
-	map({ "n", "v" }, "<A-l>", "<C-Right>", { noremap = true, silent = true })
+  -- map({ "n", "v" }, "<C-j>", "b", { noremap = true, silent = true })
+  -- map({ "n", "v" }, "<C-l>", "w", { noremap = true, silent = true })
 
-	wk.add({
-		{
-			{ "q", "<Nop>" },
-			{ "u", "<Nop>" },
-			{ mode = { "n", "v" }, noremap = true, silent = true },
-		},
-	})
+  -- Word movement with Alt
+  -- map({ "n", "v" }, "<A-j>", "<C-Left>", { noremap = true, silent = true })
+  -- map({ "n", "v" }, "<A-l>", "<C-Right>", { noremap = true, silent = true })
+
+  wk.add({
+    {
+      { "q", "<Nop>" },
+      { "u", "<Nop>" },
+      { mode = { "n", "v" }, noremap = true, silent = true },
+    },
+  })
 end
 
 return M

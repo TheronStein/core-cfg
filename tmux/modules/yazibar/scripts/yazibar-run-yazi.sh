@@ -53,6 +53,18 @@ _debug_log "YAZIBAR_SIDE=$YAZIBAR_SIDE YAZIBAR_WINDOW_ID=$YAZIBAR_WINDOW_ID"
 cd "$START_DIR" || exit 1
 
 # ============================================================================
+# CRITICAL: Bypass graphical/terminal detection to avoid DECRQSS timeout
+# tmux cannot handle DECRQSS escape sequences, causing 10-20 second delays
+# Setting these empty forces Chafa fallback and skips problematic queries
+# ============================================================================
+export WAYLAND_DISPLAY=''
+export DISPLAY=''
+export XDG_SESSION_TYPE=''
+export SWAYSOCK=''
+
+_debug_log "Set empty display vars to bypass DECRQSS detection"
+
+# ============================================================================
 # LEFT SIDEBAR: Run with DDS event streaming for sync
 # ============================================================================
 if [ "$SIDE" = "left" ]; then
