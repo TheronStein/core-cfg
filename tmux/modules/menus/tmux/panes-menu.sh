@@ -13,11 +13,15 @@ tmux display-menu -x $MENU_POS_X -y $MENU_POS_Y \
   "$MENU_ICON_BACK Back" Tab "run-shell '$TMUX_MENUS/$PARENT'" \
   "" \
   "$(menu_sep 'Create')" "" "" \
-  " Vertical Split" v "run-shell '$TMUX_CONF/events/split.sh v'" \
-  " Horizontal Split" d "run-shell '$TMUX_CONF/events/split.sh h'" \
+  " Vertical Split" v "$(fzf_popup 'split-dir-picker.sh --direction=h')" \
+  " Horizontal Split" d "$(fzf_popup 'split-dir-picker.sh --direction=v')" \
+  "" \
+  "$(menu_sep 'Quick (CWD)')" "" "" \
+  " Quick Vertical" V "run-shell '$TMUX_CONF/events/split.sh v'" \
+  " Quick Horizontal" D "run-shell '$TMUX_CONF/events/split.sh h'" \
   "" \
   "$(menu_sep 'Actions')" "" "" \
-  " Kill Pane" x "kill-pane" \
+  " Kill Pane" x "run-shell 'source ~/.core/.cortex/lib/tmux.sh && tmux::pane::kill'" \
   " Break to Window" b "break-pane" \
   " Break (stay)" B "break-pane -d" \
   "󰓦 Toggle Sync" y "if -F '#{pane_synchronized}' 'set -w synchronize-panes off; display \"Sync off\"' 'set -w synchronize-panes on; display \"Sync on\"'" \

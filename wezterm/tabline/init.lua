@@ -39,9 +39,12 @@ function M.setup(opts)
   end
 
   -- Register event handlers
-  wezterm.on('format-tab-title', function(tab, tabs_list, panes, config_obj, hover, max_width)
-    return tabs.set_title(tab, hover)
-  end)
+  -- DISABLED 2026-01-25: Custom tab title formatting disabled for clean slate rebuild
+  -- See: .claude/TAB_NAMING_AUDIT.md for full documentation of tab naming system
+  -- To re-enable: uncomment the format-tab-title handler below
+  -- wezterm.on('format-tab-title', function(tab, tabs_list, panes, config_obj, hover, max_width)
+  --   return tabs.set_title(tab, hover)
+  -- end)
 
   -- WARNING: This handler may be overridden by other wezterm.on('update-status', ...) calls
   -- See events/README.md for details about event handler conflicts

@@ -46,6 +46,15 @@ CURRENT_SESSION=$(tmux::session::name)
 CURRENT_WINDOW=$(tmux::window::index)
 CURRENT_WINDOW_ID=$(tmux::window::id)
 
+# Colors
+C_RESET='\033[0m'
+C_CYAN='\033[36m'
+C_GREEN='\033[32m'
+C_YELLOW='\033[33m'
+C_DIM='\033[2m'
+C_BOLD='\033[1m'
+C_BLUE='\033[34m'
+
 # Build window list
 # Format: session:index | name | panes | path
 get_windows() {
@@ -58,49 +67,22 @@ get_windows() {
         tmux list-windows -F "$format_str" 2>/dev/null
     fi | while IFS='|' read -r target name panes path; do
         local marker=" "
+        local target_color="$C_CYAN"
         local session="${target%%:*}"
         local index="${target##*:}"
-        [[ "$session" == "$CURRENT_SESSION" && "$index" == "$CURRENT_WINDOW" ]] && marker="*"
+        [[ "$session" == "$CURRENT_SESSION" && "$index" == "$CURRENT_WINDOW" ]] && { marker="*"; target_color="$C_GREEN$C_BOLD"; }
 
         # Shorten path
         local short_path="${path/#$HOME/~}"
         [[ ${#short_path} -gt 30 ]] && short_path="...${short_path: -27}"
 
-        printf "%s %-20s  %s panes  %s  %s\n" "$marker" "$target" "$panes" "$name" "$short_path"
+        printf "${C_YELLOW}%s${C_RESET} ${target_color}%-20s${C_RESET}  ${C_DIM}%s panes${C_RESET}  ${C_BLUE}%s${C_RESET}  ${C_DIM}%s${C_RESET}\n" \
+            "$marker" "$target" "$panes" "$name" "$short_path"
     done
 }
 
-# Preview: show panes in window
-preview_window() {
-    local line="$1"
-    # Extract target (session:index)
-    local target
-    target=$(echo "$line" | sed 's/^[* ] //' | awk '{print $1}')
-
-    local session="${target%%:*}"
-    local index="${target##*:}"
-
-    echo -e "\033[1;34m═══ Window: $target ═══\033[0m"
-    echo ""
-
-    # Window info
-    local name layout
-    name=$(tmux display-message -t "$target" -p '#{window_name}' 2>/dev/null || echo "unknown")
-    layout=$(tmux display-message -t "$target" -p '#{window_layout}' 2>/dev/null | cut -c1-40)
-    echo -e "\033[1;33m Name:\033[0m $name"
-    echo -e "\033[1;33m Layout:\033[0m ${layout}..."
-    echo ""
-
-    # List panes
-    echo -e "\033[1;33m Panes:\033[0m"
-    tmux list-panes -t "$target" -F "  #{pane_index}: #{pane_current_command} (#{pane_width}x#{pane_height})" 2>/dev/null
-    echo ""
-
-    # Preview pane content
-    echo -e "\033[1;33m Active Pane:\033[0m"
-    tmux capture-pane -t "$target" -p -S -12 2>/dev/null | head -12 || echo "  (no preview)"
-}
-export -f preview_window
+# Preview script location
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Header based on action
 case "$ACTION" in
@@ -117,14 +99,13 @@ esac
 KEYBINDS="^/ preview  Esc cancel"
 
 # Run FZF
-SELECTED=$(get_windows | fzf \
+SELECTED=$(get_windows | fzf-tmux -p 80%,80% \
     --ansi \
-    --height=80% \
     --layout=reverse \
     --border=rounded \
     --color="$(fzf::colors)" \
-    --preview='bash -c "preview_window {}"' \
-    --preview-window=top:70%:wrap \
+    --preview="$SCRIPT_DIR/preview-window.sh {}" \
+    --preview-window=right:60%:wrap \
     --header="$HEADER
 $KEYBINDS" \
     --prompt="Window> " \

@@ -1,6 +1,6 @@
--- Markdown-specific folding via mkdnflow
+-- Markdown-specific folding using treesitter (mkdnflow doesn't provide foldexpr)
 vim.opt_local.foldmethod = "expr"
-vim.opt_local.foldexpr = "v:lua.require('mkdnflow').foldexpr()"
+vim.opt_local.foldexpr = "v:lua.vim.treesitter.foldexpr()"
 vim.opt_local.foldenable = false -- Don't fold by default when opening
 vim.opt_local.foldlevel = 99 -- Open all folds by default
 vim.opt_local.foldlevelstart = 99

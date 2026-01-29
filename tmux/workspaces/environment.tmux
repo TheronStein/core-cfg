@@ -1,65 +1,61 @@
 # ============================================================================
-# Development Server Configuration
+# Environment Server Configuration
 # ============================================================================
-# This is a server-specific tmux configuration for the 'development' server.
+# This is a server-specific tmux configuration for the 'environment' server.
+# For system environment and dotfile management.
 #
 # Usage:
-#   tmux -f ~/.core/cfg/tmux/development.tmux -L development new-session
+#   tmux -f $TMUX_CONF/workspaces/environment.tmux -L environment new-session
 #
 # This will:
 #   - Load all base tmux.conf settings
-#   - Use a separate resurrect directory: ~/.tmux/resurrect/development/
-#   - Set TMUX_SESSION_CWD to $HOME/.core/dev
+#   - Use a separate resurrect directory: ~/.tmux/resurrect/environment/
+#   - Set TMUX_SESSION_CWD to $HOME/.core/.sys
 # ============================================================================
 
 # Source the base tmux configuration
-source-file "~/.core/cfg/tmux/tmux.conf"
+source-file "$TMUX_CONF/tmux.conf"
 
 # ============================================================================
 # Server-Specific Settings
 # ============================================================================
 
 # Set custom environment variable for this server's default CWD
-set-environment -g TMUX_SESSION_CWD "$HOME/.core/dev"
+set-environment -g TMUX_SESSION_CWD "$HOME/.core/.sys"
 
-# Server identification (optional, useful for status bar)
-set-environment -g TMUX_SERVER_NAME "development"
+# Server identification
+set-environment -g TMUX_SERVER_NAME "environment"
+set-environment -g TMUX_WORKSPACE_DISPLAY "Env"
 
 # ============================================================================
 # Resurrect Configuration (Server-Specific)
 # ============================================================================
 
 # Set custom resurrect directory for this server
-# This keeps development server sessions separate from other servers
-set -g @resurrect-dir "~/.tmux/resurrect/development"
+set -g @resurrect-dir "~/.tmux/resurrect/environment"
 
-# Optional: Capture additional state
+# Capture additional state
 set -g @resurrect-capture-pane-contents 'on'
 set -g @resurrect-strategy-nvim 'session'
 
-# Optional: Custom save/restore hooks for development server
-# set -g @resurrect-hook-post-save-all 'echo "Development server saved: $(date)" >> ~/.tmux/resurrect/development/save.log'
-# set -g @resurrect-hook-post-restore-all 'echo "Development server restored: $(date)" >> ~/.tmux/resurrect/development/restore.log'
-
 # ============================================================================
-# Development Server Keybindings (Optional Overrides)
+# Environment Server Keybindings (Optional Overrides)
 # ============================================================================
 
-# Quick save/restore for development environment
-# Uncomment if you want different keybindings for this server
-# bind-key C-s run-shell "~/.core/cfg/tmux/plugins/tmux-resurrect/scripts/save.sh"
-# bind-key C-r run-shell "~/.core/cfg/tmux/plugins/tmux-resurrect/scripts/restore.sh"
+# Quick save/restore
+# bind-key C-s run-shell "$TMUX_CONF/plugins/tmux-resurrect/scripts/save.sh"
+# bind-key C-r run-shell "$TMUX_CONF/plugins/tmux-resurrect/scripts/restore.sh"
 
 # ============================================================================
 # Status Bar Customization (Optional)
 # ============================================================================
 
 # Uncomment to show server name in status bar
-# set -g status-left "#[fg=blue,bold][ DEV ]#[default] "
+# set -g status-left "#[fg=green,bold][ ENV ]#[default] "
 
 # ============================================================================
-# Auto-create session on server start
+# Auto-create session on server start (Optional)
 # ============================================================================
 
-# This runs when the server starts - uncomment to auto-create a session
-# new-session -d -s dev-main -c "$HOME/.core/dev"
+# Uncomment to auto-create a default session when server starts
+# new-session -d -s env-main -c "$HOME/.core/.sys"

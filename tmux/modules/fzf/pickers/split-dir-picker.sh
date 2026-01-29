@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
-# Session Directory Picker - FZF-based directory selection for new tmux sessions
-# Opens a new session in the selected directory with session name = directory basename
+# Split Directory Picker - FZF-based directory selection for pane splits
+# Location: ~/.tmux/modules/fzf/pickers/split-dir-picker.sh
+# Usage: split-dir-picker.sh [--direction=h|v]
+#
+# Opens a new pane split in the selected directory
+# On cancel (ESC/Ctrl-C) or empty selection: falls back to CWD split
 
 set -euo pipefail
 
@@ -13,6 +17,19 @@ readonly MAX_DEPTH=3
 
 # Preview script location
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Parse direction argument (default: h for horizontal/right split)
+DIRECTION="h"
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --direction=*) DIRECTION="${1#*=}"; shift ;;
+        -d) DIRECTION="$2"; shift 2 ;;
+        *) shift ;;
+    esac
+done
+
+# Validate direction
+[[ "$DIRECTION" != "h" && "$DIRECTION" != "v" ]] && DIRECTION="h"
 
 # Home path replacement for display
 home_replacer=""
@@ -27,33 +44,25 @@ get_directories() {
   zoxide query -l 2>/dev/null | sed -e "$home_replacer"
 }
 
-create_session() {
+create_split() {
   local dir="$1"
 
   # Expand ~ back to $HOME
   [[ -n "$home_replacer" ]] && dir=$(echo "$dir" | sed -e "s|^~/|$HOME/|")
 
-  # Get basename for session name, sanitize for tmux
-  local session_name
-  session_name=$(basename "$dir" | tr ' .:' '_')
-
-  # Check if session already exists
-  if tmux has-session -t "$session_name" 2>/dev/null; then
-    # Session exists, switch to it
-    tmux switch-client -t "$session_name"
-    tmux display-message "Switched to existing session: $session_name"
-    return 0
-  fi
-
   # Add to zoxide for future use
   zoxide add "$dir" &>/dev/null || true
 
-  # Create new session with name and starting directory
-  # Use -d to create detached, then switch to it
-  tmux new-session -d -s "$session_name" -c "$dir"
-  # Mark as initialized to prevent the auto-picker hook from running
-  tmux set-option -t "$session_name" @session-dir-initialized 1
-  tmux switch-client -t "$session_name"
+  # Create split pane in the selected directory
+  # -h = horizontal split (pane to right), -v = vertical split (pane below)
+  tmux split-window -${DIRECTION} -c "$dir"
+}
+
+fallback_split() {
+  # Get current pane path and split there
+  local current_path
+  current_path=$(tmux display-message -p '#{pane_current_path}')
+  tmux split-window -${DIRECTION} -c "$current_path"
 }
 
 main() {
@@ -74,16 +83,24 @@ main() {
     --delimiter='/' \
     --with-nth="-2,-1" \
     --keep-right \
-    --border-label "   New Session") || {
+    --border-label "   Split Pane") || {
     local exit_code=$?
-    # Exit code 130 means user cancelled (Ctrl-C/ESC), exit cleanly
-    [[ $exit_code -eq 130 ]] && exit 0
+    # Exit code 130 means user cancelled (Ctrl-C/ESC)
+    # Fall back to CWD split
+    if [[ $exit_code -eq 130 ]]; then
+        fallback_split
+        exit 0
+    fi
     exit $exit_code
   }
 
-  [[ -z "$result" ]] && exit 0
+  # Empty result = no selection, fall back to CWD
+  if [[ -z "$result" ]]; then
+    fallback_split
+    exit 0
+  fi
 
-  create_session "$result"
+  create_split "$result"
 }
 
 main "$@"

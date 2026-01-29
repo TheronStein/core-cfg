@@ -40,6 +40,16 @@ CURRENT_WINDOW=$(tmux::window::index)
 CURRENT_PANE=$(tmux::pane::index)
 CURRENT_PANE_ID=$(tmux::pane::id)
 
+# Colors
+C_RESET='\033[0m'
+C_CYAN='\033[36m'
+C_GREEN='\033[32m'
+C_YELLOW='\033[33m'
+C_DIM='\033[2m'
+C_BOLD='\033[1m'
+C_BLUE='\033[34m'
+C_MAGENTA='\033[35m'
+
 # Build pane list
 # Format: session:window.pane | command | path | size
 get_panes() {
@@ -51,7 +61,8 @@ get_panes() {
         tmux list-panes -s -F "$format_str" 2>/dev/null
     fi | while IFS='|' read -r target cmd path size pane_id; do
         local marker=" "
-        [[ "$pane_id" == "$CURRENT_PANE_ID" ]] && marker="*"
+        local target_color="$C_CYAN"
+        [[ "$pane_id" == "$CURRENT_PANE_ID" ]] && { marker="*"; target_color="$C_GREEN$C_BOLD"; }
 
         # Shorten path
         local short_path="${path/#$HOME/~}"
@@ -61,36 +72,13 @@ get_panes() {
         local short_cmd="$cmd"
         [[ ${#short_cmd} -gt 15 ]] && short_cmd="${short_cmd:0:12}..."
 
-        printf "%s %-18s  %-15s  %-10s  %s\n" "$marker" "$target" "$short_cmd" "$size" "$short_path"
+        printf "${C_YELLOW}%s${C_RESET} ${target_color}%-18s${C_RESET}  ${C_MAGENTA}%-15s${C_RESET}  ${C_DIM}%-10s${C_RESET}  ${C_BLUE}%s${C_RESET}\n" \
+            "$marker" "$target" "$short_cmd" "$size" "$short_path"
     done
 }
 
-# Preview: show pane content
-preview_pane() {
-    local line="$1"
-    # Extract target (session:window.pane)
-    local target
-    target=$(echo "$line" | sed 's/^[* ] //' | awk '{print $1}')
-
-    echo -e "\033[1;34m═══ Pane: $target ═══\033[0m"
-    echo ""
-
-    # Pane info
-    local cmd path size
-    cmd=$(tmux display-message -t "$target" -p '#{pane_current_command}' 2>/dev/null || echo "unknown")
-    path=$(tmux display-message -t "$target" -p '#{pane_current_path}' 2>/dev/null || echo "unknown")
-    size=$(tmux display-message -t "$target" -p '#{pane_width}x#{pane_height}' 2>/dev/null || echo "?x?")
-
-    echo -e "\033[1;33m Command:\033[0m $cmd"
-    echo -e "\033[1;33m Path:\033[0m $path"
-    echo -e "\033[1;33m Size:\033[0m $size"
-    echo ""
-
-    # Pane content
-    echo -e "\033[1;33m Content:\033[0m"
-    tmux capture-pane -t "$target" -p -S -18 2>/dev/null | head -18 || echo "  (no preview)"
-}
-export -f preview_pane
+# Preview script location
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Header based on action
 case "$ACTION" in
@@ -108,14 +96,13 @@ esac
 KEYBINDS="^/ preview  Esc cancel"
 
 # Run FZF
-SELECTED=$(get_panes | fzf \
+SELECTED=$(get_panes | fzf-tmux -p 80%,80% \
     --ansi \
-    --height=80% \
     --layout=reverse \
     --border=rounded \
     --color="$(fzf::colors)" \
-    --preview='bash -c "preview_pane {}"' \
-    --preview-window=top:70%:wrap \
+    --preview="$SCRIPT_DIR/preview-pane.sh {}" \
+    --preview-window=right:60%:wrap \
     --header="$HEADER
 $KEYBINDS" \
     --prompt="Pane> " \

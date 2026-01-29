@@ -5,7 +5,7 @@ local wezterm = require("wezterm")
 local act = wezterm.action
 local paths = require("utils.paths")
 local debug_config = require("config.debug")
-local tmux_utils = require("modules.tmux.utils")k
+local tmux_utils = require("modules.tmux.utils")
 
 local M = {}
 
@@ -121,6 +121,10 @@ M.workspaces = {
   },
 }
 
+-- Get workspace info by name (called by tabline/tabs.lua, tmux_server.lua, etc.)
+function M.get_workspace_info(workspace_name)
+  return M.workspaces[workspace_name]
+end
 
 -- Check if a tmux server socket is active
 function M.is_server_active(workspace_name)

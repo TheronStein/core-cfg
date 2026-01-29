@@ -1,20 +1,17 @@
 #!/usr/bin/env bash
-# Generate complete tmux status-left with dynamic context and mode colors
-# Format: [CONTEXT] > [MODE] > SESSION_NAME
-# Mode segment only appears when a tmux mode is active
+# Generate complete tmux status-left with workspace, session, and optional mode
+# Format: [WORKSPACE] > [SESSION] > [MODE if active]
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# Get current context and mode (format: "ICON CONTEXT:color|MODE:color")
+# Get workspace display name
+workspace_display=$(tmux show-environment -g TMUX_WORKSPACE_DISPLAY 2>/dev/null | cut -d= -f2)
+server_name=$(tmux show-environment -g TMUX_SERVER_NAME 2>/dev/null | cut -d= -f2)
+workspace="${workspace_display:-${server_name:-default}}"
+
+# Get mode info from existing script (only need the mode portion)
 full_info=$(bash "$SCRIPT_DIR/modes/get-tmux-mode.sh")
-
-# Split into context and mode portions
-context_part="${full_info%%|*}"
 mode_part="${full_info#*|}"
-
-# Parse context (always present)
-context_label="${context_part%:*}"
-context_color="${context_part##*:}"
 
 # Parse mode (may be empty)
 if [ -n "$mode_part" ]; then
@@ -24,52 +21,51 @@ else
   mode_label=""
   mode_color=""
 fi
+
 # Color lookup function
 get_bg_color() {
   case "$1" in
     red) echo "#FF5370" ;;    # Red for LEADER/SYNC
     yellow) echo "#f1fa8c" ;; # Yellow for copy mode
     orange) echo "#e0af68" ;; # Orange for resize
-    tmux) echo "#18BA18" ;;   # Green for TMUX context
-    neovim) echo "#1075B5" ;; # Blue for NEOVIM context
-    purple) echo "#8470FF" ;; # Purple for WEZTERM context (archived)
-    *) echo "#2ac3de" ;;      # Default purple
+    *) echo "#2ac3de" ;;      # Default
   esac
 }
-
-context_bg=$(get_bg_color "$context_color")
 
 # Get session name from argument (passed by tmux format expansion) or fallback
 default_session='#{session_name}'
 raw_session="${1:-$default_session}"
-session_name=$(echo " $raw_session " | sed 's/-view-.*//')
+session_name=$(echo "$raw_session" | sed 's/-view-.*//')
 
 # Powerline divider character
-# NOTE DO NOT TOUCH THIS! YOU CANT INPUT THESE SPECIAL CHARACTERS, I HAVE TO FIX IT EVERY TIME.
-divider=""
-# NOTE DO NOT TOUCH THIS! YOU CANT INPUT THESE SPECIAL CHARACTERS, I HAVE TO FIX IT EVERY TIME.
-session_bg="#444267"
+# NOTE: DO NOT TOUCH THIS! Special character that must be preserved.
+divider=""
 
-# Build the status-left: Context > [Mode] > Session
-# Context segment (always shown) - with leading space for padding from edge
-output="#[bold,fg=#292D3E,bg=${context_bg}] ${context_label}  "
+# Colors
+workspace_bg="#7F38EC"  # Purple for workspace
+workspace_fg="#FFFFFF"  # White text
+session_bg="#444267"    # Session background
+status_bg="#292D3E"     # Main status bar background
+
+# Build the status-left: Workspace > Session > [Mode]
+# Workspace segment
+output="#[bold,fg=${workspace_fg},bg=${workspace_bg}] ${workspace} "
+output+="#[fg=${workspace_bg},bg=${session_bg}]${divider}"
+
+# Session segment
+output+="#[bold,fg=#cdd6f4,bg=${session_bg}] ${session_name^} "
 
 # Mode segment (only when active)
 if [ -n "$mode_label" ]; then
   mode_bg=$(get_bg_color "$mode_color")
-  # Divider: context → mode
-  output+="#[fg=${context_bg},bg=${mode_bg}]${divider}"
+  # Divider: session → mode
+  output+="#[fg=${session_bg},bg=${mode_bg}]${divider}"
   output+="#[bold,fg=#292D3E,bg=${mode_bg}] ${mode_label} "
-  # Divider: mode → session
-  output+="#[fg=${mode_bg},bg=${session_bg}]${divider}"
+  # Final divider: mode → status bar
+  output+="#[fg=${mode_bg},bg=${status_bg}]${divider}"
 else
-  # Divider: context → session (no mode)
-  output+="#[fg=${context_bg},bg=${session_bg}]${divider}"
+  # Final divider: session → status bar
+  output+="#[fg=${session_bg},bg=${status_bg}]${divider}"
 fi
-
-# Session segment
-output+="#[bold,fg=${context_bg},bg=${session_bg}] ${session_name^} "
-# Final divider: session → status bar background
-output+="#[fg=${session_bg},bg=#292D3E]${divider}"
 
 echo "$output"

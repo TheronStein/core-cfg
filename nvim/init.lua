@@ -3,8 +3,8 @@ vim.g.loaded_perl_provider = 0
 vim.g.python3_host_prog = "/usr/bin/python3"
 
 -- ~/.config/nvim/init.lua
-vim.g.mapleader = " " -- Set leader key to space (before loading plugins)
-vim.g.maplocalleader = "\\" -- Set local leader to comma (optional, adjust as needed)
+vim.g.mapleader = "\\" -- Set leader key to space (before loading plugins)
+vim.g.maplocalleader = " " -- Set local leader to comma (optional, adjust as needed)
 
 -- -- Load core configurations
 require("core.lazy") -- Load lazy.nvim (sets up plugins)

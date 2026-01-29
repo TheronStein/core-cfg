@@ -13,7 +13,7 @@ return {
   -- dpi = 144.0, -- Override system DPI detection (default: auto-detect)
   -- dpi = 108.0, -- Override system DPI detection (default: auto-detect)
   -- dpi = auto, -- Override system DPI detection (default: auto-detect)
-  dpi = 96.0, -- Override system DPI detection (default: auto-detect)
+  -- dpi = 96.0, -- Override system DPI detection (default: auto-detect)
   -- dpi_by_screen = { -- Per-monitor DPI overrides
   --   ["monitor_name"] = 144.0,
   -- },
@@ -37,7 +37,8 @@ return {
   cell_width = 1.0,
   window_decorations = "NONE",
   -- font_size = 14.0,
-  font_size = 19.25,
+  -- font_size = 19.25, -- Previous: felt too zoomed in
+  font_size = 17.0,
   -- adjust_window_size_when_changing_font_size = true,
   adjust_window_size_when_changing_font_size = false,
   window_padding = {

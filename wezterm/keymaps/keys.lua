@@ -10,6 +10,10 @@ function M.setup(config)
 		--          │                       LITERALS                          │
 		--          ╰─────────────────────────────────────────────────────────╯
 
+		-- Force Ctrl+` to send CSI-u sequence (backtick = ASCII 96)
+		-- WezTerm incorrectly sends ^@ (NUL) by default; Kitty sends ^[[96;5u
+		{ key = "`", mods = "CTRL", action = wezterm.action.SendString("\x1b[96;5u") },
+
 		-- Nerd Fonts Picker
 		-- {
 		--    key = 'F9',

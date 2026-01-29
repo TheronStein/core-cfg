@@ -646,9 +646,9 @@ safe_require_checked("relative-motions")
 -- UI ENHANCEMENT PLUGINS
 -- ═══════════════════════════════════════════════════════════════
 
--- Layout Manager - Interactive layout control with presets
+-- Layout Manager - Direct keybindings for layout presets
 -- Replaces: auto-layout, dual-pane, toggle-view, toggle-pane
--- Keybindings: t,l (menu) | t,m (manage) | t,1/2/3 (quick presets)
+-- Keybindings: 1-0/!/# (1-pane) | 1-2/2-1 (2-pane) | 3-1/3-2/3-3 (3-pane)
 safe_require_checked("layout-manager")
 
 -- Zoom (image zoom control)

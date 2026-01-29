@@ -8,9 +8,9 @@ return {
     modules = {
       bib = true,
       buffers = true,
-      conceal = true,
+      conceal = false, -- Disabled: render-markdown.nvim handles concealment
       cursor = true,
-      folds = true,
+      folds = false, -- Disabled: mkdnflow doesn't provide foldexpr, use treesitter
       links = true,
       lists = true,
       maps = false, -- Disable default mappings since you define custom ones

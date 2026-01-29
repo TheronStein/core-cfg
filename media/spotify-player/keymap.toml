@@ -1,3 +1,5 @@
+#Track Navigation/Handling
+[[keymaps]]
 command = "NextTrack"
 key_sequence = "e"
 [[keymaps]]

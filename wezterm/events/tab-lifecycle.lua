@@ -149,6 +149,7 @@ function M.format_tab_title(tab, tabs, panes, config, hover, max_width)
 	local user_vars = pane.user_vars or {}
 	local tmux_session = user_vars.TMUX_SESSION or ""
 	local tmux_window = user_vars.TMUX_WINDOW or ""
+	local tmux_server = user_vars.TMUX_SERVER or ""
 	local tmux_server_icon = user_vars.TMUX_SERVER_ICON or ""
 
 	-- Decode base64 values
@@ -164,6 +165,13 @@ function M.format_tab_title(tab, tabs, panes, config, hover, max_width)
 			tmux_window = decoded
 		end
 	end
+	if tmux_server ~= "" then
+		local ok, decoded = pcall(wezterm.base64_decode, tmux_server)
+		if ok then
+			-- Trim any trailing newlines/whitespace
+			tmux_server = decoded:gsub("%s+$", "")
+		end
+	end
 	if tmux_server_icon ~= "" then
 		local ok, decoded = pcall(wezterm.base64_decode, tmux_server_icon)
 		if ok then
@@ -176,16 +184,20 @@ function M.format_tab_title(tab, tabs, panes, config, hover, max_width)
 	local cwd_proc = get_cwd_or_process(pane)
 	local cwd_proc_display = truncate(cwd_proc, 20)
 
-	-- Build context string [tmux_icon WINDOW] or [DOMAIN]
+	-- Build context string [SERVER] or [DOMAIN]
 	local context = ""
-	if tmux_window ~= "" then
-		-- Inside tmux: show window name with optional icon
-		local window_part = truncate(tmux_window, 10)
+	if tmux_server ~= "" then
+		-- Inside tmux: show server name (e.g., "configuration", "development")
+		local server_display = truncate(tmux_server, 12)
 		if tmux_server_icon ~= "" then
-			context = "[" .. tmux_server_icon .. " " .. window_part .. "]"
+			context = "[" .. tmux_server_icon .. " " .. server_display .. "]"
 		else
-			context = "[ " .. window_part .. "]"
+			context = "[ " .. server_display .. "]"
 		end
+	elseif tmux_session ~= "" then
+		-- Fallback: show session name if server not available
+		local session_display = truncate(tmux_session, 12)
+		context = "[ " .. session_display .. "]"
 	else
 		-- Not in tmux: show domain
 		local domain = pane.domain_name or "local"

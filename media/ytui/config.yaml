@@ -1,0 +1,13 @@
+channels:
+  local: false
+  subscribed: []
+download_dir: ~/Videos/YouTube
+history:
+  enable: true
+invidious:
+  proxy: ''
+  instance: invidious.jing.rocks
+loglevel: info
+youtube:
+  clientid: YOUR_CLIENT_ID_HERE
+  secretid: YOUR_CLIENT_SECRET_HERE

@@ -1242,37 +1242,29 @@ keymap = [
   { on = "<C-p>", run = "plugin zoom", desc = "Maximize/restore preview" },
 
   # Layout Management (layout-manager.yazi)
-  { on = [
-    "t",
-    "l",
-  ], run = "plugin layout-manager", desc = "Layout selection menu" },
-  { on = [
-    "t",
-    "m",
-  ], run = "plugin layout-manager --args=manage", desc = "Manage layouts" },
-  # Quick preset shortcuts
-  { on = [
-    "t",
-    "1",
-  ], run = "plugin layout-manager --args='preset 1-pane'", desc = "1-pane layout" },
-  { on = [
-    "t",
-    "2",
-  ], run = "plugin layout-manager --args='preset 2-preview'", desc = "2-pane preview" },
-  { on = [
-    "t",
-    "3",
-  ], run = "plugin layout-manager --args='preset 3-pane'", desc = "3-pane layout" },
-  { on = [
-    "t",
-    "r",
-  ], run = "plugin layout-manager --args=reset", desc = "Reset to default layout" },
+  # 1-Pane layouts
+  { on = ["1", "0"], run = "plugin layout-manager -- 1-parent", desc = "1-pane: Parent only" },
+  { on = "!", run = "plugin layout-manager -- 1-current", desc = "1-pane: Current only" },
+  { on = "#", run = "plugin layout-manager -- 1-preview", desc = "1-pane: Preview only" },
+
+  # 2-Pane: Parent + Current
+  { on = ["1", "2"], run = "plugin layout-manager -- 2-pc-parent", desc = "2-pane: Parent wider" },
+  { on = ["1", "e"], run = "plugin layout-manager -- 2-pc-equal", desc = "2-pane: P+C equal" },
+  { on = ["2", "1"], run = "plugin layout-manager -- 2-pc-current", desc = "2-pane: Current wider" },
+
+  # 2-Pane: Current + Preview
+  { on = ["2", "e"], run = "plugin layout-manager -- 2-cp-equal", desc = "2-pane: C+P equal" },
+  { on = ["2", "2"], run = "plugin layout-manager -- 2-cp-current", desc = "2-pane: Current wider" },
+  { on = ["2", "3"], run = "plugin layout-manager -- 2-cp-preview", desc = "2-pane: Preview wider" },
+
+  # 3-Pane layouts
+  { on = ["3", "3"], run = "plugin layout-manager -- 3-preview", desc = "3-pane: Preview wider" },
+  { on = ["3", "2"], run = "plugin layout-manager -- 3-current", desc = "3-pane: Current wider" },
+  { on = ["3", "1"], run = "plugin layout-manager -- 3-parent", desc = "3-pane: Parent wider" },
+  { on = ["3", "e"], run = "plugin layout-manager -- 3-equal", desc = "3-pane: C+P equal" },
+
   # Other toggles
-  { on = [
-    "t",
-    "e",
-  ], run = "plugin eza-preview", desc = "Toggle tree/list dir preview" },
-  # Legacy toggle-view bindings archived - use layout-manager instead,
+  { on = ["t", "e"], run = "plugin eza-preview", desc = "Toggle tree/list dir preview" },
 
   # Image zoom (resets on file change)
   { on = [

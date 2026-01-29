@@ -421,43 +421,101 @@ zle -N widget::fzf-git-commits
 
 #=============================================================================
 # WIDGET: TMUX SESSION MANAGER
-# Usage: Interactive session management with create/delete/rename
-# Uses tmux popup when inside tmux for overlay experience
+# Usage: Interactive server + session management
+# Two-level browser: servers (workspaces) -> sessions
+#
+# Behavior:
+#   Outside tmux: Browser runs directly, attaches via BUFFER command
+#   Inside tmux: Browser runs in popup, selection uses switch-client (actual switch)
 #=============================================================================
 function widget::tmux-session-manager() {
-    # Source global session library
-    source "${HOME}/.core/.cortex/lib/session.sh"
+    local browser_script="${HOME}/.core/.cortex/lib/fzf-browsers/tmux-server-session-browser.sh"
+    local result_file="/tmp/tmux-browser-result"
 
-    # Clear the command line
-    BUFFER=""
-    zle redisplay
-
-    local selected
-    local result_file="/tmp/session-picker-result-$$"
+    # Clean up any old result file
     rm -f "$result_file"
 
     if [[ -n "$TMUX" ]]; then
-        # Inside tmux - use popup overlay
-        tmux display-popup -E -w 85% -h 85% -T " Sessions " \
-            "source ~/.core/.cortex/lib/session.sh && session::picker > $result_file"
-        selected=$(cat "$result_file" 2>/dev/null)
-        rm -f "$result_file"
+        # Inside tmux - run browser in popup, then switch-client to result
+        tmux display-popup -E -w 90% -h 90% -T " TMUX Sessions " \
+            "TMUX_BROWSER_RESULT_FILE='$result_file' bash '$browser_script'"
 
-        [[ -n "$selected" ]] && session::switch "$selected"
+        # Check if there's a selection
+        if [[ -f "$result_file" ]]; then
+            local result
+            result=$(cat "$result_file")
+            rm -f "$result_file"
+
+            if [[ -n "$result" ]]; then
+                # Parse result: server|session
+                local server="${result%%|*}"
+                local session="${result#*|}"
+
+                # Use switch-client to actually switch sessions
+                if [[ "$server" == "default" ]]; then
+                    if [[ -n "$session" ]]; then
+                        tmux switch-client -t "$session"
+                    fi
+                else
+                    if [[ -n "$session" ]]; then
+                        tmux -L "$server" switch-client -t "$session"
+                    fi
+                fi
+            fi
+        fi
         zle reset-prompt
     else
-        # Outside tmux - run picker directly
-        selected=$(session::picker)
+        # Outside tmux - run browser directly
+        TMUX_BROWSER_RESULT_FILE="$result_file" bash "$browser_script"
 
-        if [[ -n "$selected" ]]; then
-            BUFFER="tmux attach -t ${(q)selected}"
-            zle accept-line
-        else
-            zle reset-prompt
+        # Check if there's a selection
+        if [[ -f "$result_file" ]]; then
+            local result
+            result=$(cat "$result_file")
+            rm -f "$result_file"
+
+            if [[ -n "$result" ]]; then
+                # Parse result: server|session
+                local server="${result%%|*}"
+                local session="${result#*|}"
+
+                # Build attach command
+                local cmd
+                if [[ "$server" == "default" ]]; then
+                    cmd="tmux attach"
+                    [[ -n "$session" ]] && cmd="tmux attach -t $session"
+                else
+                    cmd="tmux -L $server attach"
+                    [[ -n "$session" ]] && cmd="tmux -L $server attach -t $session"
+                fi
+
+                # Execute via BUFFER so it runs in proper TTY context
+                BUFFER="$cmd"
+                zle accept-line
+                return
+            fi
         fi
+        zle reset-prompt
     fi
 }
 zle -N widget::tmux-session-manager
+
+#=============================================================================
+# WIDGET: TMUX SESSION POPUP
+# Usage: Open session browser in popup that ATTACHES inside the popup
+# This is the old behavior - useful for peeking at other sessions
+#=============================================================================
+function widget::tmux-session-popup() {
+    [[ -z "$TMUX" ]] && return
+
+    local popup_loop="${HOME}/.core/.cortex/lib/fzf-browsers/tmux-popup-session-loop.sh"
+
+    # Open popup with session loop - sessions attach INSIDE the popup
+    tmux display-popup -E -w 90% -h 90% -T " TMUX Sessions (Popup Mode) " \
+        "bash '$popup_loop'"
+    zle reset-prompt
+}
+zle -N widget::tmux-session-popup
 
 #=============================================================================
 # WIDGET: TMUX SESSION SELECTOR (Legacy - kept for compatibility)

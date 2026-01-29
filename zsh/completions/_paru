@@ -521,7 +521,8 @@ _pacman_completions_all_groups() {
 # provides completions for packages available from repositories
 # these can be specified as either 'package' or 'repository/package'
 _pacman_completions_all_packages() {
-  local -a seq sep cmd packages repositories packages_long
+  local -a seq sep cmd packages repositories packages_long aur_installed
+  local line
 
   if [[ ${words[CURRENT-1]} == '--ignore' ]]; then
     seq='_sequence'
@@ -532,11 +533,19 @@ _pacman_completions_all_packages() {
   fi
 
   if compset -P1 '*/*'; then
-    packages=( $(_call_program packages paru -Pc ${words[CURRENT]%/*}) )
+    # Extract only package names (first column) from "package repo" format
+    # Filter out corrupted AUR entries - only keep lines that are entirely printable ASCII
+    packages=( ${(f)"$(_call_program packages paru -Pc ${words[CURRENT]%/*} | LC_ALL=C command grep -a '^[a-zA-Z0-9@._+-]*[[:space:]][a-zA-Z]*$' | cut -d' ' -f1)"} )
     typeset -U packages
     ${seq} _wanted repo_packages expl "repository/package" compadd ${sep[@]} ${(@)packages}
   else
-    packages=( $(_call_program packages paru -Pc ) )
+    # Extract repo packages from paru -Pc (filter corrupted AUR entries)
+    packages=( ${(f)"$(_call_program packages paru -Pc | LC_ALL=C command grep -a '^[a-zA-Z0-9@._+-]*[[:space:]][a-zA-Z]*$' | cut -d' ' -f1)"} )
+
+    # Add installed AUR packages (paru -Qmq) since paru -Pc AUR output is often corrupted
+    aur_installed=( ${(f)"$(_call_program aur_packages paru -Qmq 2>/dev/null)"} )
+    packages+=( "${aur_installed[@]}" )
+
     typeset -U packages
     ${seq} _wanted packages expl "packages" compadd ${sep[@]} - "${(@)packages}"
 
